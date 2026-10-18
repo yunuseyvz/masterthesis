@@ -1,0 +1,34 @@
+{
+  "id": "US1",
+  "project": "flash-shop",
+  "title": "Flash-Sale Inventory Reservation",
+  "brief": "As a customer during a flash sale, I want to reserve stock for the items in my cart so that I don't lose them while I check out. If the shop can't fulfil my order, I should be told.",
+  "steps": [
+    { "n": 1, "kind": "scaffold", "summary": "Add SKU and store types",
+      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
+    { "n": 2, "kind": "milestone", "summary": "Implement stock reservation",
+      "files": [{ "path": "src/inventory.ts", "source": { "Correct": "src/inventory.correct.ts", "Flawed": "src/inventory.flawed.ts" } }] },
+    { "n": 3, "kind": "scaffold", "summary": "Add checkout handler and route table",
+      "files": [{ "path": "src/checkout.ts", "source": "src/checkout.ts" }] },
+    { "n": 4, "kind": "completion", "summary": "Add unit tests for reservations",
+      "files": [{ "path": "test/inventory.test.ts", "source": "test/inventory.test.ts" }] }
+  ],
+  "testFile": "test/inventory.test.ts",
+  "testsAvailableFromStep": 2,
+  "probe": {
+    "question": "Starting with stock = 2 for SKU \"A\", a reservation of 5 units fails with an error. What is the stock of \"A\" afterwards?",
+    "options": ["2", "0", "-3", "undefined"],
+    "script": "probe.ts",
+    "expected": { "Correct": "2", "Flawed": "-3" }
+  },
+  "understanding": {
+    "question": "A single oversized reservation has just failed. How does the checkout endpoint behave on the next valid order for that item?",
+    "options": [
+      "The valid order succeeds normally; the failed attempt had no effect",
+      "The valid order is rejected as out of stock even though stock was available",
+      "The valid order succeeds but is charged twice",
+      "The endpoint stops responding until the server restarts"
+    ],
+    "correct": { "Correct": 0, "Flawed": 1 }
+  }
+}

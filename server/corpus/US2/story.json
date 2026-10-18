@@ -1,0 +1,34 @@
+{
+  "id": "US2",
+  "project": "payments-service",
+  "title": "Webhook Payment Idempotency & Retry",
+  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
+  "steps": [
+    { "n": 1, "kind": "scaffold", "summary": "Add webhook event types and the event log",
+      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
+    { "n": 2, "kind": "milestone", "summary": "Implement event deduplication and retry",
+      "files": [{ "path": "src/idempotency.ts", "source": { "Correct": "src/idempotency.correct.ts", "Flawed": "src/idempotency.flawed.ts" } }] },
+    { "n": 3, "kind": "scaffold", "summary": "Add the webhook endpoint handler and the credit handler",
+      "files": [{ "path": "src/webhook.ts", "source": "src/webhook.ts" }] },
+    { "n": 4, "kind": "completion", "summary": "Add unit tests for webhook processing",
+      "files": [{ "path": "test/webhook.test.ts", "source": "test/webhook.test.ts" }] }
+  ],
+  "testFile": "test/webhook.test.ts",
+  "testsAvailableFromStep": 2,
+  "probe": {
+    "question": "The handler throws a transient error on its first attempt for event \"evt_9\", and the retry loop calls processing for \"evt_9\" again. What does that retry call do?",
+    "options": ["Re-runs handler", "Skips as already processed", "Throws duplicate error", "null"],
+    "script": "probe.ts",
+    "expected": { "Correct": "Re-runs handler", "Flawed": "Skips as already processed" }
+  },
+  "understanding": {
+    "question": "A payment webhook's handler throws a transient error on its first attempt. What does the endpoint end up doing for that event?",
+    "options": [
+      "It succeeds on a retry and the account is credited",
+      "It returns 200 OK on a retry, but the account is never credited",
+      "It returns 500 on every retry until the server restarts",
+      "It credits the account twice"
+    ],
+    "correct": { "Correct": 0, "Flawed": 1 }
+  }
+}

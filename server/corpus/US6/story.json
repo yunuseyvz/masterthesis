@@ -1,0 +1,34 @@
+{
+  "id": "US6",
+  "project": "storefront",
+  "title": "Discount Tiers & Percentage Clamping",
+  "brief": "As a shopper, I want to apply a coupon to my order, so that I pay the discounted price.",
+  "steps": [
+    { "n": 1, "kind": "scaffold", "summary": "Add cart and coupon types",
+      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
+    { "n": 2, "kind": "milestone", "summary": "Implement discount calculation",
+      "files": [{ "path": "src/pricing.ts", "source": { "Correct": "src/pricing.correct.ts", "Flawed": "src/pricing.flawed.ts" } }] },
+    { "n": 3, "kind": "scaffold", "summary": "Add the order summary calculator",
+      "files": [{ "path": "src/order.ts", "source": "src/order.ts" }] },
+    { "n": 4, "kind": "completion", "summary": "Add unit tests for pricing",
+      "files": [{ "path": "test/pricing.test.ts", "source": "test/pricing.test.ts" }] }
+  ],
+  "testFile": "test/pricing.test.ts",
+  "testsAvailableFromStep": 2,
+  "probe": {
+    "question": "What does clampPercent(-15) return in this implementation?",
+    "options": ["0", "-15", "100", "NaN"],
+    "script": "probe.ts",
+    "expected": { "Correct": "0", "Flawed": "-15" }
+  },
+  "understanding": {
+    "question": "A coupon carries a discount percentage of -15. How does it affect the order total?",
+    "options": [
+      "The total is unchanged: the negative adjustment is ignored",
+      "The total goes up by 15%",
+      "The total goes down by 15%",
+      "Checkout fails with an error"
+    ],
+    "correct": { "Correct": 0, "Flawed": 1 }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "US5",
+  "project": "api-gateway",
+  "title": "Sliding-Window API Rate Limiter",
+  "brief": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.",
+  "steps": [
+    { "n": 1, "kind": "scaffold", "summary": "Add rate limiter types and default config",
+      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
+    { "n": 2, "kind": "milestone", "summary": "Implement the sliding-window check",
+      "files": [{ "path": "src/limiter.ts", "source": { "Correct": "src/limiter.correct.ts", "Flawed": "src/limiter.flawed.ts" } }] },
+    { "n": 3, "kind": "scaffold", "summary": "Add the gateway rate-limit filter",
+      "files": [{ "path": "src/gateway.ts", "source": "src/gateway.ts" }] },
+    { "n": 4, "kind": "completion", "summary": "Add unit tests for the limiter",
+      "files": [{ "path": "test/limiter.test.ts", "source": "test/limiter.test.ts" }] }
+  ],
+  "testFile": "test/limiter.test.ts",
+  "testsAvailableFromStep": 2,
+  "probe": {
+    "question": "With a limit of 2 requests per minute, a client makes 2 calls at t=0 and then a third call at t=10s that is rejected. How many timestamps are stored for that client afterwards?",
+    "options": ["2", "3", "0", "1"],
+    "script": "probe.ts",
+    "expected": { "Correct": "2", "Flawed": "3" }
+  },
+  "understanding": {
+    "question": "A client sends one request every 25 seconds under a limit of 2 requests per 60 seconds. After its first rejection, what happens to its later requests?",
+    "options": [
+      "They are accepted again once older requests leave the window",
+      "They keep being rejected for as long as the client keeps sending",
+      "The client is banned for an hour",
+      "Exactly every other request is rejected"
+    ],
+    "correct": { "Correct": 0, "Flawed": 1 }
+  }
+}

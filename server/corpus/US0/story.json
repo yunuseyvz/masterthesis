@@ -1,0 +1,29 @@
+{
+  "id": "US0",
+  "project": "greeter",
+  "title": "Practice: Greeting Formatter",
+  "brief": "As a user, I want the app to greet me by name, so that it feels friendly. This is a practice story: take your time to explore the interface.",
+  "steps": [
+    { "n": 1, "kind": "scaffold", "summary": "Add greeting types",
+      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
+    { "n": 2, "kind": "milestone", "summary": "Implement the greeting formatter",
+      "files": [{ "path": "src/greeting.ts", "source": "src/greeting.ts" }] },
+    { "n": 3, "kind": "scaffold", "summary": "Add a helper that greets several users",
+      "files": [{ "path": "src/batch.ts", "source": "src/batch.ts" }] },
+    { "n": 4, "kind": "completion", "summary": "Add unit tests for greetings",
+      "files": [{ "path": "test/greeting.test.ts", "source": "test/greeting.test.ts" }] }
+  ],
+  "testFile": "test/greeting.test.ts",
+  "testsAvailableFromStep": 2,
+  "probe": {
+    "question": "What does formatGreeting({ name: \"  Ada \", formal: true }) return?",
+    "options": ["Dear Ada,", "Dear   Ada ,", "Hi Ada!", "Dear Ada"],
+    "script": "probe.ts",
+    "expected": { "Correct": "Dear Ada,", "Flawed": "Dear Ada," }
+  },
+  "understanding": {
+    "question": "What does the app greet a user with when no name has been provided?",
+    "options": ["Hi there!", "Hi undefined!", "An error is thrown", "An empty string"],
+    "correct": { "Correct": 0, "Flawed": 0 }
+  }
+}
