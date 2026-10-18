@@ -1,0 +1,11 @@
+{
+  "name": "beacon-study-harness",
+  "private": true,
+  "type": "module",
+  "workspaces": ["shared", "server", "client"],
+  "scripts": {
+    "test": "npm test -w shared -w server",
+    "typecheck": "npm run typecheck -w shared -w server -w client",
+    "build": "npm run build -w client"
+  }
+}
