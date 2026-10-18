@@ -61,7 +61,7 @@ function Message({ item, running }: { item: ChatItem; running: boolean }) {
   }
 }
 
-function Sidebar({ sessions, current, working }: { sessions: ViewState["sessions"]; current: number; working: boolean }) {
+function Sidebar({ participantId, sessions, current, working }: { participantId: string; sessions: ViewState["sessions"]; current: number; working: boolean }) {
   return (
     <aside className="sidebar">
       {sessions.map((s) => (
@@ -75,6 +75,11 @@ function Sidebar({ sessions, current, working }: { sessions: ViewState["sessions
           </div>
         </div>
       ))}
+      <div className="sb-spacer" />
+      <div className="sb-user">
+        <span className="avatar">{participantId.slice(0, 1)}</span>
+        <span className="sb-user-text"><span className="sb-user-label">Participant</span><span className="sb-user-id">{participantId}</span></span>
+      </div>
     </aside>
   );
 }
@@ -185,7 +190,8 @@ export function App() {
   }
   if (view.phase === "presurvey") return <PreSurvey busy={busy} onSubmit={(r) => run(() => api.act({ type: "presurvey", ...r }))} />;
   if (view.phase === "postsurvey") return <PostSurvey busy={busy} onSubmit={(r) => run(() => api.act({ type: "postsurvey", ...r }))} />;
-  if (view.phase === "debrief") return <Debrief onDone={() => api.getState().then(setView)} />;
+  // The server exits right after finishing, so never re-fetch state here: just move to the last screen.
+  if (view.phase === "debrief") return <Debrief onDone={() => setView({ ...view, phase: "finished" })} />;
   if (view.phase === "finished") return <div className="center-card"><h2>Thank you</h2><p>You can close this window.</p></div>;
 
   const cp = view.checkpoint;
@@ -195,7 +201,7 @@ export function App() {
 
   return (
     <div className="app">
-      <Sidebar sessions={view.sessions} current={view.trial} working={working} />
+      <Sidebar participantId={view.participantId} sessions={view.sessions} current={view.trial} working={working} />
 
       <main className="center">
         <div className="topbar"><span className="title">{view.story?.title}</span><span className="crumb">{view.story?.project}</span><span className={`chip ${view.practice ? "practice" : ""}`}>{view.practice ? "Practice" : `Story ${view.trial - 1} of ${view.nTrials}`}</span></div>
@@ -268,7 +274,17 @@ function Debrief({ onDone }: { onDone: () => void }) {
           removed, tell the experimenter now or contact them later.
         </p>
         <div className="btn-row">
-          <button className="btn primary" disabled={busy} onClick={async () => { setBusy(true); await api.finish({}); onDone(); }}>Finish</button>
+          <button className="btn primary" disabled={busy} onClick={async () => {
+            setBusy(true);
+            try {
+              await api.finish({});
+            } catch (e) {
+              // The server shuts down right after answering, so the connection may close mid-response.
+              // A network failure (TypeError) still means it finished; an HTTP error does not.
+              if (!(e instanceof TypeError)) { setBusy(false); throw e; }
+            }
+            onDone();
+          }}>Finish</button>
         </div>
       </div>
     </div>
