@@ -6,6 +6,8 @@ import { buildApp } from "./app.js";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const env = process.env;
 if (!env.PARTICIPANT_ID || !env.STUDY_SEED) throw new Error("PARTICIPANT_ID and STUDY_SEED are required");
+// The ID is used in export file names, so reject anything that could escape the export directory.
+if (!/^[A-Za-z0-9]{1,32}$/.test(env.PARTICIPANT_ID)) throw new Error(`PARTICIPANT_ID must be 1-32 letters/digits, got "${env.PARTICIPANT_ID}"`);
 
 const exportDir = env.EXPORT_DIR ?? "/exports";
 const corpusDir = env.CORPUS_DIR ?? path.resolve(here, "../corpus");

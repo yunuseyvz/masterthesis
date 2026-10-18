@@ -17,10 +17,10 @@ Flow: welcome → questionnaire (consent, demographics, NCS-6 + attention check,
 ## Run a real session (Docker)
 
 ```bash
-scripts/run-session.sh <participant-number> [seed]   # then open http://localhost:5185
+scripts/run-session.sh   # then open http://localhost:5185
 ```
 
-Group = participant number mod 6, so run participants 1..N in order.
+With no options the script generates a random alphanumeric participant ID and a random seed, and picks the counterbalancing group from the number of completed sessions in `exports/` (modulo 6). Override with `--participant ID`, `--seed N`, `--group 0-5`; `--dry-run` prints the resolved values without starting anything.
 
 ## Isolation model
 
