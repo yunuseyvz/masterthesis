@@ -1,0 +1,151 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { CheckpointView, DiffFile } from "@beacon/shared";
+import { diffStat } from "./diff";
+import { DiffView, FileViewer } from "./DiffView";
+import { Chevron, DiffIcon, FilesIcon, Folder, TerminalIcon, fileIcon } from "./icons";
+import { TerminalView } from "./TerminalView";
+
+const split = (p: string) => { const i = p.lastIndexOf("/"); return i < 0 ? ["", p] as const : [p.slice(0, i + 1), p.slice(i + 1)] as const; };
+
+/** Stacked, collapsible per-file diffs in one scrolling pane. Coverage = share of each diff that has been scrolled into view. */
+export function ChangesPane({ diffs, live, onSeen, onToggle }: { diffs: DiffFile[]; live: boolean; onSeen: (path: string, coverage: number) => void; onToggle: (path: string, open: boolean) => void }) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const wraps = useRef(new Map<string, HTMLElement>());
+  const range = useRef(new Map<string, [number, number]>());
+  const [closed, setClosed] = useState<Set<string>>(new Set());
+
+  const measure = () => {
+    const sc = scroller.current;
+    if (!sc || live) return; // only count what the participant scrolls through once the agent is done
+    const c = sc.getBoundingClientRect();
+    for (const d of diffs) {
+      const el = wraps.current.get(d.path);
+      if (!el || closed.has(d.path)) continue;
+      const r = el.getBoundingClientRect();
+      const top = Math.max(r.top, c.top);
+      const bottom = Math.min(r.bottom, c.bottom);
+      if (bottom <= top || r.height === 0) continue;
+      const prev = range.current.get(d.path);
+      const next: [number, number] = [Math.min(prev?.[0] ?? Infinity, top - r.top), Math.max(prev?.[1] ?? -Infinity, bottom - r.top)];
+      range.current.set(d.path, next);
+      onSeen(d.path, Math.min(1, (next[1] - next[0]) / r.height));
+    }
+  };
+  useEffect(() => { const t = setTimeout(measure, 150); return () => clearTimeout(t); });
+
+  // While the agent writes, follow the newest file; when it stops, start the review from the top.
+  useEffect(() => {
+    const sc = scroller.current;
+    if (!sc) return;
+    if (live) sc.scrollTop = sc.scrollHeight;
+  });
+  useEffect(() => {
+    if (live) return;
+    range.current.clear();
+    if (scroller.current) scroller.current.scrollTop = 0;
+  }, [live]);
+
+  const total = useMemo(() => diffs.reduce((a, d) => { const s = diffStat(d.before, d.after); return { a: a.a + s.added, r: a.r + s.removed }; }, { a: 0, r: 0 }), [diffs]);
+
+  return (
+    <div className="pane grow">
+      <div className="pane-head">
+        <span className="pane-title"><DiffIcon /> Changes</span>
+        <span className="pane-meta">{diffs.length} file{diffs.length === 1 ? "" : "s"} <span className="add">+{total.a}</span>{total.r > 0 && <span className="del"> −{total.r}</span>}</span>
+      </div>
+      <div className="pane-body scroll" ref={scroller} onScroll={measure}>
+        {diffs.length === 0 && <div className="empty"><span>Changes will appear here as the agent writes.</span></div>}
+        {diffs.map((d) => {
+          const st = diffStat(d.before, d.after);
+          const [dir, name] = split(d.path);
+          const isClosed = closed.has(d.path);
+          return (
+            <section key={d.path} className="diff-file" ref={(el) => { if (el) wraps.current.set(d.path, el); }}>
+              <button className="diff-head" onClick={() => { const n = new Set(closed); isClosed ? n.delete(d.path) : n.add(d.path); setClosed(n); onToggle(d.path, isClosed); }}>
+                <Chevron open={!isClosed} />
+                {fileIcon(name)}
+                <span className="diff-path"><span className="dir">{dir}</span>{name}</span>
+                <span className="diff-stat"><span className="add">+{st.added}</span>{st.removed > 0 && <span className="del"> −{st.removed}</span>}</span>
+              </button>
+              {!isClosed && <DiffView before={d.before} after={d.after} />}
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface Node { name: string; path: string; children: Map<string, Node>; file: boolean }
+
+function buildTree(paths: string[]): Node {
+  const root: Node = { name: "", path: "", children: new Map(), file: false };
+  for (const p of paths) {
+    let cur = root;
+    p.split("/").forEach((part, i, arr) => {
+      const path = arr.slice(0, i + 1).join("/");
+      if (!cur.children.has(part)) cur.children.set(part, { name: part, path, children: new Map(), file: i === arr.length - 1 });
+      cur = cur.children.get(part)!;
+    });
+  }
+  return root;
+}
+
+function TreeLevel({ node, depth, selected, changed, onSelect }: { node: Node; depth: number; selected: string; changed: Set<string>; onSelect: (p: string) => void }) {
+  const [shut, setShut] = useState<Set<string>>(new Set());
+  const kids = [...node.children.values()].sort((a, b) => Number(a.file) - Number(b.file) || a.name.localeCompare(b.name));
+  return (
+    <>
+      {kids.map((k) => {
+        const isShut = shut.has(k.path);
+        return (
+          <div key={k.path}>
+            <button
+              className={`tree-row ${k.path === selected ? "active" : ""}`}
+              style={{ paddingLeft: 8 + depth * 14 }}
+              onClick={() => { if (k.file) onSelect(k.path); else { const n = new Set(shut); isShut ? n.delete(k.path) : n.add(k.path); setShut(n); } }}
+            >
+              {k.file ? <span style={{ width: 16, flex: "none" }} /> : <Chevron open={!isShut} />}
+              {k.file ? fileIcon(k.name) : <Folder />}
+              <span className="tree-name">{k.name}</span>
+              {k.file && changed.has(k.path) && <span className="tree-badge">M</span>}
+            </button>
+            {!k.file && !isShut && <TreeLevel node={k} depth={depth + 1} selected={selected} changed={changed} onSelect={onSelect} />}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+export function WorkPane({ cp, onFileOpen, onTab }: { cp: CheckpointView; onFileOpen: (p: string) => void; onTab: (t: string) => void }) {
+  // `cp.diffs` here is the live subset, so the tree grows as files get written.
+  const [tab, setTab] = useState<"files" | "terminal">("files");
+  const [file, setFile] = useState("");
+  const tree = useMemo(() => buildTree(cp.workspace.map((f) => f.path)), [cp.workspace]);
+  const changed = useMemo(() => new Set(cp.diffs.map((d) => d.path)), [cp.diffs]);
+  const content = cp.workspace.find((f) => f.path === file)?.content;
+
+  return (
+    <div className="pane small">
+      <div className="pane-head">
+        <button className={`tab ${tab === "files" ? "active" : ""}`} onClick={() => { setTab("files"); onTab("files"); }}><FilesIcon /> Files</button>
+        <button className={`tab ${tab === "terminal" ? "active" : ""}`} onClick={() => { setTab("terminal"); onTab("terminal"); }}><TerminalIcon /> Terminal</button>
+      </div>
+      <div className="pane-body split" style={{ display: tab === "files" ? "flex" : "none" }}>
+        <div className="tree scroll"><TreeLevel node={tree} depth={0} selected={file} changed={changed} onSelect={(p) => { setFile(p); onFileOpen(p); }} /></div>
+        <div className="viewer">
+          {content !== undefined ? (
+            <>
+              <div className="viewer-head">{file}</div>
+              <div style={{ flex: 1, minHeight: 0 }}><FileViewer key={file} path={file} content={content} /></div>
+            </>
+          ) : <div className="empty">Opened files appear here.<br /><span>Select a file in the tree.</span></div>}
+        </div>
+      </div>
+      <div className="pane-body term-body" style={{ display: tab === "terminal" ? "block" : "none" }}>
+        <TerminalView visible={tab === "terminal"} />
+      </div>
+    </div>
+  );
+}
