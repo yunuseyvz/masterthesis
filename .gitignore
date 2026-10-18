@@ -1,5 +1,13 @@
 node_modules
 dist
+*.tsbuildinfo
+
+# participant data and per-session sockets: never commit
 exports
 .run
-*.tsbuildinfo
+
+# local/OS noise
+.env
+.env.*
+.DS_Store
+*.log
