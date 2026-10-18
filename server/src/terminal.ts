@@ -57,45 +57,52 @@ export class TerminalManager {
     if (!ctx) return null;
     this.dispose();
 
+    // mkdtemp creates the directory 0700. Do not chmod after chown: the container drops CAP_FOWNER,
+    // so root can no longer chmod a directory it has handed to the sandbox uid.
     const dir = fs.mkdtempSync(path.join(this.root, "ws-"));
-    const { uid, gid } = this.sandbox;
-    const own = (p: string) => uid !== undefined && fs.chownSync(p, uid, gid ?? uid);
-    for (const [rel, content] of ctx.files) {
-      const abs = path.join(dir, rel);
-      fs.mkdirSync(path.dirname(abs), { recursive: true });
-      fs.writeFileSync(abs, content);
+    try {
+      const { uid, gid } = this.sandbox;
+      const own = (p: string) => uid !== undefined && fs.chownSync(p, uid, gid ?? uid);
+      for (const [rel, content] of ctx.files) {
+        const abs = path.join(dir, rel);
+        fs.mkdirSync(path.dirname(abs), { recursive: true });
+        fs.writeFileSync(abs, content);
+      }
+      const walk = (p: string) => {
+        own(p);
+        if (fs.statSync(p).isDirectory()) for (const e of fs.readdirSync(p)) walk(path.join(p, e));
+      };
+      walk(dir);
+    } catch (err) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      throw err;
     }
-    // chown the whole tree (dirs + files) after writing
-    const walk = (p: string) => {
-      own(p);
-      if (fs.statSync(p).isDirectory()) for (const e of fs.readdirSync(p)) walk(path.join(p, e));
-    };
-    walk(dir);
-    fs.chmodSync(dir, 0o700);
+    const { uid, gid } = this.sandbox;
 
     const bin = [path.dirname(process.execPath), "/usr/local/bin", "/usr/bin", "/bin"].join(":");
-    const proc = pty.spawn(
-      "/bin/bash",
-      ["-c", `ulimit ${uid !== undefined ? "-u 128 " : ""}-n 256 -t 600 -f 10240; exec /bin/bash --noprofile --rcfile ${this.rcFile} -i`],
-      {
-        name: "xterm-256color",
-        cols: size.cols,
-        rows: size.rows,
-        cwd: dir,
-        uid,
-        gid: gid ?? uid,
-        env: {
-          PATH: bin,
-          HOME: dir,
-          PROJECT_NAME: ctx.project,
-          TERM: "xterm-256color",
-          LANG: "C.UTF-8",
-          npm_config_update_notifier: "false",
-          npm_config_fund: "false",
-          npm_config_audit: "false",
-        },
+    const shell = `ulimit ${uid !== undefined ? "-u 128 " : ""}-n 256 -t 600 -f 10240; exec /bin/bash --noprofile --rcfile ${this.rcFile} -i`;
+    // Drop privileges with setpriv instead of node-pty's uid/gid options: those never clear the
+    // supplementary groups, which would leave the shell in the server's root group.
+    const [file, args] =
+      uid === undefined
+        ? ["/bin/bash", ["-c", shell]]
+        : ["/usr/bin/setpriv", ["--reuid", String(uid), "--regid", String(gid ?? uid), "--clear-groups", "--no-new-privs", "/bin/bash", "-c", shell]];
+    const proc = pty.spawn(file, args, {
+      name: "xterm-256color",
+      cols: size.cols,
+      rows: size.rows,
+      cwd: dir,
+      env: {
+        PATH: bin,
+        HOME: dir,
+        PROJECT_NAME: ctx.project,
+        TERM: "xterm-256color",
+        LANG: "C.UTF-8",
+        npm_config_update_notifier: "false",
+        npm_config_fund: "false",
+        npm_config_audit: "false",
       },
-    );
+    });
 
     const entry = { key: ctx.key, proc, dir, onExit };
     this.current = entry;
