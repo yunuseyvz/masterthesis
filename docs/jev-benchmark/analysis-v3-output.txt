@@ -1,0 +1,93 @@
+requests 384 non-200 0
+served models: {'typesafe/jev-1.13-20260917': 192, 'typesafe/jev-1.14-20261014': 192}
+
+=== jev-1.13 / state=step  (n=96) ===
+step kind        subst   M1    M2    M3  PRIMARY pause  urg
+1   scaffold    0.16  0.12  0.36  0.11  0.37  0.58  0.31
+2   milestone   0.82  0.70  0.62  0.14  0.76  0.84  0.59
+3   scaffold    0.98  0.78  0.26  0.14  0.78  0.78  0.60
+4   completion  0.29  0.44  0.07  0.33  0.45  0.24  0.20
+  AUROC primary     0.77   95% CI over stories [0.63, 0.92]
+  AUROC pause_point 0.97   95% CI over stories [0.91, 1.00]
+  AUROC urg         0.81   95% CI over stories [0.73, 0.88]
+  AUROC substantive 0.70   95% CI over stories [0.65, 0.77]
+  AUROC M1          0.71   95% CI over stories [0.59, 0.83]
+  AUROC M2          0.95   95% CI over stories [0.84, 1.00]
+  AUROC M3          0.51   95% CI over stories [0.42, 0.60]
+  Step 2 is top PRIMARY step in 3/12 story-variants
+  milestone type by argmax(M1,M2,M3): 10 / 24 (chance 8/24)
+  choice at milestone (cls_a): {'core_state_logic': 24}
+  choice stable under reversed option order: 96/96
+  invariance Flawed-Correct (PRIMARY at milestone) mean -0.025  per story ['+0.02', '-0.02', '-0.01', '+0.02', '-0.15', '-0.01']
+  latency ms mean 424 median 414 p95 505; tokens in/out 1761/380; cost/request $0.000074
+
+=== jev-1.13 / state=tests  (n=96) ===
+step kind        subst   M1    M2    M3  PRIMARY pause  urg
+1   scaffold    0.16  0.11  0.36  0.11  0.37  0.58  0.31
+2   milestone   0.82  0.67  0.75  0.52  0.80  0.86  0.52
+3   scaffold    0.98  0.76  0.41  0.59  0.77  0.73  0.56
+4   completion  0.30  0.43  0.07  0.34  0.46  0.24  0.19
+  AUROC primary     0.84   95% CI over stories [0.70, 0.95]
+  AUROC pause_point 1.00   95% CI over stories [1.00, 1.00]
+  AUROC urg         0.76   95% CI over stories [0.65, 0.86]
+  AUROC substantive 0.70   95% CI over stories [0.65, 0.77]
+  AUROC M1          0.71   95% CI over stories [0.58, 0.83]
+  AUROC M2          1.00   95% CI over stories [0.99, 1.00]
+  AUROC M3          0.75   95% CI over stories [0.59, 0.87]
+  Step 2 is top PRIMARY step in 7/12 story-variants
+  milestone type by argmax(M1,M2,M3): 5 / 24 (chance 8/24)
+  choice at milestone (cls_a): {'core_state_logic': 24}
+  choice stable under reversed option order: 93/96
+  invariance Flawed-Correct (PRIMARY at milestone) mean -0.010  per story ['-0.01', '-0.01', '-0.01', '-0.03', '-0.02', '+0.00']
+  latency ms mean 420 median 413 p95 476; tokens in/out 1890/380; cost/request $0.000079
+
+=== jev-1.14 / state=step  (n=96) ===
+step kind        subst   M1    M2    M3  PRIMARY pause  urg
+1   scaffold    0.17  0.10  0.42  0.09  0.42  0.58  0.33
+2   milestone   0.85  0.71  0.64  0.09  0.77  0.80  0.62
+3   scaffold    0.98  0.80  0.38  0.08  0.80  0.76  0.60
+4   completion  0.31  0.48  0.09  0.26  0.48  0.32  0.24
+  AUROC primary     0.73   95% CI over stories [0.55, 0.89]
+  AUROC pause_point 0.91   95% CI over stories [0.81, 0.98]
+  AUROC urg         0.84   95% CI over stories [0.77, 0.92]
+  AUROC substantive 0.72   95% CI over stories [0.66, 0.81]
+  AUROC M1          0.69   95% CI over stories [0.56, 0.82]
+  AUROC M2          0.96   95% CI over stories [0.86, 1.00]
+  AUROC M3          0.42   95% CI over stories [0.27, 0.57]
+  Step 2 is top PRIMARY step in 3/12 story-variants
+  milestone type by argmax(M1,M2,M3): 9 / 24 (chance 8/24)
+  choice at milestone (cls_a): {'core_state_logic': 24}
+  choice stable under reversed option order: 91/96
+  invariance Flawed-Correct (PRIMARY at milestone) mean -0.004  per story ['+0.01', '+0.01', '+0.01', '+0.02', '-0.04', '-0.02']
+  latency ms mean 411 median 404 p95 479; tokens in/out 1761/380; cost/request $0.000074
+
+=== jev-1.14 / state=tests  (n=96) ===
+step kind        subst   M1    M2    M3  PRIMARY pause  urg
+1   scaffold    0.18  0.10  0.42  0.09  0.42  0.58  0.33
+2   milestone   0.84  0.67  0.79  0.56  0.82  0.83  0.54
+3   scaffold    0.98  0.79  0.47  0.66  0.81  0.73  0.54
+4   completion  0.31  0.48  0.09  0.26  0.48  0.32  0.24
+  AUROC primary     0.80   95% CI over stories [0.66, 0.92]
+  AUROC pause_point 1.00   95% CI over stories [0.99, 1.00]
+  AUROC urg         0.81   95% CI over stories [0.70, 0.91]
+  AUROC substantive 0.70   95% CI over stories [0.65, 0.78]
+  AUROC M1          0.67   95% CI over stories [0.52, 0.80]
+  AUROC M2          1.00   95% CI over stories [1.00, 1.00]
+  AUROC M3          0.76   95% CI over stories [0.67, 0.86]
+  Step 2 is top PRIMARY step in 5/12 story-variants
+  milestone type by argmax(M1,M2,M3): 8 / 24 (chance 8/24)
+  choice at milestone (cls_a): {'core_state_logic': 24}
+  choice stable under reversed option order: 96/96
+  invariance Flawed-Correct (PRIMARY at milestone) mean +0.001  per story ['-0.01', '+0.01', '-0.02', '+0.00', '+0.01', '+0.01']
+  latency ms mean 411 median 403 p95 447; tokens in/out 1890/380; cost/request $0.000079
+
+=== repeat consistency (same model, state, cond; rep0 vs rep1) ===
+  jev-1.13: PRIMARY mean |Δ| 0.016  max 0.07
+  jev-1.14: PRIMARY mean |Δ| 0.013  max 0.06
+
+=== jev-1.13 vs jev-1.14 on identical states (PRIMARY, rep0) ===
+  mean |Δ| 0.048; corr 0.97
+
+=== baselines ===
+  regex count of control-flow/arithmetic tokens: AUROC 0.82
+  position prior (step == 2): AUROC 1.00 by construction (fixed layout)

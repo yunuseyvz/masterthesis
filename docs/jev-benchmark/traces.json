@@ -1,0 +1,778 @@
+[
+ {
+  "trace": "US1_a",
+  "story": "US1",
+  "run": "a",
+  "brief": "As a customer during a flash sale, I want to reserve stock for the items in my cart so that I don't lose them while I check out. If the shop can't fulfil my order, I should be told.",
+  "n_steps": 1,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "52dbb692",
+    "summary": "Reserve stock for cart items with time-limited holds",
+    "files": [
+     {
+      "path": "src/inventory.ts",
+      "content": "export type CartLine = { sku: string; quantity: number };\n\nexport type Shortage = { sku: string; requested: number; available: number };\n\nexport type ReserveResult =\n  | { ok: true; reservationId: string; expiresAt: number }\n  | { ok: false; shortages: Shortage[] };\n\nexport type InventoryOptions = {\n  /** How long a reservation holds stock before it lapses. Defaults to 10 minutes. */\n  holdMs?: number;\n  /** Clock in milliseconds. Injectable for tests. */\n  now?: () => number;\n};\n\ntype Reservation = { lines: Map<string, number>; expiresAt: number };\n\nconst DEFAULT_HOLD_MS = 10 * 60 * 1000;\n\n/**\n * In-memory stock per SKU with time-limited reservations for cart items.\n *\n * `available(sku)` is stock minus units held by live reservations. A reservation\n * is all-or-nothing: either every line can be held, or the customer gets the list\n * of shortages. Reservations that are not committed before they expire release\n * their stock automatically.\n */\nexport class Inventory {\n  #stock = new Map<string, number>();\n  #held = new Map<string, number>();\n  #reservations = new Map<string, Reservation>();\n  #holdMs: number;\n  #now: () => number;\n  #nextId = 1;\n\n  constructor(stock: Record<string, number>, options: InventoryOptions = {}) {\n    for (const [sku, units] of Object.entries(stock)) {\n      assertNonNegativeInteger(units, `stock for ${sku}`);\n      this.#stock.set(sku, units);\n    }\n    this.#holdMs = options.holdMs ?? DEFAULT_HOLD_MS;\n    this.#now = options.now ?? Date.now;\n  }\n\n  available(sku: string): number {\n    this.#expireLapsed();\n    return this.#availableNow(sku);\n  }\n\n  /** Hold stock for every line of a cart, or report what cannot be fulfilled. */\n  reserve(lines: CartLine[]): ReserveResult {\n    this.#expireLapsed();\n\n    const wanted = new Map<string, number>();\n    for (const line of lines) {\n      assertPositiveInteger(line.quantity, `quantity for ${line.sku}`);\n      wanted.set(line.sku, (wanted.get(line.sku) ?? 0) + line.quantity);\n    }\n\n    const shortages: Shortage[] = [];\n    for (const [sku, requested] of wanted) {\n      const available = this.#availableNow(sku);\n      if (requested > available) shortages.push({ sku, requested, available });\n    }\n    if (shortages.length > 0) return { ok: false, shortages };\n\n    const reservationId = `r${this.#nextId++}`;\n    const expiresAt = this.#now() + this.#holdMs;\n    for (const [sku, units] of wanted) {\n      this.#held.set(sku, (this.#held.get(sku) ?? 0) + units);\n    }\n    this.#reservations.set(reservationId, { lines: wanted, expiresAt });\n    return { ok: true, reservationId, expiresAt };\n  }\n\n  /** Give back a reservation's stock, e.g. when the customer leaves checkout. */\n  release(reservationId: string): void {\n    this.#expireLapsed();\n    const reservation = this.#reservations.get(reservationId);\n    if (!reservation) return;\n    this.#unhold(reservation);\n    this.#reservations.delete(reservationId);\n  }\n\n  /** Turn a live reservation into a sale: stock is decremented and the hold cleared. */\n  commit(reservationId: string): void {\n    this.#expireLapsed();\n    const reservation = this.#reservations.get(reservationId);\n    if (!reservation) {\n      throw new Error(`reservation ${reservationId} is unknown or has expired`);\n    }\n    for (const [sku, units] of reservation.lines) {\n      this.#stock.set(sku, (this.#stock.get(sku) ?? 0) - units);\n    }\n    this.#unhold(reservation);\n    this.#reservations.delete(reservationId);\n  }\n\n  #availableNow(sku: string): number {\n    return (this.#stock.get(sku) ?? 0) - (this.#held.get(sku) ?? 0);\n  }\n\n  #unhold(reservation: Reservation): void {\n    for (const [sku, units] of reservation.lines) {\n      this.#held.set(sku, (this.#held.get(sku) ?? 0) - units);\n    }\n  }\n\n  #expireLapsed(): void {\n    const now = this.#now();\n    for (const [id, reservation] of this.#reservations) {\n      if (reservation.expiresAt <= now) {\n        this.#unhold(reservation);\n        this.#reservations.delete(id);\n      }\n    }\n  }\n}\n\nfunction assertPositiveInteger(value: number, label: string): void {\n  if (!Number.isInteger(value) || value <= 0) {\n    throw new RangeError(`${label} must be a positive integer, got ${value}`);\n  }\n}\n\nfunction assertNonNegativeInteger(value: number, label: string): void {\n  if (!Number.isInteger(value) || value < 0) {\n    throw new RangeError(`${label} must be a non-negative integer, got ${value}`);\n  }\n}"
+     },
+     {
+      "path": "test/inventory.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { Inventory } from \"../src/inventory.ts\";\n\nfunction clock(start = 0) {\n  let t = start;\n  return {\n    now: () => t,\n    advance: (ms: number) => {\n      t += ms;\n    },\n  };\n}\n\ntest(\"available reflects stock when nothing is reserved\", () => {\n  const inv = new Inventory({ \"tee-m\": 5 });\n  assert.equal(inv.available(\"tee-m\"), 5);\n  assert.equal(inv.available(\"unknown\"), 0);\n});\n\ntest(\"reserve holds stock so other customers see less available\", () => {\n  const inv = new Inventory({ \"tee-m\": 5 });\n  const result = inv.reserve([{ sku: \"tee-m\", quantity: 3 }]);\n  assert.equal(result.ok, true);\n  assert.equal(inv.available(\"tee-m\"), 2);\n});\n\ntest(\"reserve is all-or-nothing and reports every shortage\", () => {\n  const inv = new Inventory({ \"tee-m\": 1, \"cap\": 4 });\n  const result = inv.reserve([\n    { sku: \"tee-m\", quantity: 2 },\n    { sku: \"cap\", quantity: 1 },\n    { sku: \"mug\", quantity: 1 },\n  ]);\n  assert.deepEqual(result, {\n    ok: false,\n    shortages: [\n      { sku: \"tee-m\", requested: 2, available: 1 },\n      { sku: \"mug\", requested: 1, available: 0 },\n    ],\n  });\n  assert.equal(inv.available(\"tee-m\"), 1);\n  assert.equal(inv.available(\"cap\"), 4);\n});\n\ntest(\"a second customer is told when the first reservation took the last units\", () => {\n  const inv = new Inventory({ \"tee-m\": 2 });\n  assert.equal(inv.reserve([{ sku: \"tee-m\", quantity: 2 }]).ok, true);\n  const second = inv.reserve([{ sku: \"tee-m\", quantity: 1 }]);\n  assert.deepEqual(second, {\n    ok: false,\n    shortages: [{ sku: \"tee-m\", requested: 1, available: 0 }],\n  });\n});\n\ntest(\"duplicate lines for the same SKU are added together\", () => {\n  const inv = new Inventory({ \"tee-m\": 3 });\n  const result = inv.reserve([\n    { sku: \"tee-m\", quantity: 2 },\n    { sku: \"tee-m\", quantity: 2 },\n  ]);\n  assert.equal(result.ok, false);\n  if (!result.ok) {\n    assert.deepEqual(result.shortages, [{ sku: \"tee-m\", requested: 4, available: 3 }]);\n  }\n});\n\ntest(\"commit turns the hold into a sale\", () => {\n  const inv = new Inventory({ \"tee-m\": 5 });\n  const result = inv.reserve([{ sku: \"tee-m\", quantity: 3 }]);\n  assert.equal(result.ok, true);\n  if (!result.ok) return;\n  inv.commit(result.reservationId);\n  assert.equal(inv.available(\"tee-m\"), 2);\n  assert.throws(() => inv.commit(result.reservationId), /unknown or has expired/);\n});\n\ntest(\"release gives the stock back and is idempotent\", () => {\n  const inv = new Inventory({ \"tee-m\": 5 });\n  const result = inv.reserve([{ sku: \"tee-m\", quantity: 3 }]);\n  assert.equal(result.ok, true);\n  if (!result.ok) return;\n  inv.release(result.reservationId);\n  inv.release(result.reservationId);\n  assert.equal(inv.available(\"tee-m\"), 5);\n});\n\ntest(\"a reservation lapses after the hold time and frees its stock\", () => {\n  const time = clock(1_000);\n  const inv = new Inventory({ \"tee-m\": 2 }, { holdMs: 60_000, now: time.now });\n  const result = inv.reserve([{ sku: \"tee-m\", quantity: 2 }]);\n  assert.equal(result.ok, true);\n  if (!result.ok) return;\n  assert.equal(result.expiresAt, 61_000);\n\n  time.advance(59_999);\n  assert.equal(inv.available(\"tee-m\"), 0);\n\n  time.advance(1);\n  assert.equal(inv.available(\"tee-m\"), 2);\n  assert.throws(() => inv.commit(result.reservationId), /unknown or has expired/);\n});\n\ntest(\"an expired reservation cannot be committed and does not reduce stock\", () => {\n  const time = clock();\n  const inv = new Inventory({ \"tee-m\": 2 }, { holdMs: 1_000, now: time.now });\n  const result = inv.reserve([{ sku: \"tee-m\", quantity: 1 }]);\n  assert.equal(result.ok, true);\n  if (!result.ok) return;\n  time.advance(1_000);\n  assert.throws(() => inv.commit(result.reservationId));\n  assert.equal(inv.available(\"tee-m\"), 2);\n});\n\ntest(\"rejects non-positive or fractional quantities\", () => {\n  const inv = new Inventory({ \"tee-m\": 5 });\n  assert.throws(() => inv.reserve([{ sku: \"tee-m\", quantity: 0 }]), RangeError);\n  assert.throws(() => inv.reserve([{ sku: \"tee-m\", quantity: 1.5 }]), RangeError);\n  assert.equal(inv.available(\"tee-m\"), 5);\n});\n\ntest(\"rejects invalid starting stock\", () => {\n  assert.throws(() => new Inventory({ \"tee-m\": -1 }), RangeError);\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 254,
+    "only_tests": false,
+    "logic_files": [
+     "src/inventory.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/inventory.ts",
+   "test/inventory.test.ts"
+  ]
+ },
+ {
+  "trace": "US1_b",
+  "story": "US1",
+  "run": "b",
+  "brief": "As a customer during a flash sale, I want to reserve stock for the items in my cart so that I don't lose them while I check out. If the shop can't fulfil my order, I should be told.",
+  "n_steps": 1,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "b6e78712",
+    "summary": "Reserve stock for cart with shortage reporting and hold expiry",
+    "files": [
+     {
+      "path": "src/inventory.ts",
+      "content": "export type CartLine = { sku: string; quantity: number };\n\nexport type Shortage = { sku: string; requested: number; available: number };\n\nexport type ReserveResult =\n  | { ok: true; reservationId: string; expiresAt: number }\n  | { ok: false; shortages: Shortage[] };\n\nexport type ConfirmResult = { ok: true } | { ok: false; reason: \"no-active-hold\" };\n\nexport type InventoryOptions = {\n  /** How long a reservation holds stock before it lapses. Default: 10 minutes. */\n  holdTtlMs?: number;\n  /** Clock in milliseconds. Injectable for tests. */\n  now?: () => number;\n};\n\ntype Hold = { lines: CartLine[]; expiresAt: number };\n\nconst DEFAULT_HOLD_TTL_MS = 10 * 60 * 1000;\n\n/**\n * In-memory stock per SKU. A reservation holds units for a cart while the\n * customer checks out; confirming it removes the units for good, releasing it\n * (or letting it expire) returns them to sale.\n */\nexport class Inventory {\n  readonly #onHand: Map<string, number>;\n  readonly #reserved = new Map<string, number>();\n  readonly #holds = new Map<string, Hold>();\n  readonly #holdTtlMs: number;\n  readonly #now: () => number;\n  #nextId = 1;\n\n  constructor(stock: Record<string, number>, options: InventoryOptions = {}) {\n    this.#onHand = new Map(Object.entries(stock));\n    for (const [sku, units] of this.#onHand) {\n      if (!Number.isInteger(units) || units < 0) {\n        throw new RangeError(`Invalid stock for ${sku}: ${units}`);\n      }\n    }\n    this.#holdTtlMs = options.holdTtlMs ?? DEFAULT_HOLD_TTL_MS;\n    this.#now = options.now ?? Date.now;\n  }\n\n  /** Units of `sku` that are neither sold nor held by an active reservation. */\n  available(sku: string): number {\n    this.#expireHolds();\n    return this.#free(sku);\n  }\n\n  /**\n   * Reserves every line of the cart, or none of them. If any line cannot be\n   * covered, nothing is held and the shortages are returned so they can be\n   * shown to the customer.\n   */\n  reserve(cart: CartLine[]): ReserveResult {\n    this.#expireHolds();\n\n    const wanted = new Map<string, number>();\n    for (const { sku, quantity } of cart) {\n      if (!Number.isInteger(quantity) || quantity <= 0) {\n        throw new RangeError(`Invalid quantity for ${sku}: ${quantity}`);\n      }\n      wanted.set(sku, (wanted.get(sku) ?? 0) + quantity);\n    }\n\n    const shortages: Shortage[] = [];\n    for (const [sku, requested] of wanted) {\n      const available = this.#free(sku);\n      if (requested > available) shortages.push({ sku, requested, available });\n    }\n    if (shortages.length > 0) return { ok: false, shortages };\n\n    const lines = [...wanted].map(([sku, quantity]) => ({ sku, quantity }));\n    for (const { sku, quantity } of lines) {\n      this.#reserved.set(sku, (this.#reserved.get(sku) ?? 0) + quantity);\n    }\n    const reservationId = `R${this.#nextId++}`;\n    const expiresAt = this.#now() + this.#holdTtlMs;\n    this.#holds.set(reservationId, { lines, expiresAt });\n    return { ok: true, reservationId, expiresAt };\n  }\n\n  /** Gives a reservation's units back to sale. Returns false if no such active hold exists. */\n  release(reservationId: string): boolean {\n    this.#expireHolds();\n    const hold = this.#holds.get(reservationId);\n    if (!hold) return false;\n    this.#drop(reservationId, hold);\n    return true;\n  }\n\n  /** Completes the sale: the held units are removed from stock. */\n  confirm(reservationId: string): ConfirmResult {\n    this.#expireHolds();\n    const hold = this.#holds.get(reservationId);\n    if (!hold) return { ok: false, reason: \"no-active-hold\" };\n    for (const { sku, quantity } of hold.lines) {\n      this.#onHand.set(sku, (this.#onHand.get(sku) ?? 0) - quantity);\n    }\n    this.#drop(reservationId, hold);\n    return { ok: true };\n  }\n\n  #free(sku: string): number {\n    return (this.#onHand.get(sku) ?? 0) - (this.#reserved.get(sku) ?? 0);\n  }\n\n  #drop(reservationId: string, hold: Hold): void {\n    for (const { sku, quantity } of hold.lines) {\n      const left = (this.#reserved.get(sku) ?? 0) - quantity;\n      if (left > 0) this.#reserved.set(sku, left);\n      else this.#reserved.delete(sku);\n    }\n    this.#holds.delete(reservationId);\n  }\n\n  #expireHolds(): void {\n    const now = this.#now();\n    for (const [id, hold] of this.#holds) {\n      if (now >= hold.expiresAt) this.#drop(id, hold);\n    }\n  }\n}"
+     },
+     {
+      "path": "test/inventory.test.ts",
+      "content": "import { describe, it } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { Inventory } from \"../src/inventory.ts\";\n\nfunction clock(start = 0) {\n  let t = start;\n  return {\n    now: () => t,\n    advance: (ms: number) => {\n      t += ms;\n    },\n  };\n}\n\ndescribe(\"reserve\", () => {\n  it(\"holds stock for the cart and reduces what is available\", () => {\n    const inv = new Inventory({ \"tee-m\": 5 });\n    const result = inv.reserve([{ sku: \"tee-m\", quantity: 2 }]);\n    assert.equal(result.ok, true);\n    assert.equal(inv.available(\"tee-m\"), 3);\n  });\n\n  it(\"can reserve exactly the remaining stock\", () => {\n    const inv = new Inventory({ \"tee-m\": 5 });\n    assert.equal(inv.reserve([{ sku: \"tee-m\", quantity: 5 }]).ok, true);\n    assert.equal(inv.available(\"tee-m\"), 0);\n  });\n\n  it(\"does not let a second customer take units that are held\", () => {\n    const inv = new Inventory({ \"tee-m\": 3 });\n    assert.equal(inv.reserve([{ sku: \"tee-m\", quantity: 2 }]).ok, true);\n    const second = inv.reserve([{ sku: \"tee-m\", quantity: 2 }]);\n    assert.deepEqual(second, {\n      ok: false,\n      shortages: [{ sku: \"tee-m\", requested: 2, available: 1 }],\n    });\n  });\n\n  it(\"reserves nothing when any line cannot be fulfilled, and reports every shortage\", () => {\n    const inv = new Inventory({ \"tee-m\": 5, \"mug\": 1 });\n    const result = inv.reserve([\n      { sku: \"tee-m\", quantity: 2 },\n      { sku: \"mug\", quantity: 2 },\n      { sku: \"cap\", quantity: 1 },\n    ]);\n    assert.deepEqual(result, {\n      ok: false,\n      shortages: [\n        { sku: \"mug\", requested: 2, available: 1 },\n        { sku: \"cap\", requested: 1, available: 0 },\n      ],\n    });\n    assert.equal(inv.available(\"tee-m\"), 5, \"partial reservation must not be kept\");\n    assert.equal(inv.available(\"mug\"), 1);\n  });\n\n  it(\"adds up repeated lines for the same SKU before checking stock\", () => {\n    const inv = new Inventory({ \"tee-m\": 5 });\n    const result = inv.reserve([\n      { sku: \"tee-m\", quantity: 3 },\n      { sku: \"tee-m\", quantity: 3 },\n    ]);\n    assert.deepEqual(result, {\n      ok: false,\n      shortages: [{ sku: \"tee-m\", requested: 6, available: 5 }],\n    });\n  });\n\n  it(\"rejects non-positive or fractional quantities\", () => {\n    const inv = new Inventory({ \"tee-m\": 5 });\n    for (const quantity of [0, -1, 1.5]) {\n      assert.throws(() => inv.reserve([{ sku: \"tee-m\", quantity }]), RangeError);\n    }\n  });\n\n  it(\"rejects negative starting stock\", () => {\n    assert.throws(() => new Inventory({ \"tee-m\": -1 }), RangeError);\n  });\n});\n\ndescribe(\"release\", () => {\n  it(\"returns held units to sale\", () => {\n    const inv = new Inventory({ \"tee-m\": 2 });\n    const { reservationId } = inv.reserve([{ sku: \"tee-m\", quantity: 2 }]) as {\n      reservationId: string;\n    };\n    assert.equal(inv.release(reservationId), true);\n    assert.equal(inv.available(\"tee-m\"), 2);\n  });\n\n  it(\"returns false for unknown or already released reservations\", () => {\n    const inv = new Inventory({ \"tee-m\": 2 });\n    const { reservationId } = inv.reserve([{ sku: \"tee-m\", quantity: 1 }]) as {\n      reservationId: string;\n    };\n    assert.equal(inv.release(\"nope\"), false);\n    assert.equal(inv.release(reservationId), true);\n    assert.equal(inv.release(reservationId), false);\n    assert.equal(inv.available(\"tee-m\"), 2);\n  });\n});\n\ndescribe(\"confirm\", () => {\n  it(\"removes the held units from stock permanently\", () => {\n    const inv = new Inventory({ \"tee-m\": 5 });\n    const { reservationId } = inv.reserve([{ sku: \"tee-m\", quantity: 2 }]) as {\n      reservationId: string;\n    };\n    assert.deepEqual(inv.confirm(reservationId), { ok: true });\n    assert.equal(inv.available(\"tee-m\"), 3);\n    assert.equal(inv.release(reservationId), false);\n    assert.equal(inv.confirm(reservationId).ok, false);\n  });\n});\n\ndescribe(\"hold expiry\", () => {\n  it(\"frees the stock once the hold has lapsed\", () => {\n    const c = clock();\n    const inv = new Inventory({ \"tee-m\": 1 }, { holdTtlMs: 1000, now: c.now });\n    assert.equal(inv.reserve([{ sku: \"tee-m\", quantity: 1 }]).ok, true);\n\n    c.advance(999);\n    assert.equal(inv.available(\"tee-m\"), 0, \"still held just before expiry\");\n\n    c.advance(1);\n    assert.equal(inv.available(\"tee-m\"), 1, \"released at expiry\");\n  });\n\n  it(\"cannot be confirmed after it has lapsed, and the customer is told\", () => {\n    const c = clock();\n    const inv = new Inventory({ \"tee-m\": 1 }, { holdTtlMs: 1000, now: c.now });\n    const { reservationId } = inv.reserve([{ sku: \"tee-m\", quantity: 1 }]) as {\n      reservationId: string;\n    };\n    c.advance(1000);\n    assert.deepEqual(inv.confirm(reservationId), { ok: false, reason: \"no-active-hold\" });\n    assert.equal(inv.available(\"tee-m\"), 1);\n  });\n\n  it(\"reports the expiry time of a new hold\", () => {\n    const c = clock(500);\n    const inv = new Inventory({ \"tee-m\": 1 }, { holdTtlMs: 1000, now: c.now });\n    const result = inv.reserve([{ sku: \"tee-m\", quantity: 1 }]);\n    assert.equal(result.ok && result.expiresAt, 1500);\n  });\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 271,
+    "only_tests": false,
+    "logic_files": [
+     "src/inventory.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/inventory.ts",
+   "test/inventory.test.ts"
+  ]
+ },
+ {
+  "trace": "US2_a",
+  "story": "US2",
+  "run": "a",
+  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
+  "n_steps": 2,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "2f2cb9a5",
+    "summary": "Add in-memory ledger with idempotent credit",
+    "files": [
+     {
+      "path": "src/ledger.ts",
+      "content": "/** A failure that is expected to go away on retry (e.g. a database timeout). */\nexport class TransientError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = 'TransientError';\n  }\n}\n\n/** The event refers to a customer account that does not exist. */\nexport class UnknownCustomerError extends Error {\n  constructor(customerId: string) {\n    super(`unknown customer: ${customerId}`);\n    this.name = 'UnknownCustomerError';\n  }\n}\n\nexport type CreditOutcome = 'applied' | 'duplicate';\n\nexport interface LedgerOptions {\n  /**\n   * Called inside creditOnce after validation but before anything is committed.\n   * Lets tests (or a real storage layer) simulate a temporary write failure.\n   */\n  beforeCommit?: () => void;\n}\n\n/**\n * In-memory ledger of customer balances (integer cents) and of the payment\n * event IDs that have already been applied.\n */\nexport class Ledger {\n  readonly #balances = new Map<string, number>();\n  readonly #appliedEvents = new Set<string>();\n  readonly #beforeCommit: (() => void) | undefined;\n\n  constructor(options: LedgerOptions = {}) {\n    this.#beforeCommit = options.beforeCommit;\n  }\n\n  openAccount(customerId: string, balanceCents = 0): void {\n    if (this.#balances.has(customerId)) {\n      throw new Error(`account already exists: ${customerId}`);\n    }\n    this.#balances.set(customerId, balanceCents);\n  }\n\n  balance(customerId: string): number {\n    const balance = this.#balances.get(customerId);\n    if (balance === undefined) {\n      throw new UnknownCustomerError(customerId);\n    }\n    return balance;\n  }\n\n  hasApplied(eventId: string): boolean {\n    return this.#appliedEvents.has(eventId);\n  }\n\n  /**\n   * Credits the customer and records the event ID as one unit: either both\n   * happen or neither does. Re-applying an event that was already applied is a\n   * no-op that returns 'duplicate', so provider redeliveries never double-credit.\n   * Because the check and the update run synchronously, concurrent deliveries\n   * of the same event cannot both apply.\n   */\n  creditOnce(eventId: string, customerId: string, amountCents: number): CreditOutcome {\n    if (this.#appliedEvents.has(eventId)) {\n      return 'duplicate';\n    }\n    const current = this.balance(customerId);\n    if (!Number.isSafeInteger(amountCents) || amountCents <= 0) {\n      throw new RangeError(`amountCents must be a positive integer, got ${amountCents}`);\n    }\n\n    this.#beforeCommit?.();\n\n    this.#balances.set(customerId, current + amountCents);\n    this.#appliedEvents.add(eventId);\n    return 'applied';\n  }\n}"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 81,
+    "only_tests": false,
+    "logic_files": [
+     "src/ledger.ts"
+    ],
+    "imports_by_later": [
+     "src/ledger.ts"
+    ],
+    "logic_in_step": true,
+    "built_on": true,
+    "L1": true
+   },
+   {
+    "n": 2,
+    "hash": "19177489",
+    "summary": "Credit accounts from payment webhooks with idempotent retries",
+    "files": [
+     {
+      "path": "src/webhook.ts",
+      "content": "import { Ledger, TransientError, UnknownCustomerError } from './ledger.ts';\n\nexport const PAYMENT_SUCCEEDED = 'payment.succeeded';\n\nexport interface WebhookResult {\n  /** HTTP status to return to the payment provider. */\n  status: number;\n  outcome: 'credited' | 'duplicate' | 'ignored' | 'invalid' | 'unknown_customer' | 'retry';\n}\n\ninterface PaymentSucceededEvent {\n  id: string;\n  type: typeof PAYMENT_SUCCEEDED;\n  data: { customerId: string; amountCents: number };\n}\n\ntype ParseResult =\n  | { ok: true; event: PaymentSucceededEvent | { id: string; type: string } }\n  | { ok: false };\n\nfunction isRecord(value: unknown): value is Record<string, unknown> {\n  return typeof value === 'object' && value !== null && !Array.isArray(value);\n}\n\nfunction parseEvent(rawBody: string): ParseResult {\n  let body: unknown;\n  try {\n    body = JSON.parse(rawBody);\n  } catch {\n    return { ok: false };\n  }\n  if (!isRecord(body) || typeof body.id !== 'string' || body.id === '' || typeof body.type !== 'string') {\n    return { ok: false };\n  }\n  if (body.type !== PAYMENT_SUCCEEDED) {\n    return { ok: true, event: { id: body.id, type: body.type } };\n  }\n  const data = body.data;\n  if (\n    !isRecord(data) ||\n    typeof data.customerId !== 'string' ||\n    data.customerId === '' ||\n    typeof data.amountCents !== 'number' ||\n    !Number.isSafeInteger(data.amountCents) ||\n    data.amountCents <= 0\n  ) {\n    return { ok: false };\n  }\n  return {\n    ok: true,\n    event: {\n      id: body.id,\n      type: PAYMENT_SUCCEEDED,\n      data: { customerId: data.customerId, amountCents: data.amountCents },\n    },\n  };\n}\n\n/**\n * Handles one webhook delivery. Status codes tell the provider what to do:\n * 200 means done (credited, duplicate, or ignored), 422 and 400 are permanent\n * failures that must not be retried, and 500 asks the provider to redeliver.\n */\nexport async function handlePaymentWebhook(rawBody: string, ledger: Ledger): Promise<WebhookResult> {\n  const parsed = parseEvent(rawBody);\n  if (!parsed.ok) {\n    return { status: 400, outcome: 'invalid' };\n  }\n  const { event } = parsed;\n  if (event.type !== PAYMENT_SUCCEEDED) {\n    return { status: 200, outcome: 'ignored' };\n  }\n  const payment = event as PaymentSucceededEvent;\n\n  try {\n    const outcome = ledger.creditOnce(payment.id, payment.data.customerId, payment.data.amountCents);\n    return outcome === 'applied'\n      ? { status: 200, outcome: 'credited' }\n      : { status: 200, outcome: 'duplicate' };\n  } catch (error) {\n    if (error instanceof TransientError) {\n      return { status: 500, outcome: 'retry' };\n    }\n    if (error instanceof UnknownCustomerError) {\n      return { status: 422, outcome: 'unknown_customer' };\n    }\n    throw error;\n  }\n}"
+     },
+     {
+      "path": "test/webhook.test.ts",
+      "content": "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\nimport { Ledger, TransientError } from '../src/ledger.ts';\nimport { handlePaymentWebhook } from '../src/webhook.ts';\n\nfunction paymentEvent(id: string, customerId = 'cust_1', amountCents = 500): string {\n  return JSON.stringify({ id, type: 'payment.succeeded', data: { customerId, amountCents } });\n}\n\nfunction newLedger(options?: ConstructorParameters<typeof Ledger>[0]): Ledger {\n  const ledger = new Ledger(options);\n  ledger.openAccount('cust_1', 1000);\n  return ledger;\n}\n\ntest('a payment event credits the customer balance', async () => {\n  const ledger = newLedger();\n  const result = await handlePaymentWebhook(paymentEvent('evt_1', 'cust_1', 500), ledger);\n  assert.deepEqual(result, { status: 200, outcome: 'credited' });\n  assert.equal(ledger.balance('cust_1'), 1500);\n});\n\ntest('redelivering the same event does not credit twice', async () => {\n  const ledger = newLedger();\n  const body = paymentEvent('evt_1', 'cust_1', 500);\n\n  await handlePaymentWebhook(body, ledger);\n  const second = await handlePaymentWebhook(body, ledger);\n\n  assert.deepEqual(second, { status: 200, outcome: 'duplicate' });\n  assert.equal(ledger.balance('cust_1'), 1500);\n});\n\ntest('a transient failure returns 500 and the retry credits exactly once', async () => {\n  let failuresLeft = 1;\n  const ledger = newLedger({\n    beforeCommit: () => {\n      if (failuresLeft > 0) {\n        failuresLeft -= 1;\n        throw new TransientError('database timeout');\n      }\n    },\n  });\n  const body = paymentEvent('evt_1', 'cust_1', 500);\n\n  const first = await handlePaymentWebhook(body, ledger);\n  assert.deepEqual(first, { status: 500, outcome: 'retry' });\n  assert.equal(ledger.balance('cust_1'), 1000);\n  assert.equal(ledger.hasApplied('evt_1'), false);\n\n  const retry = await handlePaymentWebhook(body, ledger);\n  assert.deepEqual(retry, { status: 200, outcome: 'credited' });\n  assert.equal(ledger.balance('cust_1'), 1500);\n});\n\ntest('concurrent deliveries of the same event credit once', async () => {\n  const ledger = newLedger();\n  const body = paymentEvent('evt_1', 'cust_1', 500);\n\n  const results = await Promise.all([\n    handlePaymentWebhook(body, ledger),\n    handlePaymentWebhook(body, ledger),\n    handlePaymentWebhook(body, ledger),\n  ]);\n\n  assert.equal(results.filter((r) => r.outcome === 'credited').length, 1);\n  assert.equal(results.filter((r) => r.outcome === 'duplicate').length, 2);\n  assert.equal(ledger.balance('cust_1'), 1500);\n});\n\ntest('an event for an unknown customer returns 422 and credits nothing', async () => {\n  const ledger = newLedger();\n  const result = await handlePaymentWebhook(paymentEvent('evt_9', 'cust_missing'), ledger);\n  assert.deepEqual(result, { status: 422, outcome: 'unknown_customer' });\n  assert.equal(ledger.hasApplied('evt_9'), false);\n});\n\ntest('malformed bodies return 400 and credit nothing', async () => {\n  const ledger = newLedger();\n  const bodies = [\n    'not json',\n    JSON.stringify({ type: 'payment.succeeded', data: { customerId: 'cust_1', amountCents: 500 } }),\n    JSON.stringify({ id: 'evt_2', type: 'payment.succeeded', data: { customerId: 'cust_1', amountCents: 5.5 } }),\n    JSON.stringify({ id: 'evt_3', type: 'payment.succeeded', data: { customerId: 'cust_1', amountCents: -1 } }),\n    JSON.stringify({ id: 'evt_4', type: 'payment.succeeded', data: { amountCents: 500 } }),\n  ];\n  for (const body of bodies) {\n    assert.deepEqual(await handlePaymentWebhook(body, ledger), { status: 400, outcome: 'invalid' });\n  }\n  assert.equal(ledger.balance('cust_1'), 1000);\n});\n\ntest('other event types are acknowledged and ignored', async () => {\n  const ledger = newLedger();\n  const body = JSON.stringify({ id: 'evt_5', type: 'payment.refunded', data: {} });\n  assert.deepEqual(await handlePaymentWebhook(body, ledger), { status: 200, outcome: 'ignored' });\n  assert.equal(ledger.balance('cust_1'), 1000);\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 187,
+    "only_tests": false,
+    "logic_files": [
+     "src/webhook.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/ledger.ts",
+   "src/webhook.ts",
+   "test/webhook.test.ts"
+  ]
+ },
+ {
+  "trace": "US2_b",
+  "story": "US2",
+  "run": "b",
+  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
+  "n_steps": 2,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "98b32d6d",
+    "summary": "Add idempotent in-memory ledger",
+    "files": [
+     {
+      "path": "src/ledger.ts",
+      "content": "// Account ledger. Credits are recorded together with the event id that caused\n// them, so a provider redelivering the same event never credits twice.\n\nexport class TransientError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = \"TransientError\";\n  }\n}\n\nexport type CreditResult = \"applied\" | \"duplicate\";\n\nexport interface Ledger {\n  // Credits `amountCents` to `customerId` exactly once per `eventId`.\n  applyCredit(eventId: string, customerId: string, amountCents: number): Promise<CreditResult>;\n  balance(customerId: string): Promise<number>;\n}\n\nexport class InMemoryLedger implements Ledger {\n  private readonly balances = new Map<string, number>();\n  private readonly appliedEvents = new Set<string>();\n\n  async applyCredit(eventId: string, customerId: string, amountCents: number): Promise<CreditResult> {\n    // No await between the check and the write, so this is atomic in-process.\n    if (this.appliedEvents.has(eventId)) {\n      return \"duplicate\";\n    }\n    this.balances.set(customerId, (this.balances.get(customerId) ?? 0) + amountCents);\n    this.appliedEvents.add(eventId);\n    return \"applied\";\n  }\n\n  async balance(customerId: string): Promise<number> {\n    return this.balances.get(customerId) ?? 0;\n  }\n}"
+     },
+     {
+      "path": "test/ledger.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { InMemoryLedger } from \"../src/ledger.ts\";\n\ntest(\"applyCredit adds the amount to the customer balance\", async () => {\n  const ledger = new InMemoryLedger();\n  assert.equal(await ledger.applyCredit(\"evt_1\", \"cus_1\", 500), \"applied\");\n  assert.equal(await ledger.applyCredit(\"evt_2\", \"cus_1\", 250), \"applied\");\n  assert.equal(await ledger.balance(\"cus_1\"), 750);\n});\n\ntest(\"applyCredit ignores a repeated event id\", async () => {\n  const ledger = new InMemoryLedger();\n  assert.equal(await ledger.applyCredit(\"evt_1\", \"cus_1\", 500), \"applied\");\n  assert.equal(await ledger.applyCredit(\"evt_1\", \"cus_1\", 500), \"duplicate\");\n  assert.equal(await ledger.balance(\"cus_1\"), 500);\n});\n\ntest(\"balance of an unknown customer is zero\", async () => {\n  const ledger = new InMemoryLedger();\n  assert.equal(await ledger.balance(\"cus_missing\"), 0);\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 58,
+    "only_tests": false,
+    "logic_files": [
+     "src/ledger.ts"
+    ],
+    "imports_by_later": [
+     "src/ledger.ts"
+    ],
+    "logic_in_step": true,
+    "built_on": true,
+    "L1": true
+   },
+   {
+    "n": 2,
+    "hash": "38200a89",
+    "summary": "Add payment webhook handler with retries and idempotent credit",
+    "files": [
+     {
+      "path": "src/webhook.ts",
+      "content": "import { TransientError } from \"./ledger.ts\";\nimport type { Ledger } from \"./ledger.ts\";\n\nexport const PAYMENT_SUCCEEDED = \"payment.succeeded\";\n\nexport type WebhookResponse =\n  | { status: 200; outcome: \"applied\" | \"duplicate\" | \"ignored\" }\n  | { status: 400; error: string }\n  | { status: 503; error: string };\n\nexport interface WebhookDeps {\n  ledger: Ledger;\n  // Attempts made for a single delivery before giving up on a transient error.\n  maxAttempts?: number;\n  // Base delay between attempts; doubled after each failed attempt.\n  retryDelayMs?: number;\n  sleep?: (ms: number) => Promise<void>;\n}\n\ninterface PaymentSucceededEvent {\n  id: string;\n  customerId: string;\n  amountCents: number;\n}\n\ntype ParseResult = { ok: true; event: PaymentSucceededEvent } | { ok: false; error: string };\n\nconst defaultSleep = (ms: number): Promise<void> =>\n  new Promise((resolve) => setTimeout(resolve, ms));\n\nfunction isRecord(value: unknown): value is Record<string, unknown> {\n  return typeof value === \"object\" && value !== null && !Array.isArray(value);\n}\n\nfunction parsePaymentSucceeded(body: unknown): ParseResult {\n  if (!isRecord(body)) {\n    return { ok: false, error: \"body must be an object\" };\n  }\n  if (typeof body.id !== \"string\" || body.id === \"\") {\n    return { ok: false, error: \"id must be a non-empty string\" };\n  }\n  if (!isRecord(body.data)) {\n    return { ok: false, error: \"data must be an object\" };\n  }\n  const { customerId, amountCents } = body.data;\n  if (typeof customerId !== \"string\" || customerId === \"\") {\n    return { ok: false, error: \"data.customerId must be a non-empty string\" };\n  }\n  if (typeof amountCents !== \"number\" || !Number.isSafeInteger(amountCents) || amountCents <= 0) {\n    return { ok: false, error: \"data.amountCents must be a positive integer\" };\n  }\n  return { ok: true, event: { id: body.id, customerId, amountCents } };\n}\n\n// Handles one delivery of a payment-provider webhook. The provider retries any\n// non-2xx response, so a 503 here means \"try again later\" and a 400 means\n// \"this payload will never succeed\".\nexport async function handlePaymentWebhook(body: unknown, deps: WebhookDeps): Promise<WebhookResponse> {\n  const maxAttempts = deps.maxAttempts ?? 3;\n  const retryDelayMs = deps.retryDelayMs ?? 100;\n  const sleep = deps.sleep ?? defaultSleep;\n\n  if (isRecord(body) && body.type !== PAYMENT_SUCCEEDED) {\n    return { status: 200, outcome: \"ignored\" };\n  }\n\n  const parsed = parsePaymentSucceeded(body);\n  if (!parsed.ok) {\n    return { status: 400, error: parsed.error };\n  }\n  const { id, customerId, amountCents } = parsed.event;\n\n  for (let attempt = 1; ; attempt++) {\n    try {\n      const outcome = await deps.ledger.applyCredit(id, customerId, amountCents);\n      return { status: 200, outcome };\n    } catch (err) {\n      if (!(err instanceof TransientError)) {\n        throw err;\n      }\n      if (attempt >= maxAttempts) {\n        return { status: 503, error: \"temporarily unable to process event\" };\n      }\n      await sleep(retryDelayMs * 2 ** (attempt - 1));\n    }\n  }\n}"
+     },
+     {
+      "path": "test/webhook.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { InMemoryLedger, TransientError } from \"../src/ledger.ts\";\nimport type { CreditResult, Ledger } from \"../src/ledger.ts\";\nimport { handlePaymentWebhook } from \"../src/webhook.ts\";\n\nconst noSleep = async (): Promise<void> => {};\n\nfunction paymentEvent(overrides: Record<string, unknown> = {}) {\n  return {\n    id: \"evt_1\",\n    type: \"payment.succeeded\",\n    data: { customerId: \"cus_1\", amountCents: 1500 },\n    ...overrides,\n  };\n}\n\n// Wraps a ledger and makes the first `failures` credit attempts throw a\n// TransientError, as a database hiccup would.\nclass FlakyLedger implements Ledger {\n  attempts = 0;\n  private readonly inner: Ledger;\n  private failures: number;\n\n  constructor(inner: Ledger, failures: number) {\n    this.inner = inner;\n    this.failures = failures;\n  }\n\n  async applyCredit(eventId: string, customerId: string, amountCents: number): Promise<CreditResult> {\n    this.attempts++;\n    if (this.failures > 0) {\n      this.failures--;\n      throw new TransientError(\"database unavailable\");\n    }\n    return this.inner.applyCredit(eventId, customerId, amountCents);\n  }\n\n  balance(customerId: string): Promise<number> {\n    return this.inner.balance(customerId);\n  }\n}\n\ntest(\"payment.succeeded credits the customer\", async () => {\n  const ledger = new InMemoryLedger();\n  const res = await handlePaymentWebhook(paymentEvent(), { ledger, sleep: noSleep });\n  assert.deepEqual(res, { status: 200, outcome: \"applied\" });\n  assert.equal(await ledger.balance(\"cus_1\"), 1500);\n});\n\ntest(\"a redelivered event is acknowledged but credited only once\", async () => {\n  const ledger = new InMemoryLedger();\n  const deps = { ledger, sleep: noSleep };\n  await handlePaymentWebhook(paymentEvent(), deps);\n  const res = await handlePaymentWebhook(paymentEvent(), deps);\n  assert.deepEqual(res, { status: 200, outcome: \"duplicate\" });\n  assert.equal(await ledger.balance(\"cus_1\"), 1500);\n});\n\ntest(\"other event types are acknowledged and ignored\", async () => {\n  const ledger = new InMemoryLedger();\n  const res = await handlePaymentWebhook(paymentEvent({ type: \"payment.failed\" }), {\n    ledger,\n    sleep: noSleep,\n  });\n  assert.deepEqual(res, { status: 200, outcome: \"ignored\" });\n  assert.equal(await ledger.balance(\"cus_1\"), 0);\n});\n\ntest(\"malformed payloads are rejected with 400 and not credited\", async () => {\n  const bad: unknown[] = [\n    null,\n    \"payment.succeeded\",\n    paymentEvent({ id: \"\" }),\n    paymentEvent({ data: undefined }),\n    paymentEvent({ data: { customerId: \"\", amountCents: 100 } }),\n    paymentEvent({ data: { customerId: \"cus_1\", amountCents: 0 } }),\n    paymentEvent({ data: { customerId: \"cus_1\", amountCents: -5 } }),\n    paymentEvent({ data: { customerId: \"cus_1\", amountCents: 12.5 } }),\n    paymentEvent({ data: { customerId: \"cus_1\", amountCents: \"1500\" } }),\n  ];\n  for (const body of bad) {\n    const ledger = new InMemoryLedger();\n    const res = await handlePaymentWebhook(body, { ledger, sleep: noSleep });\n    assert.equal(res.status, 400, JSON.stringify(body));\n    assert.equal(await ledger.balance(\"cus_1\"), 0);\n  }\n});\n\ntest(\"a transient failure is retried and the credit lands once\", async () => {\n  const inner = new InMemoryLedger();\n  const ledger = new FlakyLedger(inner, 2);\n  const res = await handlePaymentWebhook(paymentEvent(), { ledger, maxAttempts: 3, sleep: noSleep });\n  assert.deepEqual(res, { status: 200, outcome: \"applied\" });\n  assert.equal(ledger.attempts, 3);\n  assert.equal(await inner.balance(\"cus_1\"), 1500);\n});\n\ntest(\"backoff doubles between retries\", async () => {\n  const waits: number[] = [];\n  const ledger = new FlakyLedger(new InMemoryLedger(), 3);\n  await handlePaymentWebhook(paymentEvent(), {\n    ledger,\n    maxAttempts: 4,\n    retryDelayMs: 50,\n    sleep: async (ms) => {\n      waits.push(ms);\n    },\n  });\n  assert.deepEqual(waits, [50, 100, 200]);\n});\n\ntest(\"persistent transient failure returns 503 and the provider's redelivery credits once\", async () => {\n  const inner = new InMemoryLedger();\n  const ledger = new FlakyLedger(inner, 3);\n  const deps = { ledger, maxAttempts: 3, sleep: noSleep };\n\n  const first = await handlePaymentWebhook(paymentEvent(), deps);\n  assert.equal(first.status, 503);\n  assert.equal(await inner.balance(\"cus_1\"), 0);\n\n  const second = await handlePaymentWebhook(paymentEvent(), deps);\n  assert.deepEqual(second, { status: 200, outcome: \"applied\" });\n  assert.equal(await inner.balance(\"cus_1\"), 1500);\n});\n\ntest(\"non-transient ledger errors propagate\", async () => {\n  const broken: Ledger = {\n    async applyCredit() {\n      throw new Error(\"schema mismatch\");\n    },\n    async balance() {\n      return 0;\n    },\n  };\n  await assert.rejects(\n    handlePaymentWebhook(paymentEvent(), { ledger: broken, sleep: noSleep }),\n    /schema mismatch/,\n  );\n});"
+     }
+    ],
+    "visible_tests": [
+     {
+      "path": "test/ledger.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { InMemoryLedger } from \"../src/ledger.ts\";\n\ntest(\"applyCredit adds the amount to the customer balance\", async () => {\n  const ledger = new InMemoryLedger();\n  assert.equal(await ledger.applyCredit(\"evt_1\", \"cus_1\", 500), \"applied\");\n  assert.equal(await ledger.applyCredit(\"evt_2\", \"cus_1\", 250), \"applied\");\n  assert.equal(await ledger.balance(\"cus_1\"), 750);\n});\n\ntest(\"applyCredit ignores a repeated event id\", async () => {\n  const ledger = new InMemoryLedger();\n  assert.equal(await ledger.applyCredit(\"evt_1\", \"cus_1\", 500), \"applied\");\n  assert.equal(await ledger.applyCredit(\"evt_1\", \"cus_1\", 500), \"duplicate\");\n  assert.equal(await ledger.balance(\"cus_1\"), 500);\n});\n\ntest(\"balance of an unknown customer is zero\", async () => {\n  const ledger = new InMemoryLedger();\n  assert.equal(await ledger.balance(\"cus_missing\"), 0);\n});"
+     }
+    ],
+    "lines_added": 227,
+    "only_tests": false,
+    "logic_files": [
+     "src/webhook.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/ledger.ts",
+   "src/webhook.ts",
+   "test/ledger.test.ts",
+   "test/webhook.test.ts"
+  ]
+ },
+ {
+  "trace": "US3_a",
+  "story": "US3",
+  "run": "a",
+  "brief": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.",
+  "n_steps": 2,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "e87c75d3",
+    "summary": "Add organization default feature flags and limits",
+    "files": [
+     {
+      "path": "src/defaults.ts",
+      "content": "export interface FeatureFlags {\n  exportCsv: boolean;\n  sso: boolean;\n  auditLog: boolean;\n  betaDashboard: boolean;\n}\n\nexport interface Limits {\n  maxUsers: number;\n  maxProjects: number;\n  apiRequestsPerMinute: number;\n}\n\nexport interface OrgDefaults {\n  featureFlags: FeatureFlags;\n  limits: Limits;\n}\n\nconst ORG_DEFAULTS: OrgDefaults = {\n  featureFlags: {\n    exportCsv: false,\n    sso: false,\n    auditLog: true,\n    betaDashboard: false,\n  },\n  limits: {\n    maxUsers: 50,\n    maxProjects: 10,\n    apiRequestsPerMinute: 600,\n  },\n};\n\n// Returns a fresh copy so callers cannot mutate the organization defaults.\nexport function getOrgDefaults(): OrgDefaults {\n  return structuredClone(ORG_DEFAULTS);\n}"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 36,
+    "only_tests": false,
+    "logic_files": [],
+    "imports_by_later": [],
+    "logic_in_step": false,
+    "built_on": false,
+    "L1": false
+   },
+   {
+    "n": 2,
+    "hash": "b4124caf",
+    "summary": "Add per-tenant feature flag and limit overrides",
+    "files": [
+     {
+      "path": "src/tenant-config.ts",
+      "content": "import { getOrgDefaults, type FeatureFlags, type Limits, type OrgDefaults } from \"./defaults.ts\";\n\nconst SECTIONS = [\"featureFlags\", \"limits\"] as const;\ntype Section = (typeof SECTIONS)[number];\n\n// The overrides a tenant has set. Only keys that differ from the org defaults are present.\nexport interface Overrides {\n  featureFlags?: Partial<FeatureFlags>;\n  limits?: Partial<Limits>;\n}\n\n// A patch merges into the tenant's overrides. A `null` value removes that override,\n// so the key falls back to the organization default.\nexport interface OverridePatch {\n  featureFlags?: { [K in keyof FeatureFlags]?: FeatureFlags[K] | null };\n  limits?: { [K in keyof Limits]?: Limits[K] | null };\n}\n\nexport interface EffectiveConfig {\n  featureFlags: FeatureFlags;\n  limits: Limits;\n}\n\ntype Bag = Record<string, unknown>;\n\nfunction assertPlainObject(value: unknown, name: string): asserts value is Bag {\n  if (typeof value !== \"object\" || value === null || Array.isArray(value)) {\n    throw new TypeError(`${name} must be an object`);\n  }\n}\n\nfunction validateValue(org: OrgDefaults, section: Section, key: string, value: unknown): void {\n  const expectedType = typeof (org[section] as Bag)[key];\n  const path = `${section}.${key}`;\n  if (typeof value !== expectedType) {\n    throw new TypeError(`${path} must be a ${expectedType}`);\n  }\n  if (section === \"limits\" && (!Number.isInteger(value) || (value as number) < 0)) {\n    throw new RangeError(`${path} must be a non-negative integer`);\n  }\n}\n\n// Validates the whole patch before applying it, so a bad patch changes nothing.\nfunction applyPatch(org: OrgDefaults, current: Overrides, patch: OverridePatch): Overrides {\n  assertPlainObject(patch, \"patch\");\n  for (const key of Object.keys(patch)) {\n    if (!(SECTIONS as readonly string[]).includes(key)) {\n      throw new Error(`Unknown override section: ${key}`);\n    }\n  }\n\n  const next: Overrides = structuredClone(current);\n  for (const section of SECTIONS) {\n    const sectionPatch = patch[section];\n    if (sectionPatch === undefined) continue;\n    assertPlainObject(sectionPatch, section);\n\n    const orgSection = org[section] as Bag;\n    const target = ((next[section] ??= {}) as Bag);\n    for (const [key, value] of Object.entries(sectionPatch)) {\n      if (!Object.hasOwn(orgSection, key)) {\n        throw new Error(`Unknown ${section} key: ${key}`);\n      }\n      if (value === null) {\n        delete target[key];\n      } else {\n        validateValue(org, section, key, value);\n        target[key] = value;\n      }\n    }\n    if (Object.keys(target).length === 0) {\n      delete next[section];\n    }\n  }\n  return next;\n}\n\nexport class TenantConfigStore {\n  readonly #org: OrgDefaults;\n  readonly #overrides = new Map<string, Overrides>();\n\n  constructor(org: OrgDefaults = getOrgDefaults()) {\n    this.#org = structuredClone(org);\n  }\n\n  // Merges a patch into a tenant's overrides and returns the tenant's resulting overrides.\n  updateOverrides(tenantId: string, patch: OverridePatch): Overrides {\n    const current = this.#overrides.get(tenantId) ?? {};\n    const next = applyPatch(this.#org, current, patch);\n    if (Object.keys(next).length === 0) {\n      this.#overrides.delete(tenantId);\n    } else {\n      this.#overrides.set(tenantId, next);\n    }\n    return structuredClone(next);\n  }\n\n  getOverrides(tenantId: string): Overrides {\n    return structuredClone(this.#overrides.get(tenantId) ?? {});\n  }\n\n  // The configuration a tenant actually gets: organization defaults with the tenant's overrides on top.\n  getEffectiveConfig(tenantId: string): EffectiveConfig {\n    const overrides = this.#overrides.get(tenantId) ?? {};\n    return {\n      featureFlags: { ...this.#org.featureFlags, ...overrides.featureFlags },\n      limits: { ...this.#org.limits, ...overrides.limits },\n    };\n  }\n}"
+     },
+     {
+      "path": "test/tenant-config.test.ts",
+      "content": "import { describe, it } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { getOrgDefaults } from \"../src/defaults.ts\";\nimport { TenantConfigStore } from \"../src/tenant-config.ts\";\n\ndescribe(\"TenantConfigStore\", () => {\n  it(\"gives a tenant without overrides the organization defaults\", () => {\n    const store = new TenantConfigStore();\n    assert.deepEqual(store.getEffectiveConfig(\"acme\"), getOrgDefaults());\n    assert.deepEqual(store.getOverrides(\"acme\"), {});\n  });\n\n  it(\"applies a tenant's flag and limit overrides on top of the defaults\", () => {\n    const store = new TenantConfigStore();\n    store.updateOverrides(\"acme\", {\n      featureFlags: { sso: true },\n      limits: { maxUsers: 500 },\n    });\n\n    const config = store.getEffectiveConfig(\"acme\");\n    assert.equal(config.featureFlags.sso, true);\n    assert.equal(config.featureFlags.exportCsv, false);\n    assert.equal(config.limits.maxUsers, 500);\n    assert.equal(config.limits.maxProjects, 10);\n  });\n\n  it(\"does not affect other tenants or the organization defaults\", () => {\n    const store = new TenantConfigStore();\n    store.updateOverrides(\"acme\", { limits: { maxProjects: 100 } });\n\n    assert.equal(store.getEffectiveConfig(\"globex\").limits.maxProjects, 10);\n    assert.deepEqual(store.getEffectiveConfig(\"globex\"), getOrgDefaults());\n  });\n\n  it(\"merges successive patches instead of replacing earlier overrides\", () => {\n    const store = new TenantConfigStore();\n    store.updateOverrides(\"acme\", { featureFlags: { sso: true } });\n    store.updateOverrides(\"acme\", { featureFlags: { betaDashboard: true } });\n\n    assert.deepEqual(store.getOverrides(\"acme\"), {\n      featureFlags: { sso: true, betaDashboard: true },\n    });\n  });\n\n  it(\"reverts a single override to the organization default when given null\", () => {\n    const store = new TenantConfigStore();\n    store.updateOverrides(\"acme\", { limits: { maxUsers: 500, maxProjects: 20 } });\n    store.updateOverrides(\"acme\", { limits: { maxUsers: null } });\n\n    const config = store.getEffectiveConfig(\"acme\");\n    assert.equal(config.limits.maxUsers, 50);\n    assert.equal(config.limits.maxProjects, 20);\n  });\n\n  it(\"drops the tenant entry once all of its overrides are removed\", () => {\n    const store = new TenantConfigStore();\n    store.updateOverrides(\"acme\", { featureFlags: { sso: true } });\n    const result = store.updateOverrides(\"acme\", { featureFlags: { sso: null } });\n\n    assert.deepEqual(result, {});\n    assert.deepEqual(store.getOverrides(\"acme\"), {});\n    assert.deepEqual(store.getEffectiveConfig(\"acme\"), getOrgDefaults());\n  });\n\n  it(\"returns copies so callers cannot change stored state\", () => {\n    const store = new TenantConfigStore();\n    store.updateOverrides(\"acme\", { limits: { maxUsers: 500 } });\n\n    const config = store.getEffectiveConfig(\"acme\");\n    config.limits.maxUsers = 1;\n    config.featureFlags.sso = true;\n    store.getOverrides(\"acme\").limits!.maxUsers = 1;\n\n    assert.equal(store.getEffectiveConfig(\"acme\").limits.maxUsers, 500);\n    assert.equal(store.getEffectiveConfig(\"acme\").featureFlags.sso, false);\n  });\n\n  it(\"does not share state with the organization defaults passed in\", () => {\n    const org = getOrgDefaults();\n    const store = new TenantConfigStore(org);\n    org.limits.maxUsers = 1;\n\n    assert.equal(store.getEffectiveConfig(\"acme\").limits.maxUsers, 50);\n  });\n\n  it(\"rejects unknown sections and keys\", () => {\n    const store = new TenantConfigStore();\n    assert.throws(() => store.updateOverrides(\"acme\", { billing: {} } as never), /Unknown override section/);\n    assert.throws(() => store.updateOverrides(\"acme\", { featureFlags: { nope: true } } as never), /Unknown featureFlags key: nope/);\n    assert.throws(() => store.updateOverrides(\"acme\", { limits: { nope: 1 } } as never), /Unknown limits key: nope/);\n  });\n\n  it(\"rejects values of the wrong type\", () => {\n    const store = new TenantConfigStore();\n    assert.throws(() => store.updateOverrides(\"acme\", { featureFlags: { sso: \"yes\" } } as never), TypeError);\n    assert.throws(() => store.updateOverrides(\"acme\", { limits: { maxUsers: \"50\" } } as never), TypeError);\n  });\n\n  it(\"rejects limits that are not non-negative integers\", () => {\n    const store = new TenantConfigStore();\n    assert.throws(() => store.updateOverrides(\"acme\", { limits: { maxUsers: -1 } }), RangeError);\n    assert.throws(() => store.updateOverrides(\"acme\", { limits: { maxUsers: 1.5 } }), RangeError);\n    assert.throws(() => store.updateOverrides(\"acme\", { limits: { maxUsers: Number.NaN } }), RangeError);\n    assert.equal(store.updateOverrides(\"acme\", { limits: { maxUsers: 0 } }).limits?.maxUsers, 0);\n  });\n\n  it(\"leaves stored overrides unchanged when a patch is invalid\", () => {\n    const store = new TenantConfigStore();\n    store.updateOverrides(\"acme\", { featureFlags: { sso: true } });\n\n    assert.throws(\n      () => store.updateOverrides(\"acme\", { featureFlags: { betaDashboard: true }, limits: { maxUsers: -5 } }),\n      RangeError,\n    );\n    assert.deepEqual(store.getOverrides(\"acme\"), { featureFlags: { sso: true } });\n  });\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 227,
+    "only_tests": false,
+    "logic_files": [
+     "src/tenant-config.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/defaults.ts",
+   "src/tenant-config.ts",
+   "test/tenant-config.test.ts"
+  ]
+ },
+ {
+  "trace": "US3_b",
+  "story": "US3",
+  "run": "b",
+  "brief": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.",
+  "n_steps": 1,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "0359ef23",
+    "summary": "Add per-tenant feature flag and limit overrides",
+    "files": [
+     {
+      "path": "src/config.ts",
+      "content": "// Organization-wide defaults for feature flags and limits. Every tenant starts\n// from these values and may override individual entries.\nexport const ORG_DEFAULTS = {\n  featureFlags: {\n    betaDashboard: false,\n    exportCsv: true,\n    ssoLogin: false,\n  },\n  limits: {\n    maxUsers: 100,\n    maxProjects: 10,\n    apiRequestsPerMinute: 600,\n  },\n} as const;\n\nexport type FeatureFlagName = keyof typeof ORG_DEFAULTS.featureFlags;\nexport type LimitName = keyof typeof ORG_DEFAULTS.limits;\n\nexport type FeatureFlags = Record<FeatureFlagName, boolean>;\nexport type Limits = Record<LimitName, number>;\n\n// Partial overrides as stored per tenant. Missing keys inherit the org default.\nexport interface TenantOverrides {\n  featureFlags?: Partial<FeatureFlags>;\n  limits?: Partial<Limits>;\n}\n\nexport interface TenantConfig {\n  featureFlags: FeatureFlags;\n  limits: Limits;\n}\n\nconst FLAG_NAMES = Object.keys(ORG_DEFAULTS.featureFlags) as FeatureFlagName[];\nconst LIMIT_NAMES = Object.keys(ORG_DEFAULTS.limits) as LimitName[];\n\nfunction isPlainObject(value: unknown): value is Record<string, unknown> {\n  return typeof value === \"object\" && value !== null && !Array.isArray(value);\n}\n\nfunction assertKnownKeys(\n  section: string,\n  input: Record<string, unknown>,\n  allowed: readonly string[],\n): void {\n  for (const key of Object.keys(input)) {\n    if (!allowed.includes(key)) {\n      throw new TypeError(`Unknown ${section} \"${key}\"`);\n    }\n  }\n}\n\n// Validates untrusted input (e.g. an admin API body) and returns a clean copy.\nexport function parseTenantOverrides(input: unknown): TenantOverrides {\n  if (!isPlainObject(input)) {\n    throw new TypeError(\"Tenant overrides must be an object\");\n  }\n  assertKnownKeys(\"section\", input, [\"featureFlags\", \"limits\"]);\n\n  const result: TenantOverrides = {};\n\n  if (input.featureFlags !== undefined) {\n    if (!isPlainObject(input.featureFlags)) {\n      throw new TypeError(\"featureFlags must be an object\");\n    }\n    assertKnownKeys(\"feature flag\", input.featureFlags, FLAG_NAMES);\n    const flags: Partial<FeatureFlags> = {};\n    for (const name of FLAG_NAMES) {\n      const value = input.featureFlags[name];\n      if (value === undefined) continue;\n      if (typeof value !== \"boolean\") {\n        throw new TypeError(`Feature flag \"${name}\" must be a boolean`);\n      }\n      flags[name] = value;\n    }\n    result.featureFlags = flags;\n  }\n\n  if (input.limits !== undefined) {\n    if (!isPlainObject(input.limits)) {\n      throw new TypeError(\"limits must be an object\");\n    }\n    assertKnownKeys(\"limit\", input.limits, LIMIT_NAMES);\n    const limits: Partial<Limits> = {};\n    for (const name of LIMIT_NAMES) {\n      const value = input.limits[name];\n      if (value === undefined) continue;\n      if (!Number.isSafeInteger(value) || (value as number) < 0) {\n        throw new TypeError(`Limit \"${name}\" must be a non-negative integer`);\n      }\n      limits[name] = value as number;\n    }\n    result.limits = limits;\n  }\n\n  return result;\n}\n\n// Merges a tenant's overrides over the organization defaults.\nexport function resolveTenantConfig(\n  overrides: TenantOverrides = {},\n  defaults: TenantConfig = ORG_DEFAULTS,\n): TenantConfig {\n  return {\n    featureFlags: { ...defaults.featureFlags, ...overrides.featureFlags },\n    limits: { ...defaults.limits, ...overrides.limits },\n  };\n}"
+     },
+     {
+      "path": "src/tenant-config-store.ts",
+      "content": "import {\n  parseTenantOverrides,\n  resolveTenantConfig,\n  type TenantConfig,\n  type TenantOverrides,\n} from \"./config.ts\";\n\n// Holds per-tenant overrides. Tenants without overrides get the org defaults.\nexport class TenantConfigStore {\n  readonly #overrides = new Map<string, TenantOverrides>();\n\n  // Replaces the tenant's overrides. Keys omitted from the input fall back to\n  // the organization default. Passing empty overrides resets the tenant.\n  setOverrides(tenantId: string, input: unknown): TenantOverrides {\n    const parsed = parseTenantOverrides(input);\n    if (parsed.featureFlags === undefined && parsed.limits === undefined) {\n      this.#overrides.delete(tenantId);\n    } else {\n      this.#overrides.set(tenantId, parsed);\n    }\n    return parsed;\n  }\n\n  getOverrides(tenantId: string): TenantOverrides {\n    return structuredClone(this.#overrides.get(tenantId) ?? {});\n  }\n\n  getConfig(tenantId: string): TenantConfig {\n    return resolveTenantConfig(this.#overrides.get(tenantId));\n  }\n}"
+     },
+     {
+      "path": "test/config.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport {\n  ORG_DEFAULTS,\n  parseTenantOverrides,\n  resolveTenantConfig,\n} from \"../src/config.ts\";\n\ntest(\"resolveTenantConfig returns org defaults without overrides\", () => {\n  const config = resolveTenantConfig();\n  assert.deepEqual(config.featureFlags, ORG_DEFAULTS.featureFlags);\n  assert.deepEqual(config.limits, ORG_DEFAULTS.limits);\n});\n\ntest(\"resolveTenantConfig overrides only the given keys\", () => {\n  const config = resolveTenantConfig({\n    featureFlags: { betaDashboard: true },\n    limits: { maxUsers: 500 },\n  });\n  assert.equal(config.featureFlags.betaDashboard, true);\n  assert.equal(config.featureFlags.exportCsv, ORG_DEFAULTS.featureFlags.exportCsv);\n  assert.equal(config.limits.maxUsers, 500);\n  assert.equal(config.limits.maxProjects, ORG_DEFAULTS.limits.maxProjects);\n});\n\ntest(\"resolveTenantConfig does not mutate the defaults\", () => {\n  resolveTenantConfig({ limits: { maxUsers: 1 }, featureFlags: { ssoLogin: true } });\n  assert.equal(ORG_DEFAULTS.limits.maxUsers, 100);\n  assert.equal(ORG_DEFAULTS.featureFlags.ssoLogin, false);\n});\n\ntest(\"parseTenantOverrides accepts valid input\", () => {\n  assert.deepEqual(\n    parseTenantOverrides({ featureFlags: { exportCsv: false }, limits: { maxProjects: 0 } }),\n    { featureFlags: { exportCsv: false }, limits: { maxProjects: 0 } },\n  );\n});\n\ntest(\"parseTenantOverrides rejects non-object input\", () => {\n  assert.throws(() => parseTenantOverrides(null), TypeError);\n  assert.throws(() => parseTenantOverrides([]), TypeError);\n  assert.throws(() => parseTenantOverrides(\"x\"), TypeError);\n});\n\ntest(\"parseTenantOverrides rejects unknown sections and keys\", () => {\n  assert.throws(() => parseTenantOverrides({ quotas: {} }), /Unknown section/);\n  assert.throws(() => parseTenantOverrides({ featureFlags: { nope: true } }), /Unknown feature flag/);\n  assert.throws(() => parseTenantOverrides({ limits: { nope: 1 } }), /Unknown limit/);\n});\n\ntest(\"parseTenantOverrides rejects wrong value types\", () => {\n  assert.throws(() => parseTenantOverrides({ featureFlags: { exportCsv: \"yes\" } }), /must be a boolean/);\n  assert.throws(() => parseTenantOverrides({ limits: { maxUsers: -1 } }), /non-negative integer/);\n  assert.throws(() => parseTenantOverrides({ limits: { maxUsers: 1.5 } }), /non-negative integer/);\n  assert.throws(() => parseTenantOverrides({ limits: { maxUsers: \"10\" } }), /non-negative integer/);\n  assert.throws(() => parseTenantOverrides({ featureFlags: [] }), /must be an object/);\n});"
+     },
+     {
+      "path": "test/tenant-config-store.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { ORG_DEFAULTS } from \"../src/config.ts\";\nimport { TenantConfigStore } from \"../src/tenant-config-store.ts\";\n\ntest(\"unconfigured tenant gets org defaults\", () => {\n  const store = new TenantConfigStore();\n  assert.deepEqual(store.getConfig(\"acme\").limits, ORG_DEFAULTS.limits);\n  assert.deepEqual(store.getOverrides(\"acme\"), {});\n});\n\ntest(\"tenant overrides do not leak into other tenants\", () => {\n  const store = new TenantConfigStore();\n  store.setOverrides(\"acme\", { featureFlags: { betaDashboard: true }, limits: { maxUsers: 5 } });\n\n  const acme = store.getConfig(\"acme\");\n  const globex = store.getConfig(\"globex\");\n\n  assert.equal(acme.featureFlags.betaDashboard, true);\n  assert.equal(acme.limits.maxUsers, 5);\n  assert.equal(globex.featureFlags.betaDashboard, ORG_DEFAULTS.featureFlags.betaDashboard);\n  assert.equal(globex.limits.maxUsers, ORG_DEFAULTS.limits.maxUsers);\n});\n\ntest(\"setOverrides replaces previous overrides\", () => {\n  const store = new TenantConfigStore();\n  store.setOverrides(\"acme\", { limits: { maxUsers: 5 } });\n  store.setOverrides(\"acme\", { limits: { maxProjects: 2 } });\n\n  const config = store.getConfig(\"acme\");\n  assert.equal(config.limits.maxUsers, ORG_DEFAULTS.limits.maxUsers);\n  assert.equal(config.limits.maxProjects, 2);\n});\n\ntest(\"empty overrides reset the tenant to org defaults\", () => {\n  const store = new TenantConfigStore();\n  store.setOverrides(\"acme\", { featureFlags: { ssoLogin: true } });\n  store.setOverrides(\"acme\", {});\n\n  assert.deepEqual(store.getConfig(\"acme\").featureFlags, ORG_DEFAULTS.featureFlags);\n  assert.deepEqual(store.getOverrides(\"acme\"), {});\n});\n\ntest(\"invalid overrides are rejected and leave stored state unchanged\", () => {\n  const store = new TenantConfigStore();\n  store.setOverrides(\"acme\", { limits: { maxUsers: 5 } });\n\n  assert.throws(() => store.setOverrides(\"acme\", { limits: { maxUsers: -3 } }), TypeError);\n  assert.equal(store.getConfig(\"acme\").limits.maxUsers, 5);\n});\n\ntest(\"getOverrides returns a copy that cannot modify stored state\", () => {\n  const store = new TenantConfigStore();\n  store.setOverrides(\"acme\", { limits: { maxUsers: 5 } });\n\n  const copy = store.getOverrides(\"acme\");\n  copy.limits!.maxUsers = 999;\n\n  assert.equal(store.getConfig(\"acme\").limits.maxUsers, 5);\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 255,
+    "only_tests": false,
+    "logic_files": [
+     "src/config.ts",
+     "src/tenant-config-store.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/config.ts",
+   "src/tenant-config-store.ts",
+   "test/config.test.ts",
+   "test/tenant-config-store.test.ts"
+  ]
+ },
+ {
+  "trace": "US4_a",
+  "story": "US4",
+  "run": "a",
+  "brief": "As a billing owner, I want outages measured against our SLA threshold and credited on the invoice, so that customers are compensated when we miss the SLA.",
+  "n_steps": 2,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "01656caf",
+    "summary": "Add outage downtime and availability measurement",
+    "files": [
+     {
+      "path": "src/availability.ts",
+      "content": "/** A period of unavailability. Times are epoch milliseconds, end is exclusive. */\nexport interface Outage {\n  startMs: number;\n  endMs: number;\n}\n\nexport interface Period {\n  startMs: number;\n  endMs: number;\n}\n\n/** Tolerance used when comparing availability ratios, so exact boundaries are not lost to float error. */\nconst RATIO_EPSILON = 1e-12;\n\nexport function periodDurationMs(period: Period): number {\n  const duration = period.endMs - period.startMs;\n  if (!(duration > 0)) {\n    throw new RangeError(`billing period must end after it starts (start=${period.startMs}, end=${period.endMs})`);\n  }\n  return duration;\n}\n\n/**\n * Total downtime in milliseconds inside the billing period.\n * Outages are clipped to the period and overlapping outages are counted once.\n */\nexport function measureDowntimeMs(outages: readonly Outage[], period: Period): number {\n  periodDurationMs(period); // validates the period\n\n  const clipped: Outage[] = [];\n  for (const outage of outages) {\n    if (!(outage.endMs >= outage.startMs)) {\n      throw new RangeError(`outage ends before it starts (start=${outage.startMs}, end=${outage.endMs})`);\n    }\n    const startMs = Math.max(outage.startMs, period.startMs);\n    const endMs = Math.min(outage.endMs, period.endMs);\n    if (endMs > startMs) {\n      clipped.push({ startMs, endMs });\n    }\n  }\n\n  clipped.sort((a, b) => a.startMs - b.startMs);\n\n  let total = 0;\n  let current: Outage | undefined;\n  for (const outage of clipped) {\n    if (current && outage.startMs <= current.endMs) {\n      current.endMs = Math.max(current.endMs, outage.endMs);\n    } else {\n      if (current) total += current.endMs - current.startMs;\n      current = { ...outage };\n    }\n  }\n  if (current) total += current.endMs - current.startMs;\n\n  return total;\n}\n\n/** Availability as a ratio in [0, 1]: the share of the billing period without downtime. */\nexport function availabilityRatio(downtimeMs: number, period: Period): number {\n  const periodDuration = periodDurationMs(period);\n  const ratio = 1 - downtimeMs / periodDuration;\n  return Math.min(1, Math.max(0, ratio));\n}\n\n/** True when measured availability is strictly below the threshold ratio (e.g. 0.999). */\nexport function isBelow(availability: number, threshold: number): boolean {\n  return availability + RATIO_EPSILON < threshold;\n}"
+     },
+     {
+      "path": "test/availability.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport {\n  availabilityRatio,\n  isBelow,\n  measureDowntimeMs,\n  periodDurationMs,\n} from \"../src/availability.ts\";\n\nconst MINUTE = 60_000;\nconst DAY = 24 * 60 * MINUTE;\nconst period = { startMs: 0, endMs: 30 * DAY };\n\ntest(\"no outages means no downtime and full availability\", () => {\n  assert.equal(measureDowntimeMs([], period), 0);\n  assert.equal(availabilityRatio(0, period), 1);\n});\n\ntest(\"sums disjoint outages\", () => {\n  const outages = [\n    { startMs: 1 * DAY, endMs: 1 * DAY + 10 * MINUTE },\n    { startMs: 5 * DAY, endMs: 5 * DAY + 5 * MINUTE },\n  ];\n  assert.equal(measureDowntimeMs(outages, period), 15 * MINUTE);\n});\n\ntest(\"overlapping outages are counted once\", () => {\n  const outages = [\n    { startMs: 100, endMs: 300 },\n    { startMs: 200, endMs: 400 },\n    { startMs: 350, endMs: 360 },\n  ];\n  assert.equal(measureDowntimeMs(outages, { startMs: 0, endMs: 1000 }), 300);\n});\n\ntest(\"outages are clipped to the billing period\", () => {\n  const outages = [\n    { startMs: -5 * MINUTE, endMs: 10 * MINUTE }, // starts before period\n    { startMs: 30 * DAY - 5 * MINUTE, endMs: 31 * DAY }, // ends after period\n    { startMs: -DAY, endMs: -DAY + MINUTE }, // entirely before period\n  ];\n  assert.equal(measureDowntimeMs(outages, period), 15 * MINUTE);\n});\n\ntest(\"zero-length outages contribute nothing\", () => {\n  assert.equal(measureDowntimeMs([{ startMs: 500, endMs: 500 }], { startMs: 0, endMs: 1000 }), 0);\n});\n\ntest(\"rejects outages that end before they start\", () => {\n  assert.throws(() => measureDowntimeMs([{ startMs: 10, endMs: 5 }], { startMs: 0, endMs: 100 }), RangeError);\n});\n\ntest(\"rejects empty or inverted billing periods\", () => {\n  assert.throws(() => periodDurationMs({ startMs: 10, endMs: 10 }), RangeError);\n  assert.throws(() => measureDowntimeMs([], { startMs: 10, endMs: 5 }), RangeError);\n});\n\ntest(\"availability is the share of the period without downtime\", () => {\n  // 43.2 minutes of downtime in a 30-day month is exactly 99.9% availability.\n  const downtime = 43.2 * MINUTE;\n  assert.ok(Math.abs(availabilityRatio(downtime, period) - 0.999) < 1e-12);\n});\n\ntest(\"availability is clamped to [0, 1]\", () => {\n  assert.equal(availabilityRatio(40 * DAY, period), 0);\n  assert.equal(availabilityRatio(-1, period), 1);\n});\n\ntest(\"isBelow treats exact threshold as meeting the SLA\", () => {\n  const exactlyTarget = availabilityRatio(43.2 * MINUTE, period);\n  assert.equal(isBelow(exactlyTarget, 0.999), false);\n  assert.equal(isBelow(0.9989, 0.999), true);\n  assert.equal(isBelow(0.9991, 0.999), false);\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 143,
+    "only_tests": false,
+    "logic_files": [
+     "src/availability.ts"
+    ],
+    "imports_by_later": [
+     "src/availability.ts"
+    ],
+    "logic_in_step": true,
+    "built_on": true,
+    "L1": true
+   },
+   {
+    "n": 2,
+    "hash": "caf66536",
+    "summary": "Compute SLA credits and apply them to invoices",
+    "files": [
+     {
+      "path": "src/invoice.ts",
+      "content": "import type { SlaCreditResult } from \"./sla.ts\";\n\nexport interface InvoiceLine {\n  description: string;\n  /** Amount in integer minor units (cents). Credits are negative. */\n  amountCents: number;\n}\n\nexport interface Invoice {\n  currency: string;\n  lines: readonly InvoiceLine[];\n}\n\nexport function invoiceTotalCents(invoice: Invoice): number {\n  return invoice.lines.reduce((sum, line) => sum + line.amountCents, 0);\n}\n\n/**\n * Returns a new invoice with an SLA credit line appended. The input is not\n * mutated. When no credit is owed, the invoice is returned unchanged.\n */\nexport function applySlaCredit(invoice: Invoice, credit: SlaCreditResult): Invoice {\n  if (credit.creditCents <= 0) {\n    return invoice;\n  }\n  const percent = (credit.availability * 100).toFixed(2);\n  return {\n    currency: invoice.currency,\n    lines: [\n      ...invoice.lines,\n      {\n        description: `SLA credit (availability ${percent}%, ${Math.round(credit.creditRate * 100)}% of monthly fee)`,\n        amountCents: -credit.creditCents,\n      },\n    ],\n  };\n}"
+     },
+     {
+      "path": "src/sla.ts",
+      "content": "import {\n  availabilityRatio,\n  isBelow,\n  measureDowntimeMs,\n  type Outage,\n  type Period,\n} from \"./availability.ts\";\n\nexport interface CreditTier {\n  /** Applies when measured availability is strictly below this ratio (e.g. 0.99). */\n  belowAvailability: number;\n  /** Share of the monthly fee credited, as a ratio in (0, 1]. */\n  creditRate: number;\n}\n\nexport interface SlaPolicy {\n  /** Availability the SLA promises, as a ratio (e.g. 0.999 for 99.9%). */\n  targetAvailability: number;\n  /** Credit tiers. The deepest matching tier (highest credit rate) wins. */\n  creditTiers: readonly CreditTier[];\n}\n\nexport interface SlaCreditInput {\n  outages: readonly Outage[];\n  period: Period;\n  /** Monthly fee the credit is calculated on, in integer minor units (cents). */\n  monthlyFeeCents: number;\n  policy?: SlaPolicy;\n}\n\nexport interface SlaCreditResult {\n  downtimeMs: number;\n  availability: number;\n  breached: boolean;\n  creditRate: number;\n  creditCents: number;\n}\n\nexport const DEFAULT_SLA_POLICY: SlaPolicy = {\n  targetAvailability: 0.999,\n  creditTiers: [\n    { belowAvailability: 0.999, creditRate: 0.1 },\n    { belowAvailability: 0.99, creditRate: 0.25 },\n    { belowAvailability: 0.95, creditRate: 0.5 },\n  ],\n};\n\n/** Credit rate for a measured availability: the largest rate among tiers it falls below, or 0. */\nexport function creditRateFor(availability: number, policy: SlaPolicy): number {\n  let rate = 0;\n  for (const tier of policy.creditTiers) {\n    if (isBelow(availability, tier.belowAvailability) && tier.creditRate > rate) {\n      rate = tier.creditRate;\n    }\n  }\n  return rate;\n}\n\n/**\n * Measures outages against the SLA for one billing period and computes the\n * credit owed. The credit is rounded to the nearest cent.\n */\nexport function computeSlaCredit(input: SlaCreditInput): SlaCreditResult {\n  const policy = input.policy ?? DEFAULT_SLA_POLICY;\n  if (!Number.isInteger(input.monthlyFeeCents) || input.monthlyFeeCents < 0) {\n    throw new RangeError(`monthlyFeeCents must be a non-negative integer, got ${input.monthlyFeeCents}`);\n  }\n\n  const downtimeMs = measureDowntimeMs(input.outages, input.period);\n  const availability = availabilityRatio(downtimeMs, input.period);\n  const breached = isBelow(availability, policy.targetAvailability);\n  const creditRate = breached ? creditRateFor(availability, policy) : 0;\n  const creditCents = Math.round(input.monthlyFeeCents * creditRate);\n\n  return { downtimeMs, availability, breached, creditRate, creditCents };\n}"
+     },
+     {
+      "path": "test/sla.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { computeSlaCredit, creditRateFor, DEFAULT_SLA_POLICY } from \"../src/sla.ts\";\nimport { applySlaCredit, invoiceTotalCents, type Invoice } from \"../src/invoice.ts\";\n\nconst MINUTE = 60_000;\nconst DAY = 24 * 60 * MINUTE;\nconst period = { startMs: 0, endMs: 30 * DAY }; // 30-day billing month\nconst FEE = 10_000; // 100.00 in cents\n\nfunction outageOf(minutes: number) {\n  return [{ startMs: 1 * DAY, endMs: 1 * DAY + minutes * MINUTE }];\n}\n\ntest(\"no breach when downtime is exactly at the 99.9% allowance\", () => {\n  const result = computeSlaCredit({ outages: outageOf(43.2), period, monthlyFeeCents: FEE });\n  assert.equal(result.breached, false);\n  assert.equal(result.creditCents, 0);\n});\n\ntest(\"breach just above the allowance earns the first tier\", () => {\n  const result = computeSlaCredit({ outages: outageOf(44), period, monthlyFeeCents: FEE });\n  assert.equal(result.breached, true);\n  assert.equal(result.creditRate, 0.1);\n  assert.equal(result.creditCents, 1_000);\n});\n\ntest(\"deeper outages earn deeper tiers\", () => {\n  // ~99.5% availability -> 10% tier\n  assert.equal(computeSlaCredit({ outages: outageOf(216), period, monthlyFeeCents: FEE }).creditRate, 0.1);\n  // ~98.5% availability -> 25% tier\n  assert.equal(computeSlaCredit({ outages: outageOf(648), period, monthlyFeeCents: FEE }).creditRate, 0.25);\n  // ~90% availability -> 50% tier\n  assert.equal(computeSlaCredit({ outages: outageOf(4320), period, monthlyFeeCents: FEE }).creditRate, 0.5);\n});\n\ntest(\"credit is capped at the top tier even for total outages\", () => {\n  const result = computeSlaCredit({\n    outages: [{ startMs: 0, endMs: 60 * DAY }],\n    period,\n    monthlyFeeCents: FEE,\n  });\n  assert.equal(result.availability, 0);\n  assert.equal(result.creditCents, 5_000);\n});\n\ntest(\"overlapping outages are not double counted in the credit\", () => {\n  const outages = [\n    { startMs: 1 * DAY, endMs: 1 * DAY + 30 * MINUTE },\n    { startMs: 1 * DAY + 20 * MINUTE, endMs: 1 * DAY + 40 * MINUTE },\n  ];\n  const result = computeSlaCredit({ outages, period, monthlyFeeCents: FEE });\n  assert.equal(result.downtimeMs, 40 * MINUTE);\n});\n\ntest(\"rounds the credit to the nearest cent\", () => {\n  const result = computeSlaCredit({ outages: outageOf(44), period, monthlyFeeCents: 1_005 });\n  assert.equal(result.creditCents, 101); // 100.5 cents rounds to 101\n});\n\ntest(\"custom policy overrides the default\", () => {\n  const policy = { targetAvailability: 0.99, creditTiers: [{ belowAvailability: 0.99, creditRate: 0.3 }] };\n  const result = computeSlaCredit({ outages: outageOf(44), period, monthlyFeeCents: FEE, policy });\n  assert.equal(result.breached, false);\n  assert.equal(result.creditCents, 0);\n});\n\ntest(\"creditRateFor returns 0 with no matching tier\", () => {\n  assert.equal(creditRateFor(0.9999, DEFAULT_SLA_POLICY), 0);\n});\n\ntest(\"rejects a non-integer or negative fee\", () => {\n  assert.throws(() => computeSlaCredit({ outages: [], period, monthlyFeeCents: 10.5 }), RangeError);\n  assert.throws(() => computeSlaCredit({ outages: [], period, monthlyFeeCents: -1 }), RangeError);\n});\n\ntest(\"applySlaCredit adds a negative line and reduces the total\", () => {\n  const invoice: Invoice = {\n    currency: \"EUR\",\n    lines: [{ description: \"Monthly subscription\", amountCents: FEE }],\n  };\n  const credit = computeSlaCredit({ outages: outageOf(4320), period, monthlyFeeCents: FEE });\n  const billed = applySlaCredit(invoice, credit);\n\n  assert.equal(billed.lines.length, 2);\n  assert.equal(billed.lines[1].amountCents, -5_000);\n  assert.match(billed.lines[1].description, /SLA credit/);\n  assert.equal(invoiceTotalCents(billed), 5_000);\n  // input is not mutated\n  assert.equal(invoice.lines.length, 1);\n});\n\ntest(\"applySlaCredit returns the invoice unchanged when no credit is owed\", () => {\n  const invoice: Invoice = { currency: \"EUR\", lines: [{ description: \"Fee\", amountCents: FEE }] };\n  const credit = computeSlaCredit({ outages: [], period, monthlyFeeCents: FEE });\n  assert.equal(applySlaCredit(invoice, credit), invoice);\n});"
+     }
+    ],
+    "visible_tests": [
+     {
+      "path": "test/availability.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport {\n  availabilityRatio,\n  isBelow,\n  measureDowntimeMs,\n  periodDurationMs,\n} from \"../src/availability.ts\";\n\nconst MINUTE = 60_000;\nconst DAY = 24 * 60 * MINUTE;\nconst period = { startMs: 0, endMs: 30 * DAY };\n\ntest(\"no outages means no downtime and full availability\", () => {\n  assert.equal(measureDowntimeMs([], period), 0);\n  assert.equal(availabilityRatio(0, period), 1);\n});\n\ntest(\"sums disjoint outages\", () => {\n  const outages = [\n    { startMs: 1 * DAY, endMs: 1 * DAY + 10 * MINUTE },\n    { startMs: 5 * DAY, endMs: 5 * DAY + 5 * MINUTE },\n  ];\n  assert.equal(measureDowntimeMs(outages, period), 15 * MINUTE);\n});\n\ntest(\"overlapping outages are counted once\", () => {\n  const outages = [\n    { startMs: 100, endMs: 300 },\n    { startMs: 200, endMs: 400 },\n    { startMs: 350, endMs: 360 },\n  ];\n  assert.equal(measureDowntimeMs(outages, { startMs: 0, endMs: 1000 }), 300);\n});\n\ntest(\"outages are clipped to the billing period\", () => {\n  const outages = [\n    { startMs: -5 * MINUTE, endMs: 10 * MINUTE }, // starts before period\n    { startMs: 30 * DAY - 5 * MINUTE, endMs: 31 * DAY }, // ends after period\n    { startMs: -DAY, endMs: -DAY + MINUTE }, // entirely before period\n  ];\n  assert.equal(measureDowntimeMs(outages, period), 15 * MINUTE);\n});\n\ntest(\"zero-length outages contribute nothing\", () => {\n  assert.equal(measureDowntimeMs([{ startMs: 500, endMs: 500 }], { startMs: 0, endMs: 1000 }), 0);\n});\n\ntest(\"rejects outages that end before they start\", () => {\n  assert.throws(() => measureDowntimeMs([{ startMs: 10, endMs: 5 }], { startMs: 0, endMs: 100 }), RangeError);\n});\n\ntest(\"rejects empty or inverted billing periods\", () => {\n  assert.throws(() => periodDurationMs({ startMs: 10, endMs: 10 }), RangeError);\n  assert.throws(() => measureDowntimeMs([], { startMs: 10, endMs: 5 }), RangeError);\n});\n\ntest(\"availability is the share of the period without downtime\", () => {\n  // 43.2 minutes of downtime in a 30-day month is exactly 99.9% availability.\n  const downtime = 43.2 * MINUTE;\n  assert.ok(Math.abs(availabilityRatio(downtime, period) - 0.999) < 1e-12);\n});\n\ntest(\"availability is clamped to [0, 1]\", () => {\n  assert.equal(availabilityRatio(40 * DAY, period), 0);\n  assert.equal(availabilityRatio(-1, period), 1);\n});\n\ntest(\"isBelow treats exact threshold as meeting the SLA\", () => {\n  const exactlyTarget = availabilityRatio(43.2 * MINUTE, period);\n  assert.equal(isBelow(exactlyTarget, 0.999), false);\n  assert.equal(isBelow(0.9989, 0.999), true);\n  assert.equal(isBelow(0.9991, 0.999), false);\n});"
+     }
+    ],
+    "lines_added": 210,
+    "only_tests": false,
+    "logic_files": [
+     "src/invoice.ts",
+     "src/sla.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/availability.ts",
+   "src/invoice.ts",
+   "src/sla.ts",
+   "test/availability.test.ts",
+   "test/sla.test.ts"
+  ]
+ },
+ {
+  "trace": "US4_b",
+  "story": "US4",
+  "run": "b",
+  "brief": "As a billing owner, I want outages measured against our SLA threshold and credited on the invoice, so that customers are compensated when we miss the SLA.",
+  "n_steps": 3,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "45ffb5d8",
+    "summary": "Add duration helpers and outage downtime measurement",
+    "files": [
+     {
+      "path": "src/duration.ts",
+      "content": "export const SECOND_MS = 1_000;\nexport const MINUTE_MS = 60 * SECOND_MS;\nexport const HOUR_MS = 60 * MINUTE_MS;\nexport const DAY_MS = 24 * HOUR_MS;\n\nexport function minutes(count: number): number {\n  return count * MINUTE_MS;\n}\n\nexport function hours(count: number): number {\n  return count * HOUR_MS;\n}\n\nexport function days(count: number): number {\n  return count * DAY_MS;\n}"
+     },
+     {
+      "path": "src/outages.ts",
+      "content": "export interface Outage {\n  startMs: number;\n  endMs: number;\n}\n\n/**\n * Total milliseconds of outage inside [windowStartMs, windowEndMs).\n * Outages are clipped to the window and overlapping outages are merged,\n * so an interval covered twice is counted once.\n */\nexport function downtimeWithin(\n  outages: readonly Outage[],\n  windowStartMs: number,\n  windowEndMs: number,\n): number {\n  if (windowEndMs < windowStartMs) {\n    throw new RangeError(\"window ends before it starts\");\n  }\n\n  const clipped: Outage[] = [];\n  for (const outage of outages) {\n    if (outage.endMs < outage.startMs) {\n      throw new RangeError(\"outage ends before it starts\");\n    }\n    const startMs = Math.max(outage.startMs, windowStartMs);\n    const endMs = Math.min(outage.endMs, windowEndMs);\n    if (endMs > startMs) {\n      clipped.push({ startMs, endMs });\n    }\n  }\n  clipped.sort((a, b) => a.startMs - b.startMs);\n\n  let total = 0;\n  let runStart: number | undefined;\n  let runEnd = 0;\n  for (const outage of clipped) {\n    if (runStart === undefined || outage.startMs > runEnd) {\n      if (runStart !== undefined) {\n        total += runEnd - runStart;\n      }\n      runStart = outage.startMs;\n      runEnd = outage.endMs;\n    } else {\n      runEnd = Math.max(runEnd, outage.endMs);\n    }\n  }\n  if (runStart !== undefined) {\n    total += runEnd - runStart;\n  }\n  return total;\n}"
+     },
+     {
+      "path": "test/duration.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { DAY_MS, HOUR_MS, MINUTE_MS, days, hours, minutes } from \"../src/duration.ts\";\n\ntest(\"duration helpers return milliseconds\", () => {\n  assert.equal(MINUTE_MS, 60_000);\n  assert.equal(minutes(5), 300_000);\n  assert.equal(hours(2), 2 * HOUR_MS);\n  assert.equal(days(1), DAY_MS);\n});"
+     },
+     {
+      "path": "test/outages.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { downtimeWithin } from \"../src/outages.ts\";\n\nconst WINDOW_START = 1_000;\nconst WINDOW_END = 11_000;\n\ntest(\"sums outages inside the window\", () => {\n  const outages = [\n    { startMs: 2_000, endMs: 3_000 },\n    { startMs: 5_000, endMs: 6_500 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 2_500);\n});\n\ntest(\"clips outages that cross the window edges\", () => {\n  const outages = [\n    { startMs: 0, endMs: 2_000 },\n    { startMs: 10_000, endMs: 20_000 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 2_000);\n});\n\ntest(\"ignores outages entirely outside the window\", () => {\n  const outages = [{ startMs: 0, endMs: 500 }, { startMs: 12_000, endMs: 13_000 }];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 0);\n});\n\ntest(\"merges overlapping outages so shared time is counted once\", () => {\n  const outages = [\n    { startMs: 2_000, endMs: 5_000 },\n    { startMs: 4_000, endMs: 6_000 },\n    { startMs: 2_500, endMs: 3_000 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 4_000);\n});\n\ntest(\"returns zero when there are no outages\", () => {\n  assert.equal(downtimeWithin([], WINDOW_START, WINDOW_END), 0);\n});\n\ntest(\"rejects an outage that ends before it starts\", () => {\n  assert.throws(() => downtimeWithin([{ startMs: 5, endMs: 4 }], 0, 10), RangeError);\n});\n\ntest(\"rejects a window that ends before it starts\", () => {\n  assert.throws(() => downtimeWithin([], 10, 0), RangeError);\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 125,
+    "only_tests": false,
+    "logic_files": [
+     "src/outages.ts"
+    ],
+    "imports_by_later": [
+     "src/outages.ts"
+    ],
+    "logic_in_step": true,
+    "built_on": true,
+    "L1": true
+   },
+   {
+    "n": 2,
+    "hash": "2ac73daa",
+    "summary": "Evaluate outages against the SLA threshold and compute credit",
+    "files": [
+     {
+      "path": "src/sla.ts",
+      "content": "import { downtimeWithin, type Outage } from \"./outages.ts\";\n\nexport interface SlaPolicy {\n  /** Availability target as a fraction, e.g. 0.999 for 99.9%. */\n  uptimeTarget: number;\n  /** Percent of the period's fee credited when the target is missed (0-100). */\n  creditPercent: number;\n}\n\nexport interface BillingPeriod {\n  startMs: number;\n  endMs: number;\n}\n\nexport interface SlaEvaluation {\n  periodMs: number;\n  allowedDowntimeMs: number;\n  downtimeMs: number;\n  breached: boolean;\n  creditCents: number;\n}\n\n/** Downtime a period may contain while still meeting the uptime target. */\nexport function allowedDowntime(periodMs: number, uptimeTarget: number): number {\n  // Rounded to the nearest millisecond so float error cannot shift the threshold.\n  return Math.round(periodMs * (1 - uptimeTarget));\n}\n\nexport function evaluateSla(options: {\n  policy: SlaPolicy;\n  period: BillingPeriod;\n  outages: readonly Outage[];\n  monthlyFeeCents: number;\n}): SlaEvaluation {\n  const { policy, period, outages, monthlyFeeCents } = options;\n\n  if (!(policy.uptimeTarget > 0 && policy.uptimeTarget < 1)) {\n    throw new RangeError(\"uptimeTarget must be between 0 and 1 exclusive\");\n  }\n  if (!(policy.creditPercent >= 0 && policy.creditPercent <= 100)) {\n    throw new RangeError(\"creditPercent must be between 0 and 100\");\n  }\n  if (!Number.isInteger(monthlyFeeCents) || monthlyFeeCents < 0) {\n    throw new RangeError(\"monthlyFeeCents must be a non-negative integer\");\n  }\n\n  const periodMs = period.endMs - period.startMs;\n  const allowedMs = allowedDowntime(periodMs, policy.uptimeTarget);\n  const downtimeMs = downtimeWithin(outages, period.startMs, period.endMs);\n  const breached = downtimeMs > allowedMs;\n\n  return {\n    periodMs,\n    allowedDowntimeMs: allowedMs,\n    downtimeMs,\n    breached,\n    creditCents: breached ? Math.floor((monthlyFeeCents * policy.creditPercent) / 100) : 0,\n  };\n}"
+     },
+     {
+      "path": "test/sla.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { DAY_MS, minutes } from \"../src/duration.ts\";\nimport { allowedDowntime, evaluateSla } from \"../src/sla.ts\";\n\nconst period = { startMs: 0, endMs: 30 * DAY_MS };\nconst policy = { uptimeTarget: 0.999, creditPercent: 10 };\n\ntest(\"allowed downtime is the complement of the uptime target\", () => {\n  // 30 days at 99.9% allows 43.2 minutes.\n  assert.equal(allowedDowntime(30 * DAY_MS, 0.999), minutes(43.2));\n});\n\ntest(\"no credit when downtime is exactly at the threshold\", () => {\n  const allowed = allowedDowntime(period.endMs - period.startMs, policy.uptimeTarget);\n  const result = evaluateSla({\n    policy,\n    period,\n    outages: [{ startMs: 0, endMs: allowed }],\n    monthlyFeeCents: 10_000,\n  });\n  assert.equal(result.breached, false);\n  assert.equal(result.creditCents, 0);\n});\n\ntest(\"credits the configured percent of the fee when downtime exceeds the threshold\", () => {\n  const result = evaluateSla({\n    policy,\n    period,\n    outages: [{ startMs: 0, endMs: minutes(60) }],\n    monthlyFeeCents: 10_000,\n  });\n  assert.equal(result.breached, true);\n  assert.equal(result.downtimeMs, minutes(60));\n  assert.equal(result.allowedDowntimeMs, minutes(43.2));\n  assert.equal(result.creditCents, 1_000);\n});\n\ntest(\"credit is rounded down to whole cents\", () => {\n  const result = evaluateSla({\n    policy: { uptimeTarget: 0.999, creditPercent: 33 },\n    period,\n    outages: [{ startMs: 0, endMs: minutes(60) }],\n    monthlyFeeCents: 1_000,\n  });\n  assert.equal(result.creditCents, 330);\n});\n\ntest(\"outages outside the billing period do not count\", () => {\n  const result = evaluateSla({\n    policy,\n    period,\n    outages: [{ startMs: -minutes(600), endMs: -minutes(1) }],\n    monthlyFeeCents: 10_000,\n  });\n  assert.equal(result.downtimeMs, 0);\n  assert.equal(result.breached, false);\n});\n\ntest(\"rejects invalid policies and fees\", () => {\n  const outages: never[] = [];\n  assert.throws(\n    () => evaluateSla({ policy: { uptimeTarget: 1, creditPercent: 10 }, period, outages, monthlyFeeCents: 1 }),\n    RangeError,\n  );\n  assert.throws(\n    () => evaluateSla({ policy: { uptimeTarget: 0.99, creditPercent: 101 }, period, outages, monthlyFeeCents: 1 }),\n    RangeError,\n  );\n  assert.throws(\n    () => evaluateSla({ policy, period, outages, monthlyFeeCents: 10.5 }),\n    RangeError,\n  );\n});"
+     }
+    ],
+    "visible_tests": [
+     {
+      "path": "test/duration.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { DAY_MS, HOUR_MS, MINUTE_MS, days, hours, minutes } from \"../src/duration.ts\";\n\ntest(\"duration helpers return milliseconds\", () => {\n  assert.equal(MINUTE_MS, 60_000);\n  assert.equal(minutes(5), 300_000);\n  assert.equal(hours(2), 2 * HOUR_MS);\n  assert.equal(days(1), DAY_MS);\n});"
+     },
+     {
+      "path": "test/outages.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { downtimeWithin } from \"../src/outages.ts\";\n\nconst WINDOW_START = 1_000;\nconst WINDOW_END = 11_000;\n\ntest(\"sums outages inside the window\", () => {\n  const outages = [\n    { startMs: 2_000, endMs: 3_000 },\n    { startMs: 5_000, endMs: 6_500 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 2_500);\n});\n\ntest(\"clips outages that cross the window edges\", () => {\n  const outages = [\n    { startMs: 0, endMs: 2_000 },\n    { startMs: 10_000, endMs: 20_000 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 2_000);\n});\n\ntest(\"ignores outages entirely outside the window\", () => {\n  const outages = [{ startMs: 0, endMs: 500 }, { startMs: 12_000, endMs: 13_000 }];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 0);\n});\n\ntest(\"merges overlapping outages so shared time is counted once\", () => {\n  const outages = [\n    { startMs: 2_000, endMs: 5_000 },\n    { startMs: 4_000, endMs: 6_000 },\n    { startMs: 2_500, endMs: 3_000 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 4_000);\n});\n\ntest(\"returns zero when there are no outages\", () => {\n  assert.equal(downtimeWithin([], WINDOW_START, WINDOW_END), 0);\n});\n\ntest(\"rejects an outage that ends before it starts\", () => {\n  assert.throws(() => downtimeWithin([{ startMs: 5, endMs: 4 }], 0, 10), RangeError);\n});\n\ntest(\"rejects a window that ends before it starts\", () => {\n  assert.throws(() => downtimeWithin([], 10, 0), RangeError);\n});"
+     }
+    ],
+    "lines_added": 133,
+    "only_tests": false,
+    "logic_files": [
+     "src/sla.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   },
+   {
+    "n": 3,
+    "hash": "ecf39637",
+    "summary": "Apply SLA credit as a negative invoice line",
+    "files": [
+     {
+      "path": "src/invoice.ts",
+      "content": "export interface InvoiceLine {\n  description: string;\n  /** Negative for credits. */\n  amountCents: number;\n}\n\nexport interface Invoice {\n  id: string;\n  lines: readonly InvoiceLine[];\n  totalCents: number;\n}\n\nexport const SLA_CREDIT_DESCRIPTION = \"SLA credit\";\n\n/**\n * Returns a new invoice with an SLA credit line appended and the total reduced.\n * The credit is capped at the invoice total so the total never goes negative.\n * Passing a zero credit returns the invoice unchanged.\n */\nexport function applySlaCredit(invoice: Invoice, creditCents: number): Invoice {\n  if (!Number.isInteger(creditCents) || creditCents < 0) {\n    throw new RangeError(\"creditCents must be a non-negative integer\");\n  }\n  const applied = Math.min(creditCents, Math.max(0, invoice.totalCents));\n  if (applied === 0) {\n    return invoice;\n  }\n  return {\n    ...invoice,\n    lines: [...invoice.lines, { description: SLA_CREDIT_DESCRIPTION, amountCents: -applied }],\n    totalCents: invoice.totalCents - applied,\n  };\n}"
+     },
+     {
+      "path": "test/invoice.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { applySlaCredit, type Invoice } from \"../src/invoice.ts\";\n\nconst invoice: Invoice = {\n  id: \"INV-1\",\n  lines: [{ description: \"Subscription\", amountCents: 10_000 }],\n  totalCents: 10_000,\n};\n\ntest(\"appends a negative SLA credit line and reduces the total\", () => {\n  const result = applySlaCredit(invoice, 1_000);\n  assert.deepEqual(result.lines, [\n    { description: \"Subscription\", amountCents: 10_000 },\n    { description: \"SLA credit\", amountCents: -1_000 },\n  ]);\n  assert.equal(result.totalCents, 9_000);\n  assert.equal(result.id, \"INV-1\");\n});\n\ntest(\"does not modify the original invoice\", () => {\n  applySlaCredit(invoice, 1_000);\n  assert.equal(invoice.lines.length, 1);\n  assert.equal(invoice.totalCents, 10_000);\n});\n\ntest(\"a zero credit leaves the invoice unchanged\", () => {\n  assert.equal(applySlaCredit(invoice, 0), invoice);\n});\n\ntest(\"caps the credit at the invoice total\", () => {\n  const result = applySlaCredit({ ...invoice, totalCents: 500 }, 1_000);\n  assert.equal(result.totalCents, 0);\n  assert.equal(result.lines.at(-1)?.amountCents, -500);\n});\n\ntest(\"rejects a negative or fractional credit\", () => {\n  assert.throws(() => applySlaCredit(invoice, -1), RangeError);\n  assert.throws(() => applySlaCredit(invoice, 1.5), RangeError);\n});"
+     }
+    ],
+    "visible_tests": [
+     {
+      "path": "test/duration.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { DAY_MS, HOUR_MS, MINUTE_MS, days, hours, minutes } from \"../src/duration.ts\";\n\ntest(\"duration helpers return milliseconds\", () => {\n  assert.equal(MINUTE_MS, 60_000);\n  assert.equal(minutes(5), 300_000);\n  assert.equal(hours(2), 2 * HOUR_MS);\n  assert.equal(days(1), DAY_MS);\n});"
+     },
+     {
+      "path": "test/outages.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { downtimeWithin } from \"../src/outages.ts\";\n\nconst WINDOW_START = 1_000;\nconst WINDOW_END = 11_000;\n\ntest(\"sums outages inside the window\", () => {\n  const outages = [\n    { startMs: 2_000, endMs: 3_000 },\n    { startMs: 5_000, endMs: 6_500 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 2_500);\n});\n\ntest(\"clips outages that cross the window edges\", () => {\n  const outages = [\n    { startMs: 0, endMs: 2_000 },\n    { startMs: 10_000, endMs: 20_000 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 2_000);\n});\n\ntest(\"ignores outages entirely outside the window\", () => {\n  const outages = [{ startMs: 0, endMs: 500 }, { startMs: 12_000, endMs: 13_000 }];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 0);\n});\n\ntest(\"merges overlapping outages so shared time is counted once\", () => {\n  const outages = [\n    { startMs: 2_000, endMs: 5_000 },\n    { startMs: 4_000, endMs: 6_000 },\n    { startMs: 2_500, endMs: 3_000 },\n  ];\n  assert.equal(downtimeWithin(outages, WINDOW_START, WINDOW_END), 4_000);\n});\n\ntest(\"returns zero when there are no outages\", () => {\n  assert.equal(downtimeWithin([], WINDOW_START, WINDOW_END), 0);\n});\n\ntest(\"rejects an outage that ends before it starts\", () => {\n  assert.throws(() => downtimeWithin([{ startMs: 5, endMs: 4 }], 0, 10), RangeError);\n});\n\ntest(\"rejects a window that ends before it starts\", () => {\n  assert.throws(() => downtimeWithin([], 10, 0), RangeError);\n});"
+     },
+     {
+      "path": "test/sla.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { DAY_MS, minutes } from \"../src/duration.ts\";\nimport { allowedDowntime, evaluateSla } from \"../src/sla.ts\";\n\nconst period = { startMs: 0, endMs: 30 * DAY_MS };\nconst policy = { uptimeTarget: 0.999, creditPercent: 10 };\n\ntest(\"allowed downtime is the complement of the uptime target\", () => {\n  // 30 days at 99.9% allows 43.2 minutes.\n  assert.equal(allowedDowntime(30 * DAY_MS, 0.999), minutes(43.2));\n});\n\ntest(\"no credit when downtime is exactly at the threshold\", () => {\n  const allowed = allowedDowntime(period.endMs - period.startMs, policy.uptimeTarget);\n  const result = evaluateSla({\n    policy,\n    period,\n    outages: [{ startMs: 0, endMs: allowed }],\n    monthlyFeeCents: 10_000,\n  });\n  assert.equal(result.breached, false);\n  assert.equal(result.creditCents, 0);\n});\n\ntest(\"credits the configured percent of the fee when downtime exceeds the threshold\", () => {\n  const result = evaluateSla({\n    policy,\n    period,\n    outages: [{ startMs: 0, endMs: minutes(60) }],\n    monthlyFeeCents: 10_000,\n  });\n  assert.equal(result.breached, true);\n  assert.equal(result.downtimeMs, minutes(60));\n  assert.equal(result.allowedDowntimeMs, minutes(43.2));\n  assert.equal(result.creditCents, 1_000);\n});\n\ntest(\"credit is rounded down to whole cents\", () => {\n  const result = evaluateSla({\n    policy: { uptimeTarget: 0.999, creditPercent: 33 },\n    period,\n    outages: [{ startMs: 0, endMs: minutes(60) }],\n    monthlyFeeCents: 1_000,\n  });\n  assert.equal(result.creditCents, 330);\n});\n\ntest(\"outages outside the billing period do not count\", () => {\n  const result = evaluateSla({\n    policy,\n    period,\n    outages: [{ startMs: -minutes(600), endMs: -minutes(1) }],\n    monthlyFeeCents: 10_000,\n  });\n  assert.equal(result.downtimeMs, 0);\n  assert.equal(result.breached, false);\n});\n\ntest(\"rejects invalid policies and fees\", () => {\n  const outages: never[] = [];\n  assert.throws(\n    () => evaluateSla({ policy: { uptimeTarget: 1, creditPercent: 10 }, period, outages, monthlyFeeCents: 1 }),\n    RangeError,\n  );\n  assert.throws(\n    () => evaluateSla({ policy: { uptimeTarget: 0.99, creditPercent: 101 }, period, outages, monthlyFeeCents: 1 }),\n    RangeError,\n  );\n  assert.throws(\n    () => evaluateSla({ policy, period, outages, monthlyFeeCents: 10.5 }),\n    RangeError,\n  );\n});"
+     }
+    ],
+    "lines_added": 73,
+    "only_tests": false,
+    "logic_files": [
+     "src/invoice.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/duration.ts",
+   "src/invoice.ts",
+   "src/outages.ts",
+   "src/sla.ts",
+   "test/duration.test.ts",
+   "test/invoice.test.ts",
+   "test/outages.test.ts",
+   "test/sla.test.ts"
+  ]
+ },
+ {
+  "trace": "US5_a",
+  "story": "US5",
+  "run": "a",
+  "brief": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.",
+  "n_steps": 2,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "09d5abd2",
+    "summary": "Add per-client sliding-window rate limiter",
+    "files": [
+     {
+      "path": "src/rate-limiter.ts",
+      "content": "export interface RateLimiterOptions {\n  /** Maximum number of requests a single client may make within one window. */\n  limit: number;\n  /** Window length in milliseconds. Defaults to one minute. */\n  windowMs?: number;\n}\n\nexport interface RateLimitDecision {\n  allowed: boolean;\n  /** Requests the client may still make in the current window. */\n  remaining: number;\n  /** When rejected, milliseconds until the client may retry. Zero when allowed. */\n  retryAfterMs: number;\n}\n\nconst ONE_MINUTE_MS = 60_000;\n\n/**\n * Per-client sliding-window rate limiter.\n *\n * Each client gets at most `limit` requests in any `windowMs` span. The caller\n * supplies `now` (milliseconds) on every call; the limiter never reads the clock.\n */\nexport class RateLimiter {\n  readonly #limit: number;\n  readonly #windowMs: number;\n  readonly #hits = new Map<string, number[]>();\n\n  constructor(options: RateLimiterOptions) {\n    const windowMs = options.windowMs ?? ONE_MINUTE_MS;\n    if (!Number.isInteger(options.limit) || options.limit < 1) {\n      throw new RangeError(`limit must be a positive integer, got ${options.limit}`);\n    }\n    if (!Number.isFinite(windowMs) || windowMs <= 0) {\n      throw new RangeError(`windowMs must be a positive number, got ${windowMs}`);\n    }\n    this.#limit = options.limit;\n    this.#windowMs = windowMs;\n  }\n\n  /** Records a request from `clientId` at time `now` if it is within the limit. */\n  check(clientId: string, now: number): RateLimitDecision {\n    const cutoff = now - this.#windowMs;\n    const hits = (this.#hits.get(clientId) ?? []).filter((t) => t > cutoff);\n\n    if (hits.length >= this.#limit) {\n      this.#hits.set(clientId, hits);\n      // The oldest hit in the window is the first to expire, freeing a slot.\n      const retryAfterMs = hits[0] + this.#windowMs - now;\n      return { allowed: false, remaining: 0, retryAfterMs };\n    }\n\n    hits.push(now);\n    this.#hits.set(clientId, hits);\n    return { allowed: true, remaining: this.#limit - hits.length, retryAfterMs: 0 };\n  }\n}"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 57,
+    "only_tests": false,
+    "logic_files": [
+     "src/rate-limiter.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   },
+   {
+    "n": 2,
+    "hash": "3bc390b4",
+    "summary": "Test per-client rate limiter",
+    "files": [
+     {
+      "path": "test/rate-limiter.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { RateLimiter } from \"../src/rate-limiter.ts\";\n\ntest(\"allows requests up to the limit within a window\", () => {\n  const limiter = new RateLimiter({ limit: 3 });\n  assert.deepEqual(limiter.check(\"a\", 0), { allowed: true, remaining: 2, retryAfterMs: 0 });\n  assert.deepEqual(limiter.check(\"a\", 1), { allowed: true, remaining: 1, retryAfterMs: 0 });\n  assert.deepEqual(limiter.check(\"a\", 2), { allowed: true, remaining: 0, retryAfterMs: 0 });\n});\n\ntest(\"rejects the request after the limit is reached, with retry time\", () => {\n  const limiter = new RateLimiter({ limit: 2, windowMs: 60_000 });\n  limiter.check(\"a\", 1_000);\n  limiter.check(\"a\", 5_000);\n  assert.deepEqual(limiter.check(\"a\", 10_000), {\n    allowed: false,\n    remaining: 0,\n    retryAfterMs: 1_000 + 60_000 - 10_000,\n  });\n});\n\ntest(\"rejected requests are not counted against the client\", () => {\n  const limiter = new RateLimiter({ limit: 1, windowMs: 1_000 });\n  assert.equal(limiter.check(\"a\", 0).allowed, true);\n  assert.equal(limiter.check(\"a\", 100).allowed, false);\n  assert.equal(limiter.check(\"a\", 200).allowed, false);\n  // Only the first request at t=0 counts, so a request at t=1000 is allowed.\n  assert.equal(limiter.check(\"a\", 1_000).allowed, true);\n});\n\ntest(\"slots free up as old requests leave the window\", () => {\n  const limiter = new RateLimiter({ limit: 2, windowMs: 60_000 });\n  limiter.check(\"a\", 0);\n  limiter.check(\"a\", 30_000);\n  assert.equal(limiter.check(\"a\", 59_999).allowed, false);\n  assert.equal(limiter.check(\"a\", 60_000).allowed, true); // t=0 has aged out\n  assert.equal(limiter.check(\"a\", 60_001).allowed, false); // t=30000 still counts\n  assert.equal(limiter.check(\"a\", 90_000).allowed, true);\n});\n\ntest(\"each client has its own budget\", () => {\n  const limiter = new RateLimiter({ limit: 1 });\n  assert.equal(limiter.check(\"alice\", 0).allowed, true);\n  assert.equal(limiter.check(\"alice\", 1).allowed, false);\n  assert.equal(limiter.check(\"bob\", 1).allowed, true);\n});\n\ntest(\"defaults the window to one minute\", () => {\n  const limiter = new RateLimiter({ limit: 1 });\n  limiter.check(\"a\", 0);\n  assert.equal(limiter.check(\"a\", 59_999).allowed, false);\n  assert.equal(limiter.check(\"a\", 60_000).allowed, true);\n});\n\ntest(\"rejects invalid options\", () => {\n  assert.throws(() => new RateLimiter({ limit: 0 }), RangeError);\n  assert.throws(() => new RateLimiter({ limit: 1.5 }), RangeError);\n  assert.throws(() => new RateLimiter({ limit: 1, windowMs: 0 }), RangeError);\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 60,
+    "only_tests": true,
+    "logic_files": [],
+    "imports_by_later": [],
+    "logic_in_step": false,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/rate-limiter.ts",
+   "test/rate-limiter.test.ts"
+  ]
+ },
+ {
+  "trace": "US5_b",
+  "story": "US5",
+  "run": "b",
+  "brief": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.",
+  "n_steps": 2,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "243ce85b",
+    "summary": "Add per-client sliding-window rate limiter",
+    "files": [
+     {
+      "path": "src/limiter.ts",
+      "content": "export interface RateLimiterOptions {\n  /** Maximum number of requests a client may make within one window. */\n  limit: number;\n  /** Window length in milliseconds. Defaults to one minute. */\n  windowMs?: number;\n}\n\nexport interface RateLimitDecision {\n  allowed: boolean;\n  /** Requests the client may still make in the current window. */\n  remaining: number;\n  /** Milliseconds until the client may retry; 0 when allowed. */\n  retryAfterMs: number;\n}\n\n/**\n * Per-client sliding-window rate limiter.\n *\n * Keeps the timestamps of each client's accepted requests within the last\n * `windowMs` milliseconds. A request is allowed while fewer than `limit`\n * timestamps remain in the window. Callers pass `now`; the limiter never\n * reads the clock itself.\n */\nexport class RateLimiter {\n  readonly limit: number;\n  readonly windowMs: number;\n  private readonly hits = new Map<string, number[]>();\n\n  constructor(options: RateLimiterOptions) {\n    const windowMs = options.windowMs ?? 60_000;\n    if (!Number.isInteger(options.limit) || options.limit < 1) {\n      throw new RangeError(`limit must be a positive integer, got ${options.limit}`);\n    }\n    if (!(windowMs > 0)) {\n      throw new RangeError(`windowMs must be positive, got ${windowMs}`);\n    }\n    this.limit = options.limit;\n    this.windowMs = windowMs;\n  }\n\n  /** Records a request from `clientId` at time `now` and reports whether it is allowed. */\n  check(clientId: string, now: number): RateLimitDecision {\n    const windowStart = now - this.windowMs;\n    const recent = (this.hits.get(clientId) ?? []).filter((t) => t > windowStart);\n\n    if (recent.length >= this.limit) {\n      this.hits.set(clientId, recent);\n      return {\n        allowed: false,\n        remaining: 0,\n        retryAfterMs: recent[0] + this.windowMs - now,\n      };\n    }\n\n    recent.push(now);\n    this.hits.set(clientId, recent);\n    return {\n      allowed: true,\n      remaining: this.limit - recent.length,\n      retryAfterMs: 0,\n    };\n  }\n}"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 63,
+    "only_tests": false,
+    "logic_files": [
+     "src/limiter.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   },
+   {
+    "n": 2,
+    "hash": "2fca0453",
+    "summary": "Add tests for per-client rate limiter",
+    "files": [
+     {
+      "path": "test/limiter.test.ts",
+      "content": "import { describe, it } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { RateLimiter } from \"../src/limiter.ts\";\n\ndescribe(\"RateLimiter\", () => {\n  it(\"allows up to the limit within one window and rejects the next request\", () => {\n    const limiter = new RateLimiter({ limit: 3 });\n    assert.equal(limiter.check(\"a\", 0).allowed, true);\n    assert.equal(limiter.check(\"a\", 1).allowed, true);\n    assert.equal(limiter.check(\"a\", 2).allowed, true);\n    const denied = limiter.check(\"a\", 3);\n    assert.equal(denied.allowed, false);\n    assert.equal(denied.remaining, 0);\n  });\n\n  it(\"reports remaining requests after each accepted call\", () => {\n    const limiter = new RateLimiter({ limit: 3 });\n    assert.equal(limiter.check(\"a\", 0).remaining, 2);\n    assert.equal(limiter.check(\"a\", 1).remaining, 1);\n    assert.equal(limiter.check(\"a\", 2).remaining, 0);\n  });\n\n  it(\"tracks clients independently\", () => {\n    const limiter = new RateLimiter({ limit: 1 });\n    assert.equal(limiter.check(\"a\", 0).allowed, true);\n    assert.equal(limiter.check(\"a\", 1).allowed, false);\n    assert.equal(limiter.check(\"b\", 1).allowed, true);\n  });\n\n  it(\"does not count rejected requests against the client\", () => {\n    const limiter = new RateLimiter({ limit: 1, windowMs: 1000 });\n    assert.equal(limiter.check(\"a\", 0).allowed, true);\n    assert.equal(limiter.check(\"a\", 500).allowed, false);\n    assert.equal(limiter.check(\"a\", 999).allowed, false);\n    // Only the request at t=0 is in the window; it expires at t=1000.\n    assert.equal(limiter.check(\"a\", 1000).allowed, true);\n  });\n\n  it(\"frees capacity as old requests leave the sliding window\", () => {\n    const limiter = new RateLimiter({ limit: 2, windowMs: 1000 });\n    assert.equal(limiter.check(\"a\", 0).allowed, true);\n    assert.equal(limiter.check(\"a\", 400).allowed, true);\n    assert.equal(limiter.check(\"a\", 500).allowed, false);\n    // At t=1000 the request from t=0 has aged out, but the one from t=400 has not.\n    const decision = limiter.check(\"a\", 1000);\n    assert.equal(decision.allowed, true);\n    assert.equal(decision.remaining, 0);\n    assert.equal(limiter.check(\"a\", 1100).allowed, false);\n  });\n\n  it(\"reports how long until the oldest request leaves the window\", () => {\n    const limiter = new RateLimiter({ limit: 2, windowMs: 60_000 });\n    limiter.check(\"a\", 10_000);\n    limiter.check(\"a\", 20_000);\n    const denied = limiter.check(\"a\", 25_000);\n    assert.equal(denied.allowed, false);\n    assert.equal(denied.retryAfterMs, 10_000 + 60_000 - 25_000);\n  });\n\n  it(\"returns zero retryAfterMs when allowed\", () => {\n    const limiter = new RateLimiter({ limit: 1 });\n    assert.equal(limiter.check(\"a\", 0).retryAfterMs, 0);\n  });\n\n  it(\"defaults the window to one minute\", () => {\n    const limiter = new RateLimiter({ limit: 1 });\n    assert.equal(limiter.windowMs, 60_000);\n    limiter.check(\"a\", 0);\n    assert.equal(limiter.check(\"a\", 59_999).allowed, false);\n    assert.equal(limiter.check(\"a\", 60_000).allowed, true);\n  });\n\n  it(\"rejects a limit that is not a positive integer\", () => {\n    assert.throws(() => new RateLimiter({ limit: 0 }), RangeError);\n    assert.throws(() => new RateLimiter({ limit: -1 }), RangeError);\n    assert.throws(() => new RateLimiter({ limit: 1.5 }), RangeError);\n  });\n\n  it(\"rejects a non-positive window\", () => {\n    assert.throws(() => new RateLimiter({ limit: 1, windowMs: 0 }), RangeError);\n    assert.throws(() => new RateLimiter({ limit: 1, windowMs: -5 }), RangeError);\n  });\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 83,
+    "only_tests": true,
+    "logic_files": [],
+    "imports_by_later": [],
+    "logic_in_step": false,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/limiter.ts",
+   "test/limiter.test.ts"
+  ]
+ },
+ {
+  "trace": "US6_a",
+  "story": "US6",
+  "run": "a",
+  "brief": "As a shopper, I want to apply a coupon to my order, so that I pay the discounted price.",
+  "n_steps": 2,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "3c728fe2",
+    "summary": "Add cart pricing with integer-cent totals",
+    "files": [
+     {
+      "path": "src/pricing.ts",
+      "content": "export interface LineItem {\n  sku: string;\n  unitPriceCents: number;\n  quantity: number;\n}\n\nexport interface OrderTotals {\n  subtotalCents: number;\n  discountCents: number;\n  totalCents: number;\n}\n\nexport function lineTotalCents(item: LineItem): number {\n  if (!Number.isInteger(item.unitPriceCents) || item.unitPriceCents < 0) {\n    throw new RangeError(`invalid unit price for ${item.sku}: ${item.unitPriceCents}`);\n  }\n  if (!Number.isInteger(item.quantity) || item.quantity < 1) {\n    throw new RangeError(`invalid quantity for ${item.sku}: ${item.quantity}`);\n  }\n  return item.unitPriceCents * item.quantity;\n}\n\nexport function subtotalCents(items: readonly LineItem[]): number {\n  return items.reduce((sum, item) => sum + lineTotalCents(item), 0);\n}\n\n/**\n * Totals for an order before any discount is applied.\n * Discounts are added by the caller (see `priceOrder` in coupons.ts).\n */\nexport function orderTotals(items: readonly LineItem[], discountCents = 0): OrderTotals {\n  const subtotal = subtotalCents(items);\n  const discount = Math.min(Math.max(discountCents, 0), subtotal);\n  return {\n    subtotalCents: subtotal,\n    discountCents: discount,\n    totalCents: subtotal - discount,\n  };\n}"
+     },
+     {
+      "path": "test/pricing.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { lineTotalCents, orderTotals, subtotalCents } from \"../src/pricing.ts\";\n\ntest(\"line total multiplies unit price by quantity\", () => {\n  assert.equal(lineTotalCents({ sku: \"a\", unitPriceCents: 250, quantity: 3 }), 750);\n});\n\ntest(\"subtotal sums all lines\", () => {\n  const items = [\n    { sku: \"a\", unitPriceCents: 250, quantity: 2 },\n    { sku: \"b\", unitPriceCents: 1999, quantity: 1 },\n  ];\n  assert.equal(subtotalCents(items), 2499);\n});\n\ntest(\"order without discount has total equal to subtotal\", () => {\n  const totals = orderTotals([{ sku: \"a\", unitPriceCents: 1000, quantity: 1 }]);\n  assert.deepEqual(totals, { subtotalCents: 1000, discountCents: 0, totalCents: 1000 });\n});\n\ntest(\"discount is subtracted from the total\", () => {\n  const totals = orderTotals([{ sku: \"a\", unitPriceCents: 1000, quantity: 1 }], 150);\n  assert.deepEqual(totals, { subtotalCents: 1000, discountCents: 150, totalCents: 850 });\n});\n\ntest(\"discount is capped at the subtotal\", () => {\n  const totals = orderTotals([{ sku: \"a\", unitPriceCents: 500, quantity: 1 }], 9999);\n  assert.deepEqual(totals, { subtotalCents: 500, discountCents: 500, totalCents: 0 });\n});\n\ntest(\"rejects non-integer or negative prices\", () => {\n  assert.throws(() => lineTotalCents({ sku: \"a\", unitPriceCents: 1.5, quantity: 1 }), RangeError);\n  assert.throws(() => lineTotalCents({ sku: \"a\", unitPriceCents: -1, quantity: 1 }), RangeError);\n});\n\ntest(\"rejects quantities below one\", () => {\n  assert.throws(() => lineTotalCents({ sku: \"a\", unitPriceCents: 100, quantity: 0 }), RangeError);\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 78,
+    "only_tests": false,
+    "logic_files": [
+     "src/pricing.ts"
+    ],
+    "imports_by_later": [
+     "src/pricing.ts"
+    ],
+    "logic_in_step": true,
+    "built_on": true,
+    "L1": true
+   },
+   {
+    "n": 2,
+    "hash": "8dce52c8",
+    "summary": "Apply percent or fixed coupons to orders",
+    "files": [
+     {
+      "path": "src/coupons.ts",
+      "content": "import { orderTotals, type LineItem, type OrderTotals } from \"./pricing.ts\";\n\nexport type Coupon =\n  | { code: string; kind: \"percent\"; percent: number; expiresAt?: Date }\n  | { code: string; kind: \"fixed\"; amountCents: number; expiresAt?: Date };\n\nexport type CouponReason = \"expired\" | \"invalid\";\n\nexport class CouponError extends Error {\n  readonly reason: CouponReason;\n\n  constructor(reason: CouponReason, message: string) {\n    super(message);\n    this.name = \"CouponError\";\n    this.reason = reason;\n  }\n}\n\n/** Throws a CouponError if the coupon cannot be used at `now`. */\nexport function validateCoupon(coupon: Coupon, now: Date = new Date()): void {\n  if (coupon.kind === \"percent\") {\n    if (!(coupon.percent > 0 && coupon.percent <= 100)) {\n      throw new CouponError(\"invalid\", `coupon ${coupon.code}: percent must be in (0, 100]`);\n    }\n  } else if (!Number.isInteger(coupon.amountCents) || coupon.amountCents <= 0) {\n    throw new CouponError(\"invalid\", `coupon ${coupon.code}: amount must be a positive integer of cents`);\n  }\n  if (coupon.expiresAt && now.getTime() >= coupon.expiresAt.getTime()) {\n    throw new CouponError(\"expired\", `coupon ${coupon.code} expired at ${coupon.expiresAt.toISOString()}`);\n  }\n}\n\n/**\n * Discount in cents for a coupon against a given subtotal.\n * Percentage discounts are rounded half-up to the nearest cent.\n */\nexport function discountCents(coupon: Coupon, subtotalCents: number): number {\n  if (coupon.kind === \"percent\") {\n    return Math.round((subtotalCents * coupon.percent) / 100);\n  }\n  return coupon.amountCents;\n}\n\nexport interface PricedOrder extends OrderTotals {\n  couponCode?: string;\n}\n\n/**\n * Prices an order, applying the coupon if one is given.\n * Throws CouponError when the coupon is expired or malformed.\n */\nexport function priceOrder(\n  items: readonly LineItem[],\n  coupon?: Coupon,\n  now: Date = new Date(),\n): PricedOrder {\n  if (!coupon) {\n    return orderTotals(items);\n  }\n  validateCoupon(coupon, now);\n  const subtotal = orderTotals(items).subtotalCents;\n  const totals = orderTotals(items, discountCents(coupon, subtotal));\n  return { ...totals, couponCode: coupon.code };\n}"
+     },
+     {
+      "path": "test/coupons.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { CouponError, discountCents, priceOrder, validateCoupon, type Coupon } from \"../src/coupons.ts\";\nimport type { LineItem } from \"../src/pricing.ts\";\n\nconst cart: LineItem[] = [\n  { sku: \"shirt\", unitPriceCents: 2000, quantity: 2 },\n  { sku: \"socks\", unitPriceCents: 500, quantity: 1 },\n];\nconst now = new Date(\"2026-10-18T12:00:00Z\");\n\ntest(\"percent coupon takes the stated share of the subtotal\", () => {\n  const coupon: Coupon = { code: \"TEN\", kind: \"percent\", percent: 10 };\n  const order = priceOrder(cart, coupon, now);\n  assert.deepEqual(order, {\n    subtotalCents: 4500,\n    discountCents: 450,\n    totalCents: 4050,\n    couponCode: \"TEN\",\n  });\n});\n\ntest(\"percent discount rounds half-up to the nearest cent\", () => {\n  const coupon: Coupon = { code: \"HALF\", kind: \"percent\", percent: 50 };\n  assert.equal(discountCents(coupon, 1005), 503);\n  assert.equal(discountCents(coupon, 1004), 502);\n});\n\ntest(\"fixed coupon subtracts its amount\", () => {\n  const coupon: Coupon = { code: \"FIVE\", kind: \"fixed\", amountCents: 500 };\n  const order = priceOrder(cart, coupon, now);\n  assert.equal(order.totalCents, 4000);\n  assert.equal(order.discountCents, 500);\n});\n\ntest(\"fixed coupon larger than the order cannot make the total negative\", () => {\n  const coupon: Coupon = { code: \"BIG\", kind: \"fixed\", amountCents: 100000 };\n  const order = priceOrder(cart, coupon, now);\n  assert.equal(order.discountCents, 4500);\n  assert.equal(order.totalCents, 0);\n});\n\ntest(\"no coupon leaves the price unchanged\", () => {\n  const order = priceOrder(cart, undefined, now);\n  assert.deepEqual(order, { subtotalCents: 4500, discountCents: 0, totalCents: 4500 });\n});\n\ntest(\"expired coupon is rejected\", () => {\n  const coupon: Coupon = {\n    code: \"OLD\",\n    kind: \"percent\",\n    percent: 10,\n    expiresAt: new Date(\"2026-10-01T00:00:00Z\"),\n  };\n  assert.throws(() => priceOrder(cart, coupon, now), (err: unknown) =>\n    err instanceof CouponError && err.reason === \"expired\",\n  );\n});\n\ntest(\"coupon is still valid before its expiry\", () => {\n  const coupon: Coupon = {\n    code: \"SOON\",\n    kind: \"percent\",\n    percent: 10,\n    expiresAt: new Date(\"2026-12-31T00:00:00Z\"),\n  };\n  assert.equal(priceOrder(cart, coupon, now).totalCents, 4050);\n});\n\ntest(\"percent outside (0, 100] is rejected\", () => {\n  for (const percent of [0, -5, 101, Number.NaN]) {\n    assert.throws(\n      () => validateCoupon({ code: \"BAD\", kind: \"percent\", percent }, now),\n      (err: unknown) => err instanceof CouponError && err.reason === \"invalid\",\n    );\n  }\n});\n\ntest(\"fixed amount must be a positive integer of cents\", () => {\n  for (const amountCents of [0, -100, 1.5]) {\n    assert.throws(\n      () => validateCoupon({ code: \"BAD\", kind: \"fixed\", amountCents }, now),\n      (err: unknown) => err instanceof CouponError && err.reason === \"invalid\",\n    );\n  }\n});"
+     }
+    ],
+    "visible_tests": [
+     {
+      "path": "test/pricing.test.ts",
+      "content": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { lineTotalCents, orderTotals, subtotalCents } from \"../src/pricing.ts\";\n\ntest(\"line total multiplies unit price by quantity\", () => {\n  assert.equal(lineTotalCents({ sku: \"a\", unitPriceCents: 250, quantity: 3 }), 750);\n});\n\ntest(\"subtotal sums all lines\", () => {\n  const items = [\n    { sku: \"a\", unitPriceCents: 250, quantity: 2 },\n    { sku: \"b\", unitPriceCents: 1999, quantity: 1 },\n  ];\n  assert.equal(subtotalCents(items), 2499);\n});\n\ntest(\"order without discount has total equal to subtotal\", () => {\n  const totals = orderTotals([{ sku: \"a\", unitPriceCents: 1000, quantity: 1 }]);\n  assert.deepEqual(totals, { subtotalCents: 1000, discountCents: 0, totalCents: 1000 });\n});\n\ntest(\"discount is subtracted from the total\", () => {\n  const totals = orderTotals([{ sku: \"a\", unitPriceCents: 1000, quantity: 1 }], 150);\n  assert.deepEqual(totals, { subtotalCents: 1000, discountCents: 150, totalCents: 850 });\n});\n\ntest(\"discount is capped at the subtotal\", () => {\n  const totals = orderTotals([{ sku: \"a\", unitPriceCents: 500, quantity: 1 }], 9999);\n  assert.deepEqual(totals, { subtotalCents: 500, discountCents: 500, totalCents: 0 });\n});\n\ntest(\"rejects non-integer or negative prices\", () => {\n  assert.throws(() => lineTotalCents({ sku: \"a\", unitPriceCents: 1.5, quantity: 1 }), RangeError);\n  assert.throws(() => lineTotalCents({ sku: \"a\", unitPriceCents: -1, quantity: 1 }), RangeError);\n});\n\ntest(\"rejects quantities below one\", () => {\n  assert.throws(() => lineTotalCents({ sku: \"a\", unitPriceCents: 100, quantity: 0 }), RangeError);\n});"
+     }
+    ],
+    "lines_added": 150,
+    "only_tests": false,
+    "logic_files": [
+     "src/coupons.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/coupons.ts",
+   "src/pricing.ts",
+   "test/coupons.test.ts",
+   "test/pricing.test.ts"
+  ]
+ },
+ {
+  "trace": "US6_b",
+  "story": "US6",
+  "run": "b",
+  "brief": "As a shopper, I want to apply a coupon to my order, so that I pay the discounted price.",
+  "n_steps": 2,
+  "steps": [
+   {
+    "n": 1,
+    "hash": "4fb9d539",
+    "summary": "Add coupon pricing module",
+    "files": [
+     {
+      "path": "src/coupons.ts",
+      "content": "// Coupons reduce an order subtotal. Money is integer cents and\n// percentages are plain numbers (10 means 10%), per the repo conventions.\n\nexport type Coupon =\n  | { code: string; kind: \"percent\"; percent: number }\n  | { code: string; kind: \"fixed\"; amountCents: number };\n\nexport interface OrderPricing {\n  subtotalCents: number;\n  discountCents: number;\n  totalCents: number;\n}\n\nexport function createCoupon(input: Coupon): Coupon {\n  const code = normalizeCode(input.code);\n  if (code === \"\") {\n    throw new Error(\"Coupon code must not be empty\");\n  }\n  if (input.kind === \"percent\") {\n    if (!(input.percent > 0 && input.percent <= 100)) {\n      throw new Error(\"Percent coupon must be greater than 0 and at most 100\");\n    }\n    return { code, kind: \"percent\", percent: input.percent };\n  }\n  if (input.kind === \"fixed\") {\n    if (!Number.isInteger(input.amountCents) || input.amountCents <= 0) {\n      throw new Error(\"Fixed coupon amount must be a positive integer number of cents\");\n    }\n    return { code, kind: \"fixed\", amountCents: input.amountCents };\n  }\n  throw new Error(\"Unknown coupon kind\");\n}\n\nexport function normalizeCode(code: string): string {\n  return code.trim().toUpperCase();\n}\n\n// Discount in cents for a subtotal. Percentage discounts are rounded to the\n// nearest cent. The discount never exceeds the subtotal.\nexport function discountFor(coupon: Coupon, subtotalCents: number): number {\n  if (!Number.isInteger(subtotalCents) || subtotalCents < 0) {\n    throw new Error(\"Subtotal must be a non-negative integer number of cents\");\n  }\n  const raw =\n    coupon.kind === \"percent\"\n      ? Math.round((subtotalCents * coupon.percent) / 100)\n      : coupon.amountCents;\n  return Math.min(raw, subtotalCents);\n}\n\nexport function applyCoupon(subtotalCents: number, coupon: Coupon): OrderPricing {\n  const discountCents = discountFor(coupon, subtotalCents);\n  return {\n    subtotalCents,\n    discountCents,\n    totalCents: subtotalCents - discountCents,\n  };\n}\n\n// Looks up a customer-entered code in a catalog. Matching ignores case and\n// surrounding whitespace.\nexport function findCoupon(catalog: readonly Coupon[], enteredCode: string): Coupon {\n  const code = normalizeCode(enteredCode);\n  const coupon = catalog.find((c) => normalizeCode(c.code) === code);\n  if (!coupon) {\n    throw new Error(`Unknown coupon code: ${code}`);\n  }\n  return coupon;\n}"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 69,
+    "only_tests": false,
+    "logic_files": [
+     "src/coupons.ts"
+    ],
+    "imports_by_later": [],
+    "logic_in_step": true,
+    "built_on": false,
+    "L1": false
+   },
+   {
+    "n": 2,
+    "hash": "c10a2378",
+    "summary": "Add coupon tests",
+    "files": [
+     {
+      "path": "test/coupons.test.ts",
+      "content": "import { test, describe } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport {\n  applyCoupon,\n  createCoupon,\n  discountFor,\n  findCoupon,\n  type Coupon,\n} from \"../src/coupons.ts\";\n\ndescribe(\"applyCoupon\", () => {\n  test(\"percent coupon takes the given share of the subtotal\", () => {\n    const coupon = createCoupon({ code: \"SAVE10\", kind: \"percent\", percent: 10 });\n    assert.deepEqual(applyCoupon(5000, coupon), {\n      subtotalCents: 5000,\n      discountCents: 500,\n      totalCents: 4500,\n    });\n  });\n\n  test(\"percent discount rounds to the nearest cent\", () => {\n    const coupon = createCoupon({ code: \"THIRD\", kind: \"percent\", percent: 33 });\n    // 999 * 0.33 = 329.67 -> 330\n    assert.equal(discountFor(coupon, 999), 330);\n    assert.equal(applyCoupon(999, coupon).totalCents, 669);\n  });\n\n  test(\"fixed coupon subtracts its amount\", () => {\n    const coupon = createCoupon({ code: \"FIVE\", kind: \"fixed\", amountCents: 500 });\n    assert.deepEqual(applyCoupon(1234, coupon), {\n      subtotalCents: 1234,\n      discountCents: 500,\n      totalCents: 734,\n    });\n  });\n\n  test(\"discount never exceeds the subtotal\", () => {\n    const coupon = createCoupon({ code: \"BIG\", kind: \"fixed\", amountCents: 10000 });\n    assert.deepEqual(applyCoupon(2500, coupon), {\n      subtotalCents: 2500,\n      discountCents: 2500,\n      totalCents: 0,\n    });\n  });\n\n  test(\"100 percent coupon makes the order free\", () => {\n    const coupon = createCoupon({ code: \"FREE\", kind: \"percent\", percent: 100 });\n    assert.equal(applyCoupon(4200, coupon).totalCents, 0);\n  });\n\n  test(\"empty order stays at zero\", () => {\n    const coupon: Coupon = { code: \"SAVE10\", kind: \"percent\", percent: 10 };\n    assert.deepEqual(applyCoupon(0, coupon), {\n      subtotalCents: 0,\n      discountCents: 0,\n      totalCents: 0,\n    });\n  });\n\n  test(\"rejects a non-integer or negative subtotal\", () => {\n    const coupon = createCoupon({ code: \"SAVE10\", kind: \"percent\", percent: 10 });\n    assert.throws(() => applyCoupon(10.5, coupon), /integer number of cents/);\n    assert.throws(() => applyCoupon(-1, coupon), /integer number of cents/);\n  });\n});\n\ndescribe(\"createCoupon\", () => {\n  test(\"normalizes the code to trimmed upper case\", () => {\n    assert.equal(\n      createCoupon({ code: \"  spring \", kind: \"percent\", percent: 5 }).code,\n      \"SPRING\",\n    );\n  });\n\n  test(\"rejects an empty code\", () => {\n    assert.throws(\n      () => createCoupon({ code: \"   \", kind: \"percent\", percent: 5 }),\n      /must not be empty/,\n    );\n  });\n\n  test(\"rejects percentages outside (0, 100]\", () => {\n    assert.throws(() => createCoupon({ code: \"A\", kind: \"percent\", percent: 0 }));\n    assert.throws(() => createCoupon({ code: \"A\", kind: \"percent\", percent: -5 }));\n    assert.throws(() => createCoupon({ code: \"A\", kind: \"percent\", percent: 101 }));\n    assert.throws(() => createCoupon({ code: \"A\", kind: \"percent\", percent: NaN }));\n  });\n\n  test(\"rejects fixed amounts that are not positive integer cents\", () => {\n    assert.throws(() => createCoupon({ code: \"A\", kind: \"fixed\", amountCents: 0 }));\n    assert.throws(() => createCoupon({ code: \"A\", kind: \"fixed\", amountCents: -100 }));\n    assert.throws(() => createCoupon({ code: \"A\", kind: \"fixed\", amountCents: 1.5 }));\n  });\n});\n\ndescribe(\"findCoupon\", () => {\n  const catalog: Coupon[] = [\n    { code: \"SAVE10\", kind: \"percent\", percent: 10 },\n    { code: \"FIVE\", kind: \"fixed\", amountCents: 500 },\n  ];\n\n  test(\"finds a coupon ignoring case and surrounding whitespace\", () => {\n    assert.equal(findCoupon(catalog, \" save10 \").code, \"SAVE10\");\n  });\n\n  test(\"throws for an unknown code\", () => {\n    assert.throws(() => findCoupon(catalog, \"NOPE\"), /Unknown coupon code: NOPE/);\n  });\n});"
+     }
+    ],
+    "visible_tests": [],
+    "lines_added": 109,
+    "only_tests": true,
+    "logic_files": [],
+    "imports_by_later": [],
+    "logic_in_step": false,
+    "built_on": false,
+    "L1": false
+   }
+  ],
+  "final_tree": [
+   "README.md",
+   "package.json",
+   "src/coupons.ts",
+   "test/coupons.test.ts"
+  ]
+ }
+]
