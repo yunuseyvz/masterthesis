@@ -1,34 +1,124 @@
 {
   "id": "US1",
-  "project": "flash-shop",
+  "project": "shopfront",
+  "base": "shopfront",
   "title": "Flash-Sale Inventory Reservation",
   "brief": "As a customer during a flash sale, I want to reserve stock for the items in my cart so that I don't lose them while I check out. If the shop can't fulfil my order, I should be told.",
   "steps": [
-    { "n": 1, "kind": "scaffold", "summary": "Add SKU and store types",
-      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
-    { "n": 2, "kind": "milestone", "summary": "Implement stock reservation",
-      "files": [{ "path": "src/inventory.ts", "source": { "Correct": "src/inventory.correct.ts", "Flawed": "src/inventory.flawed.ts" } }] },
-    { "n": 3, "kind": "scaffold", "summary": "Add checkout handler and route table",
-      "files": [{ "path": "src/checkout.ts", "source": "src/checkout.ts" }] },
-    { "n": 4, "kind": "completion", "summary": "Add unit tests for reservations",
-      "files": [{ "path": "test/inventory.test.ts", "source": "test/inventory.test.ts" }] }
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add SKU and store types",
+      "files": [
+        {
+          "path": "src/lib/inventory/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "I'll begin with the types for SKUs and the store, plus a way to create a store."
+    },
+    {
+      "n": 2,
+      "kind": "milestone",
+      "summary": "Implement stock reservation",
+      "files": [
+        {
+          "path": "src/lib/inventory/inventory.ts",
+          "source": {
+            "Correct": "src/inventory.correct.ts",
+            "Flawed": "src/inventory.flawed.ts"
+          }
+        }
+      ],
+      "narration": "Now the main part: reserving stock for the items in a cart."
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add the checkout handler and API route",
+      "files": [
+        {
+          "path": "src/lib/inventory/checkout.ts",
+          "source": "src/checkout.ts"
+        },
+        {
+          "path": "src/app/api/checkout/route.ts",
+          "source": "src/checkout.route.ts"
+        }
+      ],
+      "narration": "Next I'm adding the checkout handler and the API route that exposes it."
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add unit tests for reservations",
+      "files": [
+        {
+          "path": "test/inventory.test.ts",
+          "source": "test/inventory.test.ts"
+        }
+      ],
+      "narration": "Finally, unit tests for the reservations."
+    }
   ],
   "testFile": "test/inventory.test.ts",
   "testsAvailableFromStep": 2,
   "probe": {
     "question": "Starting with stock = 2 for SKU \"A\", a reservation of 5 units fails with an error. What is the stock of \"A\" afterwards?",
-    "options": ["2", "0", "-3", "undefined"],
+    "options": [
+      "2",
+      "0",
+      "-3",
+      "undefined"
+    ],
     "script": "probe.ts",
-    "expected": { "Correct": "2", "Flawed": "-3" }
+    "expected": {
+      "Correct": "2",
+      "Flawed": "-3"
+    }
   },
   "understanding": {
-    "question": "A single oversized reservation has just failed. How does the checkout endpoint behave on the next valid order for that item?",
-    "options": [
-      "The valid order succeeds normally; the failed attempt had no effect",
-      "The valid order is rejected as out of stock even though stock was available",
-      "The valid order succeeds but is charged twice",
-      "The endpoint stops responding until the server restarts"
-    ],
-    "correct": { "Correct": 0, "Flawed": 1 }
+    "script": "understanding.ts",
+    "items": [
+      {
+        "question": "A single oversized reservation has just failed. How does the checkout endpoint behave on the next valid order for that item?",
+        "options": [
+          "The valid order succeeds normally; the failed attempt had no effect",
+          "The valid order is rejected as out of stock even though stock was available",
+          "The valid order succeeds but is charged twice",
+          "The endpoint stops responding until the server restarts"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "question": "A customer orders 3 units of a product that does not exist in the store. What does the checkout endpoint respond with?",
+        "options": [
+          "Status 404 with an error message",
+          "Status 409: out of stock",
+          "Status 400: invalid quantity",
+          "Status 200 with 0 units remaining"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "question": "A product has 10 units in stock. Three orders of 4 units each arrive one after another. What happens?",
+        "options": [
+          "The first two succeed; the third is rejected as out of stock",
+          "All three succeed and the stock goes negative",
+          "Only the first succeeds; the other two are rejected",
+          "The first two succeed and the third gets the 2 remaining units"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
   }
 }

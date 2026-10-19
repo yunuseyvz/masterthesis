@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Tlx } from "@beacon/shared";
 
-type Regime = "BATCH" | "ARBITRARY" | "PAIR_PROG";
+type Regime = "BATCH" | "CHECKPOINT";
 
 // Raw NASA-TLX (Hart & Staveland, 2006), 21-step scales scored 0-100. Performance keeps the original
 // orientation (left = perfect, right = failure), so higher always means "worse" on that item.
@@ -16,8 +16,7 @@ const TLX: { key: keyof Tlx; label: string; question: string; ends: [string, str
 
 const STYLES: Record<Regime, string> = {
   BATCH: "The agent works through everything and I review once, at the very end",
-  ARBITRARY: "The agent pauses after routine steps (types, wiring)",
-  PAIR_PROG: "The agent pauses at the key logic, before the rest is built around it",
+  CHECKPOINT: "The agent pauses at the key logic, before the rest is built around it",
 };
 
 const STEPS = Array.from({ length: 21 }, (_, i) => i * 5);
@@ -51,7 +50,7 @@ export function PostSurvey({ busy, onSubmit }: { busy: boolean; onSubmit: (r: Po
   const [comment, setComment] = useState("");
 
   const page1 = TLX.every((t) => tlx[t.key] !== undefined);
-  const page2 = paas > 0 && ranking.length === 3;
+  const page2 = paas > 0 && ranking.length === 2;
   const remaining = (Object.keys(STYLES) as Regime[]).filter((r) => !ranking.includes(r));
 
   return (
@@ -83,7 +82,7 @@ export function PostSurvey({ busy, onSubmit }: { busy: boolean; onSubmit: (r: Po
             </div>
 
             <div className="item">
-              <div className="item-text">You experienced three ways of working with the agent. Click them in order of your preference, favourite first.</div>
+              <div className="item-text">You experienced two ways of working with the agent. Click them in order of your preference, favourite first.</div>
               <div className="opts">
                 {remaining.map((r) => (
                   <button key={r} className="opt" onClick={() => setRanking([...ranking, r])}>

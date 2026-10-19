@@ -1,12 +1,10 @@
+import { HOUR_MS, MINUTE_MS } from "./time.ts";
+
 export interface BillingTier {
   name: string;
   thresholdMs: number;
   creditPercentPerHour: number;
 }
-
-export const HOUR_MS = 3_600_000;
-export const MINUTE_MS = 60_000;
-export const SECOND_MS = 1_000;
 
 export const TIERS: Record<string, BillingTier> = {
   standard: { name: "standard", thresholdMs: HOUR_MS, creditPercentPerHour: 5 },

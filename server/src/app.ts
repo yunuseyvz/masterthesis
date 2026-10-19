@@ -20,6 +20,10 @@ export interface ServerConfig {
   /** Dev only: reuse this story for any story missing from the corpus. */
   devFallbackStory?: string;
   exitOnFinish: boolean;
+  /** Experimenter aid: show the regime/variant tag in the UI. Never enable for real participants. */
+  showCondition?: boolean;
+  /** URL of the dev server inside the container as seen from the participant's browser; enables the Preview pane. */
+  previewUrl?: string;
   sandbox: SandboxOptions;
   /** Paths the sandbox uid must not be able to read (checked at startup). */
   protectedPaths?: string[];
@@ -32,7 +36,7 @@ export function buildApp(cfg: ServerConfig) {
   const plan = generateSessionPlan({ participantId: cfg.participantId, studySeed: cfg.studySeed, group: cfg.group });
   const sink = makeEventSink(cfg.exportDir, cfg.participantId, cfg.studySeed);
   let terminals: TerminalManager | undefined;
-  const session = new StudySession(plan, makeStoryLoader(cfg.corpusDir, cfg.devFallbackStory), sink, Date.now, () => terminals?.sync());
+  const session = new StudySession(plan, makeStoryLoader(cfg.corpusDir, cfg.devFallbackStory), sink, Date.now, () => terminals?.sync(), cfg.showCondition ?? false);
   terminals = new TerminalManager(session, cfg.sandbox, cfg.sandboxRoot);
 
   const app = Fastify({ logger: false });
@@ -44,9 +48,10 @@ export function buildApp(cfg: ServerConfig) {
     return reply.code(500).send({ error: "internal error" });
   });
 
-  app.get("/api/study/state", async () => session.view());
-  app.post("/api/study/action", async (req) => session.act(req.body));
-  const UiEvent = z.object({ type: z.enum(["file_open", "tab_switch", "diff_toggle"]), path: z.string().max(200).optional(), tab: z.string().max(40).optional() });
+  const withPreview = <T extends object>(v: T) => (cfg.previewUrl ? { ...v, previewUrl: cfg.previewUrl } : v);
+  app.get("/api/study/state", async () => withPreview(session.view()));
+  app.post("/api/study/action", async (req) => withPreview(await session.act(req.body)));
+  const UiEvent = z.object({ type: z.enum(["file_open", "tab_switch", "diff_toggle", "preview_navigate"]), path: z.string().max(200).optional(), tab: z.string().max(40).optional() });
   app.post("/api/study/event", async (req) => {
     const { type, ...data } = UiEvent.parse(req.body);
     session.recordUi(type, data);

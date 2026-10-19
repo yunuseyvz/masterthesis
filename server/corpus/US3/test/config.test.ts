@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { getEffectiveConfig } from "../src/config.ts";
-import { ORG_DEFAULTS } from "../src/types.ts";
+import { getEffectiveConfig } from "../src/lib/tenants/config.ts";
+import { ORG_DEFAULTS } from "../src/lib/tenants/types.ts";
 
 test("a tenant override wins over the default", () => {
   const cfg = getEffectiveConfig(ORG_DEFAULTS, { plan: "enterprise", rateLimit: 500 });

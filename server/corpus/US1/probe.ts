@@ -1,5 +1,5 @@
-import { createStore } from "./src/types.ts";
-import { getStock, reserveStock } from "./src/inventory.ts";
+import { createStore } from "./src/lib/inventory/types.ts";
+import { getStock, reserveStock } from "./src/lib/inventory/inventory.ts";
 
 const store = createStore({ A: 2 });
 try {

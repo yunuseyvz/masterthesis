@@ -1,4 +1,5 @@
 import { getEffectiveConfig } from "./config.ts";
+import { AppError } from "../errors.ts";
 import { ORG_DEFAULTS, type Overrides, type QuotaState } from "./types.ts";
 
 export interface QuotaResult {
@@ -25,7 +26,7 @@ export function withQuota<A extends unknown[], R>(
   return (...args: A): R => {
     const result = checkQuota(tenantId, overrides, state);
     if (!result.allowed) {
-      throw new Error(result.reason);
+      throw new AppError(429, result.reason ?? "quota exceeded");
     }
     return fn(...args);
   };

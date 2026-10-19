@@ -1,41 +1,32 @@
+import { AppError } from "../errors.ts";
+import { errorResponse, json } from "../http.ts";
+import { createLogger } from "../logger.ts";
+import { parseJsonObject, requireString } from "../validation.ts";
 import { reserveStock } from "./inventory.ts";
-import { OutOfStockError, type Store } from "./types.ts";
+import type { Store } from "./types.ts";
 
 export interface CheckoutRequest {
   skuId: string;
   qty: number;
 }
 
-export interface CheckoutResponse {
-  status: number;
-  body: { ok: boolean; remaining?: number; error?: string };
+const log = createLogger(() => {});
+
+/** Reads a checkout request from a JSON body. A missing or non-numeric qty becomes NaN and is rejected by reserveStock. */
+export function parseCheckout(body: string): CheckoutRequest {
+  const data = parseJsonObject(body);
+  return { skuId: requireString(data.skuId, "skuId"), qty: Number(data.qty) };
 }
 
-export function handleCheckout(store: Store, req: CheckoutRequest): CheckoutResponse {
+export function handleCheckout(store: Store, req: CheckoutRequest): Response {
   try {
     const remaining = reserveStock(store, req.skuId, req.qty);
-    return { status: 200, body: { ok: true, remaining } };
+    log.info("reserved", { skuId: req.skuId, qty: req.qty, remaining });
+    return json(200, { ok: true, remaining });
   } catch (err) {
-    if (err instanceof OutOfStockError) {
-      return { status: 409, body: { ok: false, error: err.message } };
+    if (err instanceof AppError) {
+      log.warn("checkout rejected", { skuId: req.skuId, status: err.status });
     }
-    if (err instanceof RangeError) {
-      return { status: 400, body: { ok: false, error: err.message } };
-    }
-    return { status: 404, body: { ok: false, error: (err as Error).message } };
+    return errorResponse(err);
   }
-}
-
-export type Handler = (store: Store, req: CheckoutRequest) => CheckoutResponse;
-
-export const routes: Record<string, Handler> = {
-  "POST /checkout": handleCheckout,
-};
-
-export function dispatch(store: Store, route: string, req: CheckoutRequest): CheckoutResponse {
-  const handler = routes[route];
-  if (!handler) {
-    return { status: 404, body: { ok: false, error: "No such route" } };
-  }
-  return handler(store, req);
 }

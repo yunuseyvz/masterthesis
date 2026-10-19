@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createEventLog } from "../src/types.ts";
-import { processWebhook, withRetry } from "../src/idempotency.ts";
+import { createEventLog } from "../src/lib/webhooks/types.ts";
+import { processWebhook, withRetry } from "../src/lib/webhooks/idempotency.ts";
 
 const event = { id: "evt_1", type: "payment.succeeded" as const, accountId: "acc_1", amountCents: 500 };
 

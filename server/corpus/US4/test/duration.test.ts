@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseDurationMs } from "../src/duration.ts";
+import { parseDurationMs } from "../src/lib/sla/duration.ts";
 
 test("parses hours", () => {
   assert.equal(parseDurationMs("2h"), 7_200_000);

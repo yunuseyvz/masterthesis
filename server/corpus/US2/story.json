@@ -1,34 +1,128 @@
 {
   "id": "US2",
-  "project": "payments-service",
+  "project": "shopfront",
   "title": "Webhook Payment Idempotency & Retry",
   "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
   "steps": [
-    { "n": 1, "kind": "scaffold", "summary": "Add webhook event types and the event log",
-      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
-    { "n": 2, "kind": "milestone", "summary": "Implement event deduplication and retry",
-      "files": [{ "path": "src/idempotency.ts", "source": { "Correct": "src/idempotency.correct.ts", "Flawed": "src/idempotency.flawed.ts" } }] },
-    { "n": 3, "kind": "scaffold", "summary": "Add the webhook endpoint handler and the credit handler",
-      "files": [{ "path": "src/webhook.ts", "source": "src/webhook.ts" }] },
-    { "n": 4, "kind": "completion", "summary": "Add unit tests for webhook processing",
-      "files": [{ "path": "test/webhook.test.ts", "source": "test/webhook.test.ts" }] }
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add webhook event types and the event log",
+      "files": [
+        {
+          "path": "src/lib/webhooks/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "I'll begin with the webhook event types and the event log."
+    },
+    {
+      "n": 2,
+      "kind": "scaffold",
+      "summary": "Add event parsing and the credit handler",
+      "narration": "Next I'm adding the event parsing and the handler that credits the account.",
+      "files": [
+        {
+          "path": "src/lib/webhooks/handlers.ts",
+          "source": "src/handlers.ts"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "kind": "milestone",
+      "summary": "Implement event deduplication and retry",
+      "files": [
+        {
+          "path": "src/lib/webhooks/idempotency.ts",
+          "source": {
+            "Correct": "src/idempotency.correct.ts",
+            "Flawed": "src/idempotency.flawed.ts"
+          }
+        }
+      ],
+      "narration": "Now the core of the feature: handling repeated deliveries of the same event and retrying when processing fails."
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add the webhook endpoint and unit tests",
+      "narration": "Finally, the webhook endpoint that ties it together, and unit tests for the webhook processing.",
+      "files": [
+        {
+          "path": "src/lib/webhooks/webhook.ts",
+          "source": "src/webhook.ts"
+        },
+        {
+          "path": "src/app/api/webhooks/payments/route.ts",
+          "source": "src/webhook.route.ts"
+        },
+        {
+          "path": "test/webhook.test.ts",
+          "source": "test/webhook.test.ts"
+        }
+      ]
+    }
   ],
   "testFile": "test/webhook.test.ts",
-  "testsAvailableFromStep": 2,
+  "testsAvailableFromStep": 3,
   "probe": {
     "question": "The handler throws a transient error on its first attempt for event \"evt_9\", and the retry loop calls processing for \"evt_9\" again. What does that retry call do?",
-    "options": ["Re-runs handler", "Skips as already processed", "Throws duplicate error", "null"],
+    "options": [
+      "Re-runs handler",
+      "Skips as already processed",
+      "Throws duplicate error",
+      "null"
+    ],
     "script": "probe.ts",
-    "expected": { "Correct": "Re-runs handler", "Flawed": "Skips as already processed" }
+    "expected": {
+      "Correct": "Re-runs handler",
+      "Flawed": "Skips as already processed"
+    }
   },
   "understanding": {
-    "question": "A payment webhook's handler throws a transient error on its first attempt. What does the endpoint end up doing for that event?",
-    "options": [
-      "It succeeds on a retry and the account is credited",
-      "It returns 200 OK on a retry, but the account is never credited",
-      "It returns 500 on every retry until the server restarts",
-      "It credits the account twice"
-    ],
-    "correct": { "Correct": 0, "Flawed": 1 }
-  }
+    "script": "understanding.ts",
+    "items": [
+      {
+        "question": "A payment webhook's handler throws a transient error on its first attempt. What does the endpoint end up doing for that event?",
+        "options": [
+          "It succeeds on a retry and the account is credited",
+          "It returns 200 OK on a retry, but the account is never credited",
+          "It returns 500 on every retry until the server restarts",
+          "It credits the account twice"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "question": "The provider delivers the same successful payment event twice. What happens on the second delivery?",
+        "options": [
+          "It returns 200 with \"duplicate\" and the account is not credited again",
+          "It returns 500, so the provider retries again",
+          "The account is credited a second time",
+          "It throws an unhandled error"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "question": "A payment.refunded event for 500 cents is processed for an account whose balance is 2000 cents. What is the balance afterwards?",
+        "options": [
+          "1500 cents",
+          "2500 cents",
+          "500 cents",
+          "2000 cents"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  },
+  "base": "shopfront"
 }

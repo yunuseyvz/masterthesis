@@ -1,3 +1,3 @@
-import { formatGreeting } from "./src/greeting.ts";
+import { formatGreeting } from "./src/lib/greeting/greeting.ts";
 
 console.log(formatGreeting({ name: "  Ada ", formal: true }));

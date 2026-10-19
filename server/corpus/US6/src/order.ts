@@ -1,14 +1,13 @@
+import type { Catalog } from "../catalog.ts";
+import { formatCents } from "../money.ts";
+import { orderSubtotal, type Order } from "../orders.ts";
 import { applyDiscount } from "./pricing.ts";
-import { lineTotal, type CartLine, type Coupon, type OrderSummary } from "./types.ts";
+import type { Coupon, OrderSummary } from "./types.ts";
 
-export function summarizeOrder(lines: CartLine[], coupon?: Coupon): OrderSummary {
-  const subtotalCents = lines.reduce((sum, line) => sum + lineTotal(line), 0);
+export function summarizeOrder(catalog: Catalog, order: Order, coupon?: Coupon): OrderSummary {
+  const subtotalCents = orderSubtotal(catalog, order);
   const totalCents = coupon ? applyDiscount(subtotalCents, coupon.percent) : subtotalCents;
   return { subtotalCents, discountCents: subtotalCents - totalCents, totalCents };
-}
-
-export function formatCents(cents: number): string {
-  return `${(cents / 100).toFixed(2)} EUR`;
 }
 
 export function formatSummary(summary: OrderSummary): string {

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatGreeting } from "../src/greeting.ts";
+import { formatGreeting } from "../src/lib/greeting/greeting.ts";
 
 test("greets informally by default", () => {
   assert.equal(formatGreeting({ name: "Ada" }), "Hi Ada!");

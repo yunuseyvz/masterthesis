@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Regime, type Decision } from "./schema.js";
+import { Regime, UNDERSTANDING_ITEMS, type Decision } from "./schema.js";
 
 /** What the client may see. Never contains variant, ground truth, or regime. */
 
@@ -21,21 +21,25 @@ export interface CheckpointView {
 
 export interface ViewState {
   phase: Phase;
+  /** Where the participant's dev server is reachable from their browser (set when the container publishes a port). */
+  previewUrl?: string;
   participantId: string;
   /** 1-based position in the session (the practice trial is 1); 0 before the first trial. */
   trial: number;
   /** Number of measured trials (excludes practice). */
   nTrials: number;
   practice: boolean;
+  /** Experimenter aid, only set when the server runs with SHOW_CONDITION=1: regime letter (B/A/P) and variant letter (C/F). */
+  debugTag?: string;
   /** Sessions started so far (the sidebar), one per story/project. */
   sessions: { trial: number; title: string; project: string }[];
-  story?: { title: string; brief: string; project: string };
+  story?: { title: string; brief: string; project: string; plan: { n: number; summary: string }[] };
   /** Agent steps covered by the current checkpoint. */
-  agentSteps?: { n: number; summary: string; files: string[] }[];
+  agentSteps?: { n: number; summary: string; narration?: string; files: string[] }[];
   checkpoint?: CheckpointView;
   initialDecision?: Decision;
   probe?: { question: string; options: string[] };
-  understanding?: { question: string; options: string[] };
+  understanding?: { items: { question: string; options: string[] }[] };
 }
 
 export const Demographics = z.object({
@@ -84,7 +88,7 @@ export const Action = z.discriminatedUnion("type", [
     /** Paas mental-effort scale, 1-9. */
     paas: Scale(9),
     /** Preferred oversight style, best first. */
-    ranking: z.array(Regime).length(3).refine((r) => new Set(r).size === 3, "each regime once"),
+    ranking: z.array(Regime).length(2).refine((r) => new Set(r).size === 2, "each regime once"),
     comment: z.string().max(2000).optional(),
   }),
   z.object({ type: z.literal("advance") }),
@@ -96,7 +100,8 @@ export const Action = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("understanding"),
-    answer: z.number().int().min(0).max(3),
+    /** Index into the displayed options, one entry per item. */
+    answers: z.array(z.number().int().min(0).max(3)).length(UNDERSTANDING_ITEMS),
     confidence: Scale(7),
     mentalDemand: Scale(5),
     frustration: Scale(5),

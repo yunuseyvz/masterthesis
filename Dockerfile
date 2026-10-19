@@ -9,9 +9,16 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
+# Dependencies of the shared Next.js project, installed once so `npm run dev` works in the participant's shell.
+FROM node:24 AS shopfront
+WORKDIR /opt/shopfront
+COPY server/corpus/_base/shopfront/package.json ./
+RUN npm install --no-audit --no-fund && chmod -R a+rX /opt/shopfront
+
 FROM node:24-slim
 WORKDIR /app
 COPY --from=build /app /app
+COPY --from=shopfront /opt/shopfront/node_modules /opt/shopfront/node_modules
 # The server runs as root only so it can start the participant's shell as an unprivileged user.
 # Everything under /app (code, corpus with ground truth) is unreadable to that user.
 RUN groupadd --gid 61234 sandbox \

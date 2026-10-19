@@ -3,14 +3,15 @@ import type { DiffFile, ViewState } from "@beacon/shared";
 import * as api from "./api";
 import { diffStat } from "./diff";
 import { Dock } from "./Dock";
-import { ArrowUp, Check, Folder, Pencil, Plus, Sparkle } from "./icons";
-import { ChangesPane, WorkPane } from "./Panes";
+import { ArrowUp, Check, DiffIcon, FilesIcon, Folder, GlobeIcon, Pencil, Plus, SidebarIcon, Sparkle, TerminalIcon } from "./icons";
+import { ChangesPane, WorkPane, type WorkTab } from "./Panes";
 import { PostSurvey } from "./PostSurvey";
 import { PreSurvey } from "./PreSurvey";
 
 type ChatItem =
   | { kind: "user"; text: string }
-  | { kind: "assistant"; text: string }
+  | { kind: "assistant"; text: string; step?: number }
+  | { kind: "plan" }
   | { kind: "tool"; path: string; isNew: boolean; added: number; removed: number }
   | { kind: "pause"; text: string }
   | { kind: "decision"; text: string };
@@ -22,14 +23,14 @@ function itemsForCheckpoint(view: ViewState): ChatItem[] {
   const cp = view.checkpoint!;
   const out: ChatItem[] = [];
   for (const step of view.agentSteps!) {
-    out.push({ kind: "assistant", text: step.summary + "." });
+    out.push({ kind: "assistant", text: step.narration ?? step.summary + ".", step: step.n });
     for (const path of step.files) {
       const d = cp.diffs.find((x) => x.path === path);
       if (!d) continue;
       out.push({ kind: "tool", path, isNew: d.before === "", ...diffStat(d.before, d.after) });
     }
   }
-  out.push({ kind: "pause", text: "I've paused so you can review the changes before I go on." });
+  out.push({ kind: "pause", text: cp.id === "wrap-up" ? "That's everything. The feature is finished." : "I've paused so you can review the changes before I go on." });
   return out;
 }
 
@@ -44,8 +45,27 @@ function buildReplay(base: number, items: ChatItem[]): Replay {
   return { base, starts, durs, total: REPLAY_MS };
 }
 
+/** The agent's to-do list: all steps of the feature with their progress, like the plan an agent keeps while it works. */
+function PlanCard({ plan, reached, working }: { plan: { n: number; summary: string }[]; reached: number; working: boolean }) {
+  return (
+    <div className="plan">
+      <div className="plan-head">Plan</div>
+      {plan.map((s) => {
+        const state = working ? (s.n < reached ? "done" : s.n === reached ? "running" : "todo") : s.n <= reached ? "done" : "todo";
+        return (
+          <div key={s.n} className={`plan-row ${state}`}>
+            <span className="plan-ico">{state === "done" ? <Check className="done" /> : state === "running" ? <span className="spinner" /> : <span className="dot" />}</span>
+            <span>{s.summary}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Message({ item, running }: { item: ChatItem; running: boolean }) {
   switch (item.kind) {
+    case "plan": return null;
     case "user": return <div className="msg-user">{item.text}</div>;
     case "assistant": return <div className="msg-assistant">{item.text}</div>;
     case "pause": return <div className="msg-assistant muted">{item.text}</div>;
@@ -61,12 +81,12 @@ function Message({ item, running }: { item: ChatItem; running: boolean }) {
   }
 }
 
-function Sidebar({ participantId, sessions, current, working }: { participantId: string; sessions: ViewState["sessions"]; current: number; working: boolean }) {
+function Sidebar({ participantId, sessions, current, working, debugTag }: { participantId: string; sessions: ViewState["sessions"]; current: number; working: boolean; debugTag?: string }) {
   return (
     <aside className="sidebar">
-      {sessions.map((s) => (
-        <div key={s.project} className="sb-group">
-          <div className="sb-project"><Folder /> {s.project}</div>
+      {sessions.map((s, i) => (
+        <div key={s.trial} className="sb-group">
+          {(i === 0 || sessions[i - 1]!.project !== s.project) && <div className="sb-project"><Folder /> {s.project}</div>}
           <div className={`sb-session ${s.trial === current ? "active" : ""}`}>
             <span className="sb-ico">
               {s.trial < current ? <Check className="done" /> : working ? <span className="spinner" /> : <span className="dot" />}
@@ -78,7 +98,7 @@ function Sidebar({ participantId, sessions, current, working }: { participantId:
       <div className="sb-spacer" />
       <div className="sb-user">
         <span className="avatar">{participantId.slice(0, 1)}</span>
-        <span className="sb-user-text"><span className="sb-user-label">Participant</span><span className="sb-user-id">{participantId}</span></span>
+        <span className="sb-user-text"><span className="sb-user-label">Participant</span><span className="sb-user-id">{participantId}{debugTag && <span className="sb-tag" title="regime · variant (experimenter view)">{debugTag}</span>}</span></span>
       </div>
     </aside>
   );
@@ -92,6 +112,8 @@ export function App() {
   const [replay, setReplay] = useState<Replay | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [awaitingReady, setAwaitingReady] = useState(false);
+  // Which panes are on screen (the toolbar toggles them); the work pane keeps its tab.
+  const [ui, setUi] = useState<{ sidebar: boolean; changes: boolean; work: boolean; tab: WorkTab }>({ sidebar: true, changes: true, work: true, tab: "files" });
 
   const chatRef = useRef<ChatItem[]>([]);
   const chatTrial = useRef(0);
@@ -111,7 +133,7 @@ export function App() {
 
     if (chatTrial.current !== view.trial) {
       chatTrial.current = view.trial;
-      chatRef.current = [{ kind: "user", text: view.story!.brief }];
+      chatRef.current = [{ kind: "user", text: view.story!.brief }, { kind: "plan" }];
     }
     const base = chatRef.current.length;
     const items = itemsForCheckpoint(view);
@@ -196,18 +218,39 @@ export function App() {
 
   const cp = view.checkpoint;
   const working = animating || awaitingReady;
+  const reached = chat.slice(0, visibleCount).reduce((m, it) => (it.kind === "assistant" && it.step ? Math.max(m, it.step) : m), 0);
+  const toggleTab = (tab: WorkTab) => {
+    const hide = ui.work && ui.tab === tab;
+    setUi({ ...ui, work: !hide, tab });
+    api.uiEvent({ type: "tab_switch", tab: hide ? "hidden" : tab });
+  };
+  const toggle = (key: "sidebar" | "changes") => {
+    setUi({ ...ui, [key]: !ui[key] });
+    api.uiEvent({ type: "tab_switch", tab: `${key}_${ui[key] ? "off" : "on"}` });
+  };
+  const rightOn = ui.changes || ui.work;
   const coverage = () => (!cp || cp.diffs.length === 0 ? 1 : cp.diffs.reduce((s, d) => s + (seen.current.get(d.path) ?? 0), 0) / cp.diffs.length);
-  const status = working ? "Agent is working" : view.phase === "understanding" ? "Answer the question above" : "Waiting for your review";
+  const status = working ? "Agent is working" : view.phase === "understanding" ? "Answer the questions above" : "Waiting for your review";
 
   return (
-    <div className="app">
-      <Sidebar participantId={view.participantId} sessions={view.sessions} current={view.trial} working={working} />
+    <div className="app" style={{ gridTemplateColumns: `${ui.sidebar ? "280px " : ""}minmax(400px, 1fr)${rightOn ? " minmax(500px, 47%)" : ""}` }}>
+      {ui.sidebar && <Sidebar participantId={view.participantId} sessions={view.sessions} current={view.trial} working={working} debugTag={view.debugTag} />}
 
       <main className="center">
-        <div className="topbar"><span className="title">{view.story?.title}</span><span className="crumb">{view.story?.project}</span><span className={`chip ${view.practice ? "practice" : ""}`}>{view.practice ? "Practice" : `Story ${view.trial - 1} of ${view.nTrials}`}</span></div>
+        <div className="topbar"><span className="title">{view.story?.title}</span><span className="crumb">{view.story?.project}</span><span className={`chip ${view.practice ? "practice" : ""}`}>{view.practice ? "Practice" : `Story ${view.trial - 1} of ${view.nTrials}`}</span>
+          <span className="toolbar" role="toolbar" aria-label="Views">
+            <button className={`tb ${ui.sidebar ? "on" : ""}`} title="Sidebar" onClick={() => toggle("sidebar")}><SidebarIcon /></button>
+            <button className={`tb ${ui.changes ? "on" : ""}`} title="Changes" onClick={() => toggle("changes")}><DiffIcon /></button>
+            <button className={`tb ${ui.work && ui.tab === "files" ? "on" : ""}`} title="Files" onClick={() => toggleTab("files")}><FilesIcon /></button>
+            <button className={`tb ${ui.work && ui.tab === "terminal" ? "on" : ""}`} title="Terminal" onClick={() => toggleTab("terminal")}><TerminalIcon /></button>
+            {view.previewUrl && <button className={`tb ${ui.work && ui.tab === "preview" ? "on" : ""}`} title="Preview" onClick={() => toggleTab("preview")}><GlobeIcon /></button>}
+          </span>
+        </div>
         <div className="transcript" ref={scroller}>
           <div className="col">
-            {chat.slice(0, visibleCount).map((it, i) => <Message key={i} item={it} running={!!replay && i === (replay.base + runningIdx) && runningIdx >= 0} />)}
+            {chat.slice(0, visibleCount).map((it, i) => it.kind === "plan"
+              ? <PlanCard key={i} plan={view.story!.plan} reached={reached} working={working} />
+              : <Message key={i} item={it} running={!!replay && i === (replay.base + runningIdx) && runningIdx >= 0} />)}
             {working && <div className="working"><span className="spinner" />Working…</div>}
           </div>
         </div>
@@ -235,25 +278,38 @@ export function App() {
         </div>
       </main>
 
-      <section className="right">
-        {cp && liveCp && view.phase !== "understanding" ? (
-          <>
-            <ChangesPane
-              key={`c-${view.trial}-${cp.id}`}
-              diffs={liveCp.diffs}
-              live={animating}
-              onSeen={(p, c) => seen.current.set(p, Math.max(seen.current.get(p) ?? 0, c))}
-              onToggle={(path, open) => api.uiEvent({ type: "diff_toggle", path, tab: open ? "open" : "close" })}
-            />
-            <WorkPane key={`w-${view.trial}-${cp.id}`} cp={liveCp} onFileOpen={(path) => api.uiEvent({ type: "file_open", path })} onTab={(tab) => api.uiEvent({ type: "tab_switch", tab })} />
-          </>
-        ) : (
-          <>
-            <div className="pane grow"><div className="pane-head"><span className="pane-title">Changes</span></div><div className="empty"><span>Closed while you answer the question.</span></div></div>
-            <div className="pane small"><div className="pane-head"><span className="pane-title">Files</span></div><div className="empty"><span>Closed while you answer the question.</span></div></div>
-          </>
-        )}
-      </section>
+      {rightOn && (
+        <section className="right">
+          {cp && liveCp && view.phase !== "understanding" ? (
+            <>
+              <div className="contents-wrap" style={{ display: ui.changes ? "contents" : "none" }}>
+                <ChangesPane
+                  key={`c-${view.trial}-${cp.id}`}
+                  diffs={liveCp.diffs}
+                  live={animating}
+                  onSeen={(p, c) => seen.current.set(p, Math.max(seen.current.get(p) ?? 0, c))}
+                  onToggle={(path, open) => api.uiEvent({ type: "diff_toggle", path, tab: open ? "open" : "close" })}
+                />
+              </div>
+              <WorkPane
+                key={`w-${view.trial}-${cp.id}`}
+                cp={liveCp}
+                tab={ui.tab}
+                onTab={toggleTab}
+                previewUrl={view.previewUrl}
+                onNavigate={(url) => api.uiEvent({ type: "preview_navigate", path: url })}
+                hidden={!ui.work}
+                onFileOpen={(path) => api.uiEvent({ type: "file_open", path })}
+              />
+            </>
+          ) : (
+            <>
+              {ui.changes && <div className="pane grow"><div className="pane-head"><span className="pane-title">Changes</span></div><div className="empty"><span>Closed while you answer the question.</span></div></div>}
+              {ui.work && <div className="pane small"><div className="pane-head"><span className="pane-title">Files</span></div><div className="empty"><span>Closed while you answer the question.</span></div></div>}
+            </>
+          )}
+        </section>
+      )}
     </div>
   );
 }

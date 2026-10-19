@@ -1,0 +1,22 @@
+{
+  "name": "shopfront",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "next": "15.1.12",
+    "react": "19.0.1",
+    "react-dom": "19.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.9.0",
+    "@types/react": "19.0.0",
+    "typescript": "5.6.3"
+  }
+}

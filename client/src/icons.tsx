@@ -24,6 +24,9 @@ export const Pencil = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d=
 export const TerminalIcon = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><rect x="2" y="2.8" width="12" height="10.4" rx="2" /><path d="m5 6.6 2 1.6-2 1.6M8.6 10h2.6" /></svg>;
 export const FilesIcon = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M4.4 2.4h4.6l2.6 2.6v6.6H4.4V2.4Z" /><path d="M6.2 13.6h6.2V6.4" /></svg>;
 export const DiffIcon = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M5 2.6v6.8M1.8 6h6.4M9 11.4h6M11 3.4h4" transform="translate(-.5 1)" /></svg>;
+export const SidebarIcon = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><rect x="2" y="2.6" width="12" height="10.8" rx="2" /><path d="M6.2 2.6v10.8" /></svg>;
+export const GlobeIcon = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><circle cx="8" cy="8" r="5.8" /><path d="M2.2 8h11.6M8 2.2c1.7 1.7 2.5 3.6 2.5 5.8S9.7 12.1 8 13.8C6.3 12.1 5.5 10.2 5.5 8S6.3 3.9 8 2.2Z" /></svg>;
+export const ReloadIcon = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)}><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.6v3h-3" /></svg>;
 export const Sparkle = (p: SVGProps<SVGSVGElement>) => <svg {...base(p)} fill="currentColor" stroke="none"><path d="M8 1.5 9.4 6 14 8l-4.6 2L8 14.5 6.6 10 2 8l4.6-2L8 1.5Z" /></svg>;
 
 export const fileIcon = (name: string) => (/\.tsx?$/.test(name) ? <FileTs /> : <FileGeneric />);

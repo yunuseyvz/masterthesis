@@ -1,3 +1,5 @@
+import { AppError } from "../errors.ts";
+
 export interface Sku {
   id: string;
   stock: number;
@@ -7,13 +9,12 @@ export interface Store {
   skus: Map<string, Sku>;
 }
 
-export class OutOfStockError extends Error {
+export class OutOfStockError extends AppError {
   readonly skuId: string;
   readonly requested: number;
 
   constructor(skuId: string, requested: number) {
-    super(`Not enough stock for ${skuId} (requested ${requested})`);
-    this.name = "OutOfStockError";
+    super(409, `Not enough stock for ${skuId} (requested ${requested})`);
     this.skuId = skuId;
     this.requested = requested;
   }

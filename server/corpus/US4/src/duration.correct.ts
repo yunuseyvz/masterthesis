@@ -1,4 +1,5 @@
-import { HOUR_MS, MINUTE_MS, SECOND_MS } from "./types.ts";
+import { ValidationError } from "../errors.ts";
+import { HOUR_MS, MINUTE_MS, SECOND_MS } from "./time.ts";
 
 const UNIT_MS: Record<string, number> = { h: HOUR_MS, m: MINUTE_MS, s: SECOND_MS };
 
@@ -6,7 +7,7 @@ const UNIT_MS: Record<string, number> = { h: HOUR_MS, m: MINUTE_MS, s: SECOND_MS
 export function parseDurationMs(input: string): number {
   const text = input.trim();
   if (!/^(\d+[hms])+$/.test(text)) {
-    throw new Error(`Invalid duration: ${input}`);
+    throw new ValidationError(`Invalid duration: ${input}`);
   }
   let total = 0;
   for (const [, amount, unit] of text.matchAll(/(\d+)([hms])/g)) {

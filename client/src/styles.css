@@ -52,6 +52,8 @@ svg { flex: none; }
 .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--raised); color: var(--text); display: grid; place-items: center; font-size: 12.5px; font-weight: 600; flex: none; }
 .sb-user-text { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 .sb-user-label { font-size: 11px; color: var(--faint); }
+.qblock { margin-bottom: 14px; }
+.sb-tag { margin-left: 8px; padding: 1px 6px; border-radius: 4px; background: var(--hover, rgba(127,127,127,.18)); color: var(--faint); font-size: 11px; letter-spacing: .06em; }
 .sb-user-id { font-family: var(--mono); font-size: 13px; color: var(--text); letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; }
 .sb-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -76,7 +78,7 @@ svg { flex: none; }
 
 /* prompt dock + composer */
 .bottom { flex: none; padding: 0 0 18px; }
-.dock { background: var(--panel); border: 1px solid var(--border-2); border-radius: 16px; padding: 16px 18px 14px; margin-bottom: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.28); }
+.dock { background: var(--panel); border: 1px solid var(--border-2); border-radius: 16px; padding: 16px 18px 14px; margin-bottom: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.28); max-height: calc(100vh - 150px); overflow-y: auto; }
 .dock h4 { margin: 0; font-size: 14px; font-weight: 600; }
 .dock p { margin: 4px 0 8px; color: var(--muted); font-size: 13.5px; }
 .dock p.q { color: var(--text); margin: 6px 0 10px; font-size: 14px; line-height: 1.55; }
@@ -189,3 +191,31 @@ svg { flex: none; }
 .ranking .btn { align-self: flex-start; margin-top: 4px; }
 .textarea { width: 100%; background: var(--raised); border: 1px solid var(--border-2); border-radius: 10px; color: var(--text); font: inherit; padding: 10px 12px; resize: vertical; }
 .textarea:focus { outline: none; border-color: var(--accent); }
+
+/* agent plan (progress of the four steps) */
+.plan { margin: 4px 0 14px; padding: 10px 14px; border: 1px solid var(--border, #2e2e2b); border-radius: 12px; display: flex; flex-direction: column; gap: 5px; font-size: 13.5px; }
+.plan-head { color: var(--faint); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.plan-row { display: flex; align-items: center; gap: 9px; color: var(--muted); }
+.plan-row.done { color: var(--text); }
+.plan-row.running { color: var(--text); font-weight: 500; }
+.plan-ico { width: 15px; display: grid; place-items: center; flex: none; }
+.plan-ico svg { width: 14px; height: 14px; }
+.plan-ico .dot { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--faint); display: block; }
+
+/* toolbar, preview */
+.toolbar { margin-left: auto; display: flex; gap: 2px; align-self: center; }
+.tb { width: 30px; height: 28px; display: grid; place-items: center; background: transparent; border: none; border-radius: 8px; color: var(--muted); }
+.tb:hover { background: var(--hover); color: var(--text); }
+.tb.on { background: var(--raised); color: var(--text); }
+.tb svg { width: 16px; height: 16px; }
+.contents-wrap { min-height: 0; }
+.preview { flex: 1; min-height: 0; flex-direction: column; }
+.preview-bar { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.preview-addr { flex: 1; min-width: 0; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; color: var(--text); font: 13px var(--mono); outline: none; }
+.preview-addr:focus { border-color: var(--border-2); }
+.preview-hint { padding: 6px 12px; font-size: 12.5px; color: var(--faint); border-bottom: 1px solid var(--border); }
+.preview-hint code { font-family: var(--mono); color: var(--muted); }
+.preview-frame { flex: 1; min-height: 0; width: 100%; border: 0; background: #fff; }
+.icon-btn { width: 28px; height: 28px; display: grid; place-items: center; background: transparent; border: none; border-radius: 8px; color: var(--muted); }
+.icon-btn:hover { background: var(--hover); color: var(--text); }
+.icon-btn svg { width: 15px; height: 15px; }

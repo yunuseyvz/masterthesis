@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
-# One participant session in a fresh, air-gapped container.
+# One participant session in a fresh container.
 #
-# Usage: scripts/run-session.sh [--participant ID] [--seed N] [--group 0-5] [--dry-run]
+# Usage: scripts/run-session.sh [--participant ID] [--seed N] [--group 0-11] [--show-condition] [--offline] [--dry-run]
 #
 # With no options everything is generated:
 #   participant  random 6-character ID (letters/digits, no look-alikes), e.g. K7QX2M
 #   seed         random 32-bit integer; drives option shuffles and is part of the export file names
-#   group        number of completed sessions in exports/ modulo 6, so groups stay balanced as
+#   group        number of completed sessions in exports/ modulo 12, so groups stay balanced as
 #                you run participants one after another, and a dropout's slot is re-run
 # Any of them can be set explicitly. --dry-run prints the resolved values and exits.
+# --offline runs the container without network (and without the Preview pane).
+# --show-condition (experimenter aid, never for real participants) shows "<regime>·<variant>" next to the
+# participant ID in the sidebar: regime B = batch (control), K = checkpoint (intervention); variant C/F = correct/flawed.
 set -euo pipefail
 
-usage() { sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; }
 
-PARTICIPANT="" SEED="" GROUP="" DRY=0
+PARTICIPANT="" SEED="" GROUP="" DRY=0 SHOW=0 OFFLINE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --participant|--seed|--group)
@@ -24,6 +27,8 @@ while [ $# -gt 0 ]; do
     --seed=*)        SEED=${1#*=}; shift ;;
     --group=*)       GROUP=${1#*=}; shift ;;
     --dry-run)       DRY=1; shift ;;
+    --show-condition) SHOW=1; shift ;;
+    --offline)       OFFLINE=1; shift ;;
     -h|--help)       usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -40,13 +45,13 @@ fi
 if [ -z "$GROUP" ]; then
   # exports/ may not exist yet on a fresh checkout: that just means zero completed sessions
   DONE=$({ find "$EXPORTS" -maxdepth 1 -name '*.json' 2>/dev/null || true; } | wc -l)
-  GROUP=$((DONE % 6))
+  GROUP=$((DONE % 12))
 fi
 
 # The ID ends up in file and container names, so keep it strictly alphanumeric.
 [[ "$PARTICIPANT" =~ ^[A-Za-z0-9]{1,32}$ ]] || { echo "participant ID must be 1-32 letters/digits, got '$PARTICIPANT'" >&2; exit 2; }
 [[ "$SEED" =~ ^[0-9]{1,10}$ ]]              || { echo "seed must be a non-negative integer, got '$SEED'" >&2; exit 2; }
-[[ "$GROUP" =~ ^[0-5]$ ]]                   || { echo "group must be 0-5, got '$GROUP'" >&2; exit 2; }
+[[ "$GROUP" =~ ^([0-9]|1[01])$ ]]           || { echo "group must be 0-11, got '$GROUP'" >&2; exit 2; }
 
 echo "Participant $PARTICIPANT  seed $SEED  group $GROUP"
 [ "$DRY" = 1 ] && exit 0
@@ -61,11 +66,16 @@ rm -f "$RUN/app.sock"
 
 docker build -q -t beacon-study-harness "$ROOT" >/dev/null
 
+# The container has network access by default (the experimenter observes the session). The participant's dev
+# server is published on 127.0.0.1:$PREVIEW_PORT for the Preview pane. --offline removes both (no Preview).
+PREVIEW_PORT=${PREVIEW_PORT:-3000}
+if [ "$OFFLINE" = 1 ]; then NET=(--network none); PREVIEW_URL=""; else NET=(-p "127.0.0.1:$PREVIEW_PORT:3000"); PREVIEW_URL="http://localhost:$PREVIEW_PORT"; fi
+
 docker run --rm --name "beacon-$PARTICIPANT" \
-  --network none \
-  --cap-drop ALL --cap-add SETUID --cap-add SETGID --cap-add CHOWN --cap-add DAC_OVERRIDE \
-  --security-opt no-new-privileges --pids-limit 512 --memory 2g \
-  -e PARTICIPANT_ID="$PARTICIPANT" -e STUDY_SEED="$SEED" -e STUDY_GROUP="$GROUP" \
+  "${NET[@]}" \
+  --cap-drop ALL --cap-add SETUID --cap-add SETGID --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add KILL \
+  --security-opt no-new-privileges --pids-limit 512 --memory 3g \
+  -e PARTICIPANT_ID="$PARTICIPANT" -e STUDY_SEED="$SEED" -e STUDY_GROUP="$GROUP" -e SHOW_CONDITION="$SHOW" -e PREVIEW_URL="$PREVIEW_URL" \
   -v "$EXPORTS:/exports" -v "$RUN:/run/study" \
   beacon-study-harness &
 DOCKER_PID=$!

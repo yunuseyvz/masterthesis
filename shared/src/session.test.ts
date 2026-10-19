@@ -9,27 +9,27 @@ describe("generateSessionPlan", () => {
     expect(SessionPlan.safeParse(a).success).toBe(true);
   });
 
-  it("gives each participant 3 Correct/3 Flawed and 2 stories per regime", () => {
-    for (let g = 0; g < 6; g++) {
+  it("gives each participant 3 Flawed and 3 stories per regime", () => {
+    for (let g = 0; g < 12; g++) {
       const p = generateSessionPlan({ participantId: "P", studySeed: "1", group: g });
       expect(p.trials.filter((t) => t.variant === "Flawed")).toHaveLength(3);
-      for (const r of ["BATCH", "ARBITRARY", "PAIR_PROG"]) {
-        expect(p.trials.filter((t) => t.regime === r)).toHaveLength(2);
+      for (const r of ["BATCH", "CHECKPOINT"]) {
+        expect(p.trials.filter((t) => t.regime === r)).toHaveLength(3);
       }
       expect(new Set(p.trials.map((t) => t.story)).size).toBe(6);
     }
   });
 
-  it("balances every story across every regime x variant cell over the 6 groups", () => {
+  it("balances every story across every regime x variant cell over the 12 groups", () => {
     const counts = new Map<string, number>();
-    for (let g = 0; g < 6; g++) {
+    for (let g = 0; g < 12; g++) {
       for (const t of generateSessionPlan({ participantId: "P", studySeed: "7", group: g }).trials) {
         const k = `${t.story}|${t.regime}|${t.variant}`;
         counts.set(k, (counts.get(k) ?? 0) + 1);
       }
     }
-    expect(counts.size).toBe(STORIES.length * 6);
-    for (const n of counts.values()) expect(n).toBe(1);
+    expect(counts.size).toBe(STORIES.length * 4);
+    for (const n of counts.values()) expect(n).toBe(3);
   });
 
   it("uses a Williams design (each ordered pair adjacent exactly once)", () => {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CheckpointView, DiffFile } from "@beacon/shared";
 import { diffStat } from "./diff";
 import { DiffView, FileViewer } from "./DiffView";
-import { Chevron, DiffIcon, FilesIcon, Folder, TerminalIcon, fileIcon } from "./icons";
+import { Chevron, DiffIcon, FilesIcon, Folder, GlobeIcon, ReloadIcon, TerminalIcon, fileIcon } from "./icons";
 import { TerminalView } from "./TerminalView";
 
 const split = (p: string) => { const i = p.lastIndexOf("/"); return i < 0 ? ["", p] as const : [p.slice(0, i + 1), p.slice(i + 1)] as const; };
@@ -118,19 +118,45 @@ function TreeLevel({ node, depth, selected, changed, onSelect }: { node: Node; d
   );
 }
 
-export function WorkPane({ cp, onFileOpen, onTab }: { cp: CheckpointView; onFileOpen: (p: string) => void; onTab: (t: string) => void }) {
+export type WorkTab = "files" | "terminal" | "preview";
+
+/** A small browser: address bar plus the participant's dev server in an iframe. */
+function PreviewPane({ url, visible, onNavigate }: { url: string; visible: boolean; onNavigate: (url: string) => void }) {
+  const [addr, setAddr] = useState(url);
+  const [src, setSrc] = useState(url);
+  const [nonce, setNonce] = useState(0);
+  const go = (to: string) => {
+    const next = /^https?:\/\//.test(to) ? to : `http://${to}`;
+    setAddr(next);
+    setSrc(next);
+    setNonce((n) => n + 1);
+    onNavigate(next);
+  };
+  return (
+    <div className="preview" style={{ display: visible ? "flex" : "none" }}>
+      <form className="preview-bar" onSubmit={(e) => { e.preventDefault(); go(addr); }}>
+        <button type="button" className="icon-btn" title="Reload" onClick={() => go(src)}><ReloadIcon /></button>
+        <input className="preview-addr" value={addr} onChange={(e) => setAddr(e.target.value)} spellCheck={false} aria-label="Address" />
+      </form>
+      <div className="preview-hint">Start the app in the Terminal with <code>npm run dev</code>, then reload.</div>
+      <iframe key={nonce} className="preview-frame" src={src} title="Preview" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" />
+    </div>
+  );
+}
+
+export function WorkPane({ cp, tab, onTab, previewUrl, onNavigate, hidden, onFileOpen }: { cp: CheckpointView; tab: WorkTab; onTab: (t: WorkTab) => void; previewUrl?: string; onNavigate: (url: string) => void; hidden: boolean; onFileOpen: (p: string) => void }) {
   // `cp.diffs` here is the live subset, so the tree grows as files get written.
-  const [tab, setTab] = useState<"files" | "terminal">("files");
   const [file, setFile] = useState("");
   const tree = useMemo(() => buildTree(cp.workspace.map((f) => f.path)), [cp.workspace]);
   const changed = useMemo(() => new Set(cp.diffs.map((d) => d.path)), [cp.diffs]);
   const content = cp.workspace.find((f) => f.path === file)?.content;
 
   return (
-    <div className="pane small">
+    <div className="pane small" style={{ display: hidden ? "none" : undefined }}>
       <div className="pane-head">
-        <button className={`tab ${tab === "files" ? "active" : ""}`} onClick={() => { setTab("files"); onTab("files"); }}><FilesIcon /> Files</button>
-        <button className={`tab ${tab === "terminal" ? "active" : ""}`} onClick={() => { setTab("terminal"); onTab("terminal"); }}><TerminalIcon /> Terminal</button>
+        <button className={`tab ${tab === "files" ? "active" : ""}`} onClick={() => onTab("files")}><FilesIcon /> Files</button>
+        <button className={`tab ${tab === "terminal" ? "active" : ""}`} onClick={() => onTab("terminal")}><TerminalIcon /> Terminal</button>
+        {previewUrl && <button className={`tab ${tab === "preview" ? "active" : ""}`} onClick={() => onTab("preview")}><GlobeIcon /> Preview</button>}
       </div>
       <div className="pane-body split" style={{ display: tab === "files" ? "flex" : "none" }}>
         <div className="tree scroll"><TreeLevel node={tree} depth={0} selected={file} changed={changed} onSelect={(p) => { setFile(p); onFileOpen(p); }} /></div>
@@ -144,8 +170,9 @@ export function WorkPane({ cp, onFileOpen, onTab }: { cp: CheckpointView; onFile
         </div>
       </div>
       <div className="pane-body term-body" style={{ display: tab === "terminal" ? "block" : "none" }}>
-        <TerminalView visible={tab === "terminal"} />
+        <TerminalView visible={tab === "terminal" && !hidden} />
       </div>
+      {previewUrl && <PreviewPane url={previewUrl} visible={tab === "preview"} onNavigate={onNavigate} />}
     </div>
   );
 }

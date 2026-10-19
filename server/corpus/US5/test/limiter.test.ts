@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkAndRecord } from "../src/limiter.ts";
-import { createBucket } from "../src/types.ts";
+import { checkAndRecord } from "../src/lib/ratelimit/limiter.ts";
+import { createBucket } from "../src/lib/ratelimit/types.ts";
 
 const cfg = { limit: 2, windowMs: 60_000 };
 

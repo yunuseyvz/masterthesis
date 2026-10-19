@@ -15,6 +15,7 @@ const uid = env.SANDBOX_UID !== undefined ? Number(env.SANDBOX_UID) : undefined;
 const gid = env.SANDBOX_GID !== undefined ? Number(env.SANDBOX_GID) : uid;
 const socketPath = env.LISTEN_SOCKET;
 
+if (env.SHOW_CONDITION === "1") console.warn("[study] SHOW_CONDITION=1: the UI shows each trial's regime and variant. Do not use with real participants.");
 if (uid === undefined) console.warn("[sandbox] SANDBOX_UID not set: terminal runs as the server user and is NOT isolated (dev only)");
 
 const app = buildApp({
@@ -26,6 +27,8 @@ const app = buildApp({
   staticDir: env.STATIC_DIR ?? path.resolve(here, "../../client/dist"),
   devFallbackStory: env.DEV_FALLBACK_STORY,
   exitOnFinish: env.EXIT_ON_FINISH !== "0",
+  showCondition: env.SHOW_CONDITION === "1",
+  previewUrl: env.PREVIEW_URL,
   sandbox: { uid, gid },
   protectedPaths: env.ALLOW_READABLE_PATHS === "1" ? [] : [exportDir, corpusDir, path.resolve(here, ".."), ...(socketPath ? [path.dirname(socketPath)] : [])],
 });

@@ -11,11 +11,6 @@ export interface EventLog {
   processed: Set<string>;
 }
 
-export interface WebhookResponse {
-  status: number;
-  body: string;
-}
-
 export function createEventLog(): EventLog {
   return { processed: new Set() };
 }

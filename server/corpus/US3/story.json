@@ -1,34 +1,120 @@
 {
   "id": "US3",
-  "project": "tenant-admin",
+  "project": "shopfront",
+  "base": "shopfront",
   "title": "Multi-Tenant Feature Flags & Quotas",
   "brief": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.",
   "steps": [
-    { "n": 1, "kind": "scaffold", "summary": "Add tenant configuration types and organization defaults",
-      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
-    { "n": 2, "kind": "milestone", "summary": "Implement tenant configuration merging",
-      "files": [{ "path": "src/config.ts", "source": { "Correct": "src/config.correct.ts", "Flawed": "src/config.flawed.ts" } }] },
-    { "n": 3, "kind": "scaffold", "summary": "Add quota checks and a quota wrapper",
-      "files": [{ "path": "src/quota.ts", "source": "src/quota.ts" }] },
-    { "n": 4, "kind": "completion", "summary": "Add unit tests for configuration and quotas",
-      "files": [{ "path": "test/config.test.ts", "source": "test/config.test.ts" }] }
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add tenant configuration types and organization defaults",
+      "files": [
+        {
+          "path": "src/lib/tenants/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "I'll start with the tenant configuration types and the organization defaults."
+    },
+    {
+      "n": 2,
+      "kind": "milestone",
+      "summary": "Implement tenant configuration merging",
+      "files": [
+        {
+          "path": "src/lib/tenants/config.ts",
+          "source": {
+            "Correct": "src/config.correct.ts",
+            "Flawed": "src/config.flawed.ts"
+          }
+        }
+      ],
+      "narration": "Now the main logic: combining a tenant's own settings with the organization defaults."
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add quota checks and a quota wrapper",
+      "files": [
+        {
+          "path": "src/lib/tenants/quota.ts",
+          "source": "src/quota.ts"
+        }
+      ],
+      "narration": "Next I'm adding the quota checks and a wrapper that applies them."
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add unit tests for configuration and quotas",
+      "files": [
+        {
+          "path": "test/config.test.ts",
+          "source": "test/config.test.ts"
+        }
+      ],
+      "narration": "Finally, unit tests for the configuration and the quotas."
+    }
   ],
   "testFile": "test/config.test.ts",
   "testsAvailableFromStep": 2,
   "probe": {
     "question": "The organization default is allowExport = true and the tenant override is allowExport = false. What does getEffectiveConfig() return for allowExport?",
-    "options": ["false", "true", "undefined", "null"],
+    "options": [
+      "false",
+      "true",
+      "undefined",
+      "null"
+    ],
     "script": "probe.ts",
-    "expected": { "Correct": "false", "Flawed": "true" }
+    "expected": {
+      "Correct": "false",
+      "Flawed": "true"
+    }
   },
   "understanding": {
-    "question": "A tenant's rate limit override is set to 0 while the organization default is 100. What happens to that tenant's requests?",
-    "options": [
-      "All of the tenant's requests are blocked",
-      "Requests are still allowed, up to the organization default of 100",
-      "Requests are allowed but logged for review",
-      "Only the first request is blocked"
-    ],
-    "correct": { "Correct": 0, "Flawed": 1 }
+    "script": "understanding.ts",
+    "items": [
+      {
+        "question": "A tenant's rate limit override is set to 0 while the organization default is 100. What happens to that tenant's requests?",
+        "options": [
+          "All of the tenant's requests are blocked",
+          "Requests are still allowed, up to the organization default of 100",
+          "Requests are allowed but logged for review",
+          "Only the first request is blocked"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "question": "A tenant has no overrides and has already made 100 requests. What happens to its 101st request?",
+        "options": [
+          "It is blocked with the reason \"rate limit reached\"",
+          "It is allowed; the counter resets",
+          "It is allowed but logged for review",
+          "It is blocked only if exports are disabled"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "question": "A tenant overrides only its number of seats, setting it to 25. Which settings does it end up with?",
+        "options": [
+          "plan: team, allowExport: true, rateLimit: 100, seats: 25",
+          "plan: team, allowExport: true, rateLimit: 0, seats: 25",
+          "Only seats: 25; every other setting is undefined",
+          "plan: team, allowExport: false, rateLimit: 100, seats: 10"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
   }
 }

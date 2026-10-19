@@ -1,5 +1,5 @@
-import { createEventLog } from "./src/types.ts";
-import { processWebhook, withRetry } from "./src/idempotency.ts";
+import { createEventLog } from "./src/lib/webhooks/types.ts";
+import { processWebhook, withRetry } from "./src/lib/webhooks/idempotency.ts";
 
 async function main() {
   const log = createEventLog();

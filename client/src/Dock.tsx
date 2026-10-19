@@ -35,7 +35,7 @@ export interface DockHandlers {
   onStage1: (d: "accept" | "reject") => void;
   onAdvance: () => void;
   onStage2: (probe: number, final: "confirm" | "reverse") => void;
-  onUnderstanding: (a: { answer: number; confidence: number; mentalDemand: number; frustration: number }) => void;
+  onUnderstanding: (a: { answers: number[]; confidence: number; mentalDemand: number; frustration: number }) => void;
 }
 
 /** Number keys act like the real tool's prompts, but never while typing in the terminal. */
@@ -56,7 +56,8 @@ function useNumberKeys(enabled: boolean, onKey: (n: number) => void) {
 
 export function Dock({ view, busy, h }: { view: ViewState; busy: boolean; h: DockHandlers }) {
   const [probe, setProbe] = useState<number | null>(null);
-  const [answer, setAnswer] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<(number | null)[]>([]);
+  const [step, setStep] = useState(0); // understanding: one question per step, then the ratings
   const [conf, setConf] = useState(0);
   const [demand, setDemand] = useState(0);
   const [frus, setFrus] = useState(0);
@@ -66,13 +67,21 @@ export function Dock({ view, busy, h }: { view: ViewState; busy: boolean; h: Doc
     const count = view.probe!.options.length;
     if (n <= count) setProbe(n - 1); else if (n === count + 1) setProbe(-1);
   });
-  useNumberKeys(view.phase === "understanding", (n) => { if (n <= (view.understanding?.options.length ?? 0)) setAnswer(n - 1); });
 
   if (view.phase === "unscored") {
     return (
       <div className="dock">
-        <h4>The agent paused</h4>
-        <p>Look over the changes, then let it continue.</p>
+        {view.checkpoint?.id === "wrap-up" ? (
+          <>
+            <h4>The agent has finished the feature</h4>
+            <p>Look over the rest of what it wrote. There is nothing to decide here. Then continue.</p>
+          </>
+        ) : (
+          <>
+            <h4>The agent paused</h4>
+            <p>Look over the changes, then let it continue.</p>
+          </>
+        )}
         <div className="btn-row"><button className="btn primary" disabled={busy} onClick={h.onAdvance}>Continue</button></div>
       </div>
     );
@@ -106,19 +115,36 @@ export function Dock({ view, busy, h }: { view: ViewState; busy: boolean; h: Doc
   }
 
   if (view.phase === "understanding" && view.understanding) {
-    const ready = answer !== null && conf > 0 && demand > 0 && frus > 0;
+    const items = view.understanding.items;
+    const picked = items.map((_, k) => answers[k] ?? null);
+    const onRatings = step >= items.length;
+    const k = Math.min(step, items.length - 1);
+    const ratingsDone = conf > 0 && demand > 0 && frus > 0;
     return (
       <div className="dock">
-        <h4>A quick question about the feature</h4>
-        <p className="q">{view.understanding.question}</p>
-        <Options options={view.understanding.options} value={answer} onChange={setAnswer} />
-        <div className="scales">
-          <Scale label="Confidence (1–7)" max={7} value={conf} onChange={setConf} />
-          <Scale label="Mental demand (1–5)" max={5} value={demand} onChange={setDemand} />
-          <Scale label="Frustration (1–5)" max={5} value={frus} onChange={setFrus} />
-        </div>
+        <h4>{onRatings ? "Almost done" : `Question ${step + 1} of ${items.length}`}</h4>
+        {!onRatings ? (
+          <>
+            <p className="q">{items[k]!.question}</p>
+            <Options options={items[k]!.options} value={picked[k]!} onChange={(i) => setAnswers((prev) => { const next = items.map((_, j) => prev[j] ?? null); next[k] = i; return next; })} />
+          </>
+        ) : (
+          <>
+            <p>How did working on this feature feel?</p>
+            <div className="scales">
+              <Scale label="Confidence (1–7)" max={7} value={conf} onChange={setConf} />
+              <Scale label="Mental demand (1–5)" max={5} value={demand} onChange={setDemand} />
+              <Scale label="Frustration (1–5)" max={5} value={frus} onChange={setFrus} />
+            </div>
+          </>
+        )}
         <div className="btn-row">
-          <button className="btn primary" disabled={busy || !ready} onClick={() => h.onUnderstanding({ answer: answer!, confidence: conf, mentalDemand: demand, frustration: frus })}>Next</button>
+          {step > 0 && <button className="btn" disabled={busy} onClick={() => setStep(step - 1)}>Back</button>}
+          {!onRatings ? (
+            <button className="btn primary" disabled={picked[k] === null} onClick={() => setStep(step + 1)}>Continue</button>
+          ) : (
+            <button className="btn primary" disabled={busy || !ratingsDone || picked.some((a) => a === null)} onClick={() => h.onUnderstanding({ answers: picked as number[], confidence: conf, mentalDemand: demand, frustration: frus })}>Next</button>
+          )}
         </div>
       </div>
     );

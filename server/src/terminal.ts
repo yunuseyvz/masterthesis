@@ -13,6 +13,9 @@ clear
 
 const PREFILL = "npm test";
 
+/** Dependencies of the shared project, installed at image build time. Absent in dev and in tests. */
+const NODE_MODULES_SRC = process.env.NODE_MODULES_SRC ?? "/opt/shopfront/node_modules";
+
 export interface SandboxOptions {
   /** Unprivileged uid/gid the shell runs as. Unset = dev mode: the shell shares the server's identity (NOT isolated). */
   uid?: number;
@@ -73,6 +76,9 @@ export class TerminalManager {
         if (fs.statSync(p).isDirectory()) for (const e of fs.readdirSync(p)) walk(path.join(p, e));
       };
       walk(dir);
+      // Dependencies are installed once in the image. Linking them in (after the chown walk, which would follow
+      // the link) is what makes `npm run dev` and `npx tsc` work in the participant's copy.
+      if (fs.existsSync(NODE_MODULES_SRC)) fs.symlinkSync(NODE_MODULES_SRC, path.join(dir, "node_modules"));
     } catch (err) {
       fs.rmSync(dir, { recursive: true, force: true });
       throw err;
@@ -80,7 +86,7 @@ export class TerminalManager {
     const { uid, gid } = this.sandbox;
 
     const bin = [path.dirname(process.execPath), "/usr/local/bin", "/usr/bin", "/bin"].join(":");
-    const shell = `ulimit ${uid !== undefined ? "-u 128 " : ""}-n 256 -t 600 -f 10240; exec /bin/bash --noprofile --rcfile ${this.rcFile} -i`;
+    const shell = `ulimit ${uid !== undefined ? "-u 300 " : ""}-n 4096 -t 7200 -f 51200; exec /bin/bash --noprofile --rcfile ${this.rcFile} -i`;
     // Drop privileges with setpriv instead of node-pty's uid/gid options: those never clear the
     // supplementary groups, which would leave the shell in the server's root group.
     const [file, args] =
@@ -98,6 +104,7 @@ export class TerminalManager {
         PROJECT_NAME: ctx.project,
         TERM: "xterm-256color",
         LANG: "C.UTF-8",
+        NEXT_TELEMETRY_DISABLED: "1",
         npm_config_update_notifier: "false",
         npm_config_fund: "false",
         npm_config_audit: "false",
@@ -151,9 +158,25 @@ export class TerminalManager {
     const c = this.current;
     if (!c) return;
     this.current = null;
+    // The shell is a session leader, so -pid reaches a dev server the participant left running.
+    try { process.kill(-c.proc.pid, "SIGKILL"); } catch { /* already gone */ }
     try { c.proc.kill("SIGKILL"); } catch { /* already gone */ }
+    // Background jobs (a dev server started with `&`) get their own process group, so end everything the sandbox user runs.
+    if (this.sandbox.uid !== undefined) killUserProcesses(this.sandbox.uid);
     fs.rmSync(c.dir, { recursive: true, force: true });
     c.onExit();
+  }
+}
+
+/** Sends SIGKILL to every process owned by `uid` (Linux only; the container has no pkill). */
+export function killUserProcesses(uid: number) {
+  let pids: string[] = [];
+  try { pids = fs.readdirSync("/proc").filter((p) => /^\d+$/.test(p)); } catch { return; }
+  for (const pid of pids) {
+    try {
+      const m = /^Uid:\s+(\d+)/m.exec(fs.readFileSync(`/proc/${pid}/status`, "utf8"));
+      if (m && Number(m[1]) === uid) process.kill(Number(pid), "SIGKILL");
+    } catch { /* process vanished */ }
   }
 }
 

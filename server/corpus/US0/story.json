@@ -1,29 +1,117 @@
 {
   "id": "US0",
-  "project": "greeter",
+  "project": "shopfront",
+  "base": "shopfront",
   "title": "Practice: Greeting Formatter",
   "brief": "As a user, I want the app to greet me by name, so that it feels friendly. This is a practice story: take your time to explore the interface.",
   "steps": [
-    { "n": 1, "kind": "scaffold", "summary": "Add greeting types",
-      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
-    { "n": 2, "kind": "milestone", "summary": "Implement the greeting formatter",
-      "files": [{ "path": "src/greeting.ts", "source": "src/greeting.ts" }] },
-    { "n": 3, "kind": "scaffold", "summary": "Add a helper that greets several users",
-      "files": [{ "path": "src/batch.ts", "source": "src/batch.ts" }] },
-    { "n": 4, "kind": "completion", "summary": "Add unit tests for greetings",
-      "files": [{ "path": "test/greeting.test.ts", "source": "test/greeting.test.ts" }] }
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add greeting types",
+      "files": [
+        {
+          "path": "src/lib/greeting/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "I'll start with a small type for the greeting options."
+    },
+    {
+      "n": 2,
+      "kind": "milestone",
+      "summary": "Implement the greeting formatter",
+      "files": [
+        {
+          "path": "src/lib/greeting/greeting.ts",
+          "source": "src/greeting.ts"
+        }
+      ],
+      "narration": "Now the formatter itself, which builds the greeting from a name."
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add a helper that greets several users",
+      "files": [
+        {
+          "path": "src/lib/greeting/batch.ts",
+          "source": "src/batch.ts"
+        }
+      ],
+      "narration": "Next, a helper that greets several users at once."
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add unit tests for greetings",
+      "files": [
+        {
+          "path": "test/greeting.test.ts",
+          "source": "test/greeting.test.ts"
+        }
+      ],
+      "narration": "Last, unit tests for the greetings."
+    }
   ],
   "testFile": "test/greeting.test.ts",
   "testsAvailableFromStep": 2,
   "probe": {
     "question": "What does formatGreeting({ name: \"  Ada \", formal: true }) return?",
-    "options": ["Dear Ada,", "Dear   Ada ,", "Hi Ada!", "Dear Ada"],
+    "options": [
+      "Dear Ada,",
+      "Dear   Ada ,",
+      "Hi Ada!",
+      "Dear Ada"
+    ],
     "script": "probe.ts",
-    "expected": { "Correct": "Dear Ada,", "Flawed": "Dear Ada," }
+    "expected": {
+      "Correct": "Dear Ada,",
+      "Flawed": "Dear Ada,"
+    }
   },
   "understanding": {
-    "question": "What does the app greet a user with when no name has been provided?",
-    "options": ["Hi there!", "Hi undefined!", "An error is thrown", "An empty string"],
-    "correct": { "Correct": 0, "Flawed": 0 }
+    "script": "understanding.ts",
+    "items": [
+      {
+        "question": "What does the app greet a user with when no name has been provided?",
+        "options": [
+          "Hi there!",
+          "Hi undefined!",
+          "An error is thrown",
+          "An empty string"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "question": "greetAll([\"Ada\", \"\", \"Grace\"]) returns one greeting per name. Which list does it return?",
+        "options": [
+          "Hi Ada!, Hi there!, Hi Grace!",
+          "Hi Ada!, Hi !, Hi Grace!",
+          "Hi Ada!, Hi Grace!",
+          "An error is thrown"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "question": "What does formatGreeting({ name: \"\", formal: true }) return?",
+        "options": [
+          "Hi there!",
+          "Dear ,",
+          "Dear there,",
+          "An error is thrown"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
   }
 }

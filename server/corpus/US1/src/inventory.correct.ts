@@ -1,3 +1,4 @@
+import { NotFoundError, ValidationError } from "../errors.ts";
 import { OutOfStockError, type Store } from "./types.ts";
 
 /**
@@ -7,10 +8,10 @@ import { OutOfStockError, type Store } from "./types.ts";
 export function reserveStock(store: Store, skuId: string, qty: number): number {
   const sku = store.skus.get(skuId);
   if (!sku) {
-    throw new Error(`Unknown SKU: ${skuId}`);
+    throw new NotFoundError(`sku ${skuId}`);
   }
   if (!Number.isInteger(qty) || qty <= 0) {
-    throw new RangeError("qty must be a positive integer");
+    throw new ValidationError("qty must be a positive integer");
   }
   if (sku.stock < qty) {
     throw new OutOfStockError(skuId, qty);

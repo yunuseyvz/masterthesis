@@ -1,34 +1,120 @@
 {
   "id": "US6",
-  "project": "storefront",
+  "project": "shopfront",
+  "base": "shopfront",
   "title": "Discount Tiers & Percentage Clamping",
   "brief": "As a shopper, I want to apply a coupon to my order, so that I pay the discounted price.",
   "steps": [
-    { "n": 1, "kind": "scaffold", "summary": "Add cart and coupon types",
-      "files": [{ "path": "src/types.ts", "source": "src/types.ts" }] },
-    { "n": 2, "kind": "milestone", "summary": "Implement discount calculation",
-      "files": [{ "path": "src/pricing.ts", "source": { "Correct": "src/pricing.correct.ts", "Flawed": "src/pricing.flawed.ts" } }] },
-    { "n": 3, "kind": "scaffold", "summary": "Add the order summary calculator",
-      "files": [{ "path": "src/order.ts", "source": "src/order.ts" }] },
-    { "n": 4, "kind": "completion", "summary": "Add unit tests for pricing",
-      "files": [{ "path": "test/pricing.test.ts", "source": "test/pricing.test.ts" }] }
+    {
+      "n": 1,
+      "kind": "milestone",
+      "summary": "Implement discount calculation",
+      "files": [
+        {
+          "path": "src/lib/pricing/pricing.ts",
+          "source": {
+            "Correct": "src/pricing.correct.ts",
+            "Flawed": "src/pricing.flawed.ts"
+          }
+        }
+      ],
+      "narration": "I'll start with the core calculation: applying a coupon's percentage discount to a price."
+    },
+    {
+      "n": 2,
+      "kind": "scaffold",
+      "summary": "Add coupon and order summary types",
+      "files": [
+        {
+          "path": "src/lib/pricing/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "Next I'm adding the coupon and order summary types."
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add the order summary calculator",
+      "files": [
+        {
+          "path": "src/lib/pricing/order.ts",
+          "source": "src/order.ts"
+        }
+      ],
+      "narration": "Now the order summary calculator that uses the discount."
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add unit tests for pricing",
+      "files": [
+        {
+          "path": "test/pricing.test.ts",
+          "source": "test/pricing.test.ts"
+        }
+      ],
+      "narration": "Finally, unit tests for the pricing."
+    }
   ],
   "testFile": "test/pricing.test.ts",
-  "testsAvailableFromStep": 2,
+  "testsAvailableFromStep": 1,
   "probe": {
     "question": "What does clampPercent(-15) return in this implementation?",
-    "options": ["0", "-15", "100", "NaN"],
+    "options": [
+      "0",
+      "-15",
+      "100",
+      "NaN"
+    ],
     "script": "probe.ts",
-    "expected": { "Correct": "0", "Flawed": "-15" }
+    "expected": {
+      "Correct": "0",
+      "Flawed": "-15"
+    }
   },
   "understanding": {
-    "question": "A coupon carries a discount percentage of -15. How does it affect the order total?",
-    "options": [
-      "The total is unchanged: the negative adjustment is ignored",
-      "The total goes up by 15%",
-      "The total goes down by 15%",
-      "Checkout fails with an error"
-    ],
-    "correct": { "Correct": 0, "Flawed": 1 }
+    "script": "understanding.ts",
+    "items": [
+      {
+        "question": "A coupon carries a discount percentage of -15. How does it affect the order total?",
+        "options": [
+          "The total is unchanged: the negative adjustment is ignored",
+          "The total goes up by 15%",
+          "The total goes down by 15%",
+          "Checkout fails with an error"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "question": "A cart has one line: unit price 2000 cents, quantity 3. A 10% coupon is applied. What are the subtotal, discount and total?",
+        "options": [
+          "Subtotal 6000, discount 600, total 5400",
+          "Subtotal 6000, discount 600, total 6600",
+          "Subtotal 2000, discount 200, total 1800",
+          "Subtotal 6000, discount 0, total 6000"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "question": "A 150% coupon is applied to an order of 6000 cents. What is the total?",
+        "options": [
+          "0: the discount is capped at 100%",
+          "-3000: the total goes negative",
+          "6000: the coupon is ignored",
+          "Checkout fails with an error"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
   }
 }

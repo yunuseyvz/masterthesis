@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyDiscount } from "../src/pricing.ts";
+import { applyDiscount } from "../src/lib/pricing/pricing.ts";
 
 test("applies a percentage discount", () => {
   assert.equal(applyDiscount(20_000, 10), 18_000);

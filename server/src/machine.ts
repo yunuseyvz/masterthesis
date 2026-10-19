@@ -7,7 +7,7 @@ import {
   type TrialResult,
   type ViewState,
 } from "@beacon/shared";
-import { checkpointsFor, type CheckpointSpec } from "./checkpoints.js";
+import { checkpointsFor, stepsOf, type CheckpointSpec } from "./checkpoints.js";
 import type { Story } from "./corpus.js";
 import { runProbe } from "./runner.js";
 
@@ -22,6 +22,8 @@ export class ConflictError extends Error {}
 const TEST_COMMAND = /\b(npm\s+(run\s+)?test|npm\s+t\b|node\s+(--\S+\s+)*--test|node\s+.*\.test\.ts)/;
 
 type Phase = ViewState["phase"];
+
+const REGIME_LETTER = { BATCH: "B", CHECKPOINT: "K" } as const;
 
 interface Stage1Record {
   decision: Decision;
@@ -57,6 +59,8 @@ export class StudySession {
     private readonly sink: (e: StudyEvent) => void = () => {},
     private readonly now: () => number = Date.now,
     private readonly onTransition: () => void = () => {},
+    /** Experimenter aid: expose a "B·F"-style condition tag in the view. Off in real sessions. */
+    private readonly showCondition = false,
   ) {
     this.allTrials = [plan.practice, ...plan.trials];
     this.log("session_start", { participantId: plan.participantId, studySeed: plan.studySeed, group: plan.group, plan });
@@ -75,7 +79,7 @@ export class StudySession {
     return this.loadStory(this.trial.story);
   }
   private get checkpoints(): CheckpointSpec[] {
-    return checkpointsFor(this.trial.regime);
+    return checkpointsFor(this.trial.regime, this.story.milestoneStep);
   }
   private get checkpoint(): CheckpointSpec {
     return this.checkpoints[this.cpIdx]!;
@@ -92,6 +96,17 @@ export class StudySession {
     this.ready = false;
     this.testRuns = 0;
     this.log("checkpoint_shown", { trial: this.trial.position, checkpoint: cp.id, scored: cp.scored });
+  }
+
+  /** After a checkpoint: show the next one (the unscored wrap-up) or move on to the understanding questions. */
+  private afterCheckpoint() {
+    if (this.cpIdx + 1 < this.checkpoints.length) {
+      this.cpIdx++;
+      this.showCheckpoint();
+    } else {
+      this.phase = "understanding";
+      this.shownAt = this.now();
+    }
   }
 
   private startTrial() {
@@ -124,23 +139,27 @@ export class StudySession {
     const story = this.story;
     const cp = this.checkpoint;
     const variant = this.trial.variant;
-    base.story = { title: story.def.title, brief: story.def.brief, project: story.def.project };
+    if (this.showCondition) base.debugTag = `${REGIME_LETTER[this.trial.regime]}·${variant === "Flawed" ? "F" : "C"}`;
+    base.story = { title: story.def.title, brief: story.def.brief, project: story.def.project, plan: story.def.steps.map((s) => ({ n: s.n, summary: s.summary })) };
 
     if (this.phase === "understanding") {
       base.understanding = {
-        question: story.def.understanding.question,
-        options: this.trial.understandingOptionOrder.map((i) => story.def.understanding.options[i]!),
+        items: story.def.understanding.items.map((item, k) => ({
+          question: item.question,
+          options: this.trial.understandingOptionOrders[k]!.map((i) => item.options[i]!),
+        })),
       };
       return base;
     }
 
+    const shown = stepsOf(cp);
     base.agentSteps = story.def.steps
-      .filter((s) => s.n >= cp.fromStep && s.n <= cp.toStep)
-      .map((s) => ({ n: s.n, summary: s.summary, files: s.files.map((f) => f.path) }));
+      .filter((s) => shown.includes(s.n))
+      .map((s) => ({ n: s.n, summary: s.summary, narration: s.narration, files: s.files.map((f) => f.path) }));
     base.checkpoint = {
       id: cp.id,
       scored: cp.scored,
-      diffs: story.diff(variant, cp.fromStep, cp.toStep),
+      diffs: cp.steps ? cp.steps.flatMap((n) => story.diff(variant, n, n)) : story.diff(variant, cp.fromStep, cp.toStep),
       workspace: [...story.projectWorkspace(variant, cp.toStep)].map(([path, content]) => ({ path, content })),
     };
     if (this.phase === "stage2") {
@@ -208,8 +227,7 @@ export class StudySession {
       case "advance":
         this.require("unscored");
         this.log("unscored_advance", { checkpoint: this.checkpoint.id, dwellMs: this.now() - this.shownAt });
-        this.cpIdx++;
-        this.showCheckpoint();
+        this.afterCheckpoint();
         break;
 
       case "stage1": {
@@ -253,19 +271,21 @@ export class StudySession {
           probeCorrect,
         };
         this.log("stage2_submit", { ...this.pending, probeExecuted: executed, displayedAnswer: action.probeAnswer });
-        this.phase = "understanding";
-        this.shownAt = this.now();
+        this.afterCheckpoint();
         break;
       }
 
       case "understanding": {
         this.require("understanding");
         const story = this.story;
-        const canonical = this.trial.understandingOptionOrder[action.answer]!;
+        const items = story.def.understanding.items;
+        const canonical = action.answers.map((a, k) => this.trial.understandingOptionOrders[k]![a]!);
+        const corrects = canonical.map((c, k) => c === items[k]!.correct[this.trial.variant]);
         const result: TrialResult = {
-          ...(this.pending as Omit<TrialResult, "understandingAnswer" | "understandingCorrect" | "confidence" | "mentalDemand" | "frustration">),
-          understandingAnswer: canonical,
-          understandingCorrect: canonical === story.def.understanding.correct[this.trial.variant],
+          ...(this.pending as Omit<TrialResult, "understandingAnswers" | "understandingCorrects" | "understandingScore" | "confidence" | "mentalDemand" | "frustration">),
+          understandingAnswers: canonical,
+          understandingCorrects: corrects,
+          understandingScore: corrects.filter(Boolean).length,
           confidence: action.confidence,
           mentalDemand: action.mentalDemand,
           frustration: action.frustration,
