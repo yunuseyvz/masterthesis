@@ -94,13 +94,14 @@ svg { flex: none; }
 .btn:hover:not(:disabled) { background: #30302d; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a1a19; }
 .btn.primary:hover:not(:disabled) { background: #e18463; }
-.scales { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
-.scale { display: flex; align-items: center; gap: 12px; }
-.scale .lbl { width: 150px; color: var(--muted); font-size: 13px; }
-.pills { display: flex; gap: 5px; }
-.pills button { width: 30px; height: 28px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--raised); font-size: 12.5px; }
-.pills button:hover { background: #30302d; }
-.pills button.sel { background: var(--accent); border-color: var(--accent); color: #1a1a19; font-weight: 600; }
+.seg { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.seg-label { color: var(--muted); font-size: 13px; }
+.seg-row { display: flex; gap: 4px; }
+.seg-row button { flex: 1 1 0; min-width: 0; height: 32px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--raised); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.seg-row button:hover { background: #30302d; }
+.seg-row button.sel { background: var(--accent); border-color: var(--accent); color: #1a1a19; font-weight: 600; }
+.seg-row button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg-ends { display: flex; justify-content: space-between; color: var(--muted); font-size: 11.5px; }
 .composer { background: var(--panel); border: 1px solid var(--border-2); border-radius: 16px; padding: 12px 12px 12px 14px; display: flex; align-items: center; gap: 12px; color: var(--faint); }
 .composer .plus { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--muted); }
 .composer .placeholder { flex: 1; font-size: 14px; }

@@ -18,21 +18,23 @@ function Options({ options, value, onChange, dontKnow }: { options: string[]; va
   );
 }
 
-function Scale({ label, max, value, onChange }: { label: string; max: number; value: number; onChange: (n: number) => void }) {
+/** 50 % = guessing between two options, 100 % = certain. */
+const CONFIDENCE = [50, 60, 70, 80, 90, 100];
+
+/** Equal-width buttons across the dock, with a question above and anchors under both ends. */
+function Segmented({ label, values, format, ends, value, onChange }: { label: string; values: number[]; format?: (n: number) => string; ends: [string, string]; value: number | null; onChange: (n: number) => void }) {
   return (
-    <div className="scale">
-      <span className="lbl">{label}</span>
-      <span className="pills">
-        {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
-          <button key={n} className={value === n ? "sel" : ""} onClick={() => onChange(n)}>{n}</button>
+    <div className="seg">
+      <div className="seg-label">{label}</div>
+      <div className="seg-row" role="radiogroup" aria-label={label}>
+        {values.map((n) => (
+          <button key={n} role="radio" aria-checked={value === n} className={value === n ? "sel" : ""} onClick={() => onChange(n)}>{format ? format(n) : n}</button>
         ))}
-      </span>
+      </div>
+      <div className="seg-ends"><span>{ends[0]}</span><span>{ends[1]}</span></div>
     </div>
   );
 }
-
-/** 50 % = guessing between two options, 100 % = certain. */
-const CONFIDENCE = [50, 60, 70, 80, 90, 100];
 
 export interface DockHandlers {
   onStage1: (d: "accept" | "reject") => void;
@@ -130,19 +132,11 @@ export function Dock({ view, busy, h }: { view: ViewState; busy: boolean; h: Doc
           <>
             <p className="q">{items[k]!.question}</p>
             <Options options={items[k]!.options} value={picked[k]!} onChange={(i) => setAnswers((prev) => set(prev, i))} />
-            <div className="scale">
-              <span className="lbl">How sure are you?</span>
-              <span className="pills">
-                {CONFIDENCE.map((c) => (
-                  <button key={c} className={sure[k] === c ? "sel" : ""} onClick={() => setConfs((prev) => set(prev, c))}>{c}%</button>
-                ))}
-              </span>
-            </div>
+            <Segmented label="How sure are you about your answer?" values={CONFIDENCE} format={(c) => `${c}%`} ends={["Guessing", "Certain"]} value={sure[k]!} onChange={(c) => setConfs((prev) => set(prev, c))} />
           </>
         ) : (
           <>
-            <p>How much mental effort did you invest in reviewing this feature?</p>
-            <Scale label="1 = very, very low · 9 = very, very high" max={9} value={paas} onChange={setPaas} />
+            <Segmented label="How much mental effort did you invest in reviewing this feature?" values={[1, 2, 3, 4, 5, 6, 7, 8, 9]} ends={["Very, very low", "Very, very high"]} value={paas || null} onChange={setPaas} />
           </>
         )}
         <div className="btn-row">

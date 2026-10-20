@@ -254,7 +254,7 @@ export function App() {
             <button className={`tb ${ui.changes ? "on" : ""}`} title="Changes" onClick={() => toggle("changes")}><DiffIcon /></button>
             <button className={`tb ${ui.work && ui.tab === "files" ? "on" : ""}`} title="Files" onClick={() => toggleTab("files")}><FilesIcon /></button>
             <button className={`tb ${ui.work && ui.tab === "terminal" ? "on" : ""}`} title="Terminal" onClick={() => toggleTab("terminal")}><TerminalIcon /></button>
-            {view.previewUrl && <button className={`tb ${ui.work && ui.tab === "preview" ? "on" : ""}`} title="Preview" onClick={() => toggleTab("preview")}><GlobeIcon /></button>}
+            <button className={`tb ${ui.work && ui.tab === "preview" ? "on" : ""}`} title="Preview" onClick={() => toggleTab("preview")}><GlobeIcon /></button>
           </span>
         </div>
         <div className="transcript" ref={scroller}>

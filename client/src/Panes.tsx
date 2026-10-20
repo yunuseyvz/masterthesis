@@ -144,6 +144,19 @@ function PreviewPane({ url, visible, onNavigate }: { url: string; visible: boole
   );
 }
 
+/** Shown instead of the browser when the session has no reachable dev server (offline or no PREVIEW_URL). */
+function PreviewUnavailable({ visible }: { visible: boolean }) {
+  return (
+    <div className="preview" style={{ display: visible ? "flex" : "none" }}>
+      <div className="empty">
+        Preview isn't available in this session.
+        <br />
+        <span>Use the Terminal to run the tests, e.g. <code>npm test</code>.</span>
+      </div>
+    </div>
+  );
+}
+
 export function WorkPane({ cp, tab, onTab, previewUrl, onNavigate, hidden, onFileOpen }: { cp: CheckpointView; tab: WorkTab; onTab: (t: WorkTab) => void; previewUrl?: string; onNavigate: (url: string) => void; hidden: boolean; onFileOpen: (p: string) => void }) {
   // `cp.diffs` here is the live subset, so the tree grows as files get written.
   const [file, setFile] = useState("");
@@ -156,7 +169,7 @@ export function WorkPane({ cp, tab, onTab, previewUrl, onNavigate, hidden, onFil
       <div className="pane-head">
         <button className={`tab ${tab === "files" ? "active" : ""}`} onClick={() => onTab("files")}><FilesIcon /> Files</button>
         <button className={`tab ${tab === "terminal" ? "active" : ""}`} onClick={() => onTab("terminal")}><TerminalIcon /> Terminal</button>
-        {previewUrl && <button className={`tab ${tab === "preview" ? "active" : ""}`} onClick={() => onTab("preview")}><GlobeIcon /> Preview</button>}
+        <button className={`tab ${tab === "preview" ? "active" : ""}`} onClick={() => onTab("preview")}><GlobeIcon /> Preview</button>
       </div>
       <div className="pane-body split" style={{ display: tab === "files" ? "flex" : "none" }}>
         <div className="tree scroll"><TreeLevel node={tree} depth={0} selected={file} changed={changed} onSelect={(p) => { setFile(p); onFileOpen(p); }} /></div>
@@ -172,7 +185,7 @@ export function WorkPane({ cp, tab, onTab, previewUrl, onNavigate, hidden, onFil
       <div className="pane-body term-body" style={{ display: tab === "terminal" ? "block" : "none" }}>
         <TerminalView visible={tab === "terminal" && !hidden} />
       </div>
-      {previewUrl && <PreviewPane url={previewUrl} visible={tab === "preview"} onNavigate={onNavigate} />}
+      {previewUrl ? <PreviewPane url={previewUrl} visible={tab === "preview"} onNavigate={onNavigate} /> : <PreviewUnavailable visible={tab === "preview"} />}
     </div>
   );
 }
