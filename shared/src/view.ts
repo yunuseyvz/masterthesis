@@ -23,6 +23,8 @@ export interface ViewState {
   phase: Phase;
   /** Where the participant's dev server is reachable from their browser (set when the container publishes a port). */
   previewUrl?: string;
+  /** Demo deployment: Finish starts a fresh session, so the last screen offers to start again. */
+  demo?: boolean;
   participantId: string;
   /** 1-based position in the session (the practice trial is 1); 0 before the first trial. */
   trial: number;

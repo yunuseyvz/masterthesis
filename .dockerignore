@@ -4,6 +4,7 @@ docs
 **/node_modules
 **/dist
 **/exports
+**/exports-demo
 **/.run
 **/*.log
 .env*

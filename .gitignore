@@ -4,6 +4,7 @@ dist
 
 # participant data and per-session sockets: never commit
 exports
+exports-demo
 .run
 
 # local/OS noise

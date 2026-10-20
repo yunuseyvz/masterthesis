@@ -212,9 +212,20 @@ export function App() {
   }
   if (view.phase === "presurvey") return <PreSurvey busy={busy} onSubmit={(r) => run(() => api.act({ type: "presurvey", ...r }))} />;
   if (view.phase === "postsurvey") return <PostSurvey busy={busy} onSubmit={(r) => run(() => api.act({ type: "postsurvey", ...r }))} />;
-  // The server exits right after finishing, so never re-fetch state here: just move to the last screen.
+  // A real session's server exits right after finishing, so never re-fetch state here: just move to the last screen.
+  // In demo mode the server has already started a fresh session; reloading the page picks it up.
   if (view.phase === "debrief") return <Debrief onDone={() => setView({ ...view, phase: "finished" })} />;
-  if (view.phase === "finished") return <div className="center-card"><h2>Thank you</h2><p>You can close this window.</p></div>;
+  if (view.phase === "finished") {
+    return view.demo ? (
+      <div className="center-card">
+        <h2>Thank you</h2>
+        <p>This is a demo. A fresh session with a new participant ID is ready.</p>
+        <div className="btn-row"><button className="btn primary" onClick={() => window.location.reload()}>Start again</button></div>
+      </div>
+    ) : (
+      <div className="center-card"><h2>Thank you</h2><p>You can close this window.</p></div>
+    );
+  }
 
   const cp = view.checkpoint;
   const working = animating || awaitingReady;

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One participant session in a fresh container.
 #
-# Usage: scripts/run-session.sh [--participant ID] [--seed N] [--group 0-5] [--show-condition] [--offline] [--dry-run]
+# Usage: scripts/run-session.sh [--participant ID] [--seed N] [--group 0-5] [--show-condition] [--offline] [--demo] [--dry-run]
 #
 # With no options everything is generated:
 #   participant  random 6-character ID (letters/digits, no look-alikes), e.g. K7QX2M
@@ -13,11 +13,13 @@
 # --show-condition (experimenter aid, never for real participants) shows "<regime>·<variant>" next to the
 # participant ID in the sidebar: regime B = batch (review at the end), M = milestone pause, N = non-milestone pause;
 # variant C/F = correct/flawed.
+# --demo (for showing the harness, never for real participants) keeps the container running: after Finish a fresh
+# session with a new ID starts, and the last screen offers "Start again". Demo exports go to exports-demo/.
 set -euo pipefail
 
-usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; }
 
-PARTICIPANT="" SEED="" GROUP="" DRY=0 SHOW=0 OFFLINE=0
+PARTICIPANT="" SEED="" GROUP="" DRY=0 SHOW=0 OFFLINE=0 DEMO=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --participant|--seed|--group)
@@ -30,13 +32,15 @@ while [ $# -gt 0 ]; do
     --dry-run)       DRY=1; shift ;;
     --show-condition) SHOW=1; shift ;;
     --offline)       OFFLINE=1; shift ;;
+    --demo)          DEMO=1; shift ;;
     -h|--help)       usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-EXPORTS="$ROOT/exports"
+# Demo sessions are kept apart so they never count towards the real participants' group balance.
+if [ "$DEMO" = 1 ]; then EXPORTS="$ROOT/exports-demo"; else EXPORTS="$ROOT/exports"; fi
 
 if [ -z "$PARTICIPANT" ]; then
   # read a bounded chunk first so tr/head can't trigger SIGPIPE under pipefail
@@ -54,7 +58,7 @@ fi
 [[ "$SEED" =~ ^[0-9]{1,10}$ ]]              || { echo "seed must be a non-negative integer, got '$SEED'" >&2; exit 2; }
 [[ "$GROUP" =~ ^[0-5]$ ]]                   || { echo "group must be 0-5, got '$GROUP'" >&2; exit 2; }
 
-echo "Participant $PARTICIPANT  seed $SEED  group $GROUP"
+echo "Participant $PARTICIPANT  seed $SEED  group $GROUP$([ "$DEMO" = 1 ] && echo "  (demo)")"
 [ "$DRY" = 1 ] && exit 0
 
 RUN="$ROOT/.run/$PARTICIPANT"
@@ -76,7 +80,7 @@ docker run --rm --name "beacon-$PARTICIPANT" \
   "${NET[@]}" \
   --cap-drop ALL --cap-add SETUID --cap-add SETGID --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add KILL \
   --security-opt no-new-privileges --pids-limit 512 --memory 3g \
-  -e PARTICIPANT_ID="$PARTICIPANT" -e STUDY_SEED="$SEED" -e STUDY_GROUP="$GROUP" -e SHOW_CONDITION="$SHOW" -e PREVIEW_URL="$PREVIEW_URL" \
+  -e PARTICIPANT_ID="$PARTICIPANT" -e STUDY_SEED="$SEED" -e STUDY_GROUP="$GROUP" -e SHOW_CONDITION="$SHOW" -e DEMO="$DEMO" -e PREVIEW_URL="$PREVIEW_URL" \
   -v "$EXPORTS:/exports" -v "$RUN:/run/study" \
   beacon-study-harness &
 DOCKER_PID=$!

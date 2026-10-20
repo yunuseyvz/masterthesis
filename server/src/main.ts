@@ -13,8 +13,13 @@ const exportDir = env.EXPORT_DIR ?? "/exports";
 const corpusDir = env.CORPUS_DIR ?? path.resolve(here, "../corpus");
 const uid = env.SANDBOX_UID !== undefined ? Number(env.SANDBOX_UID) : undefined;
 const gid = env.SANDBOX_GID !== undefined ? Number(env.SANDBOX_GID) : uid;
-const socketPath = env.LISTEN_SOCKET;
+// An empty LISTEN_SOCKET falls back to TCP on LISTEN_HOST:PORT (e.g. behind a reverse proxy).
+const socketPath = env.LISTEN_SOCKET || undefined;
+const host = env.LISTEN_HOST ?? "127.0.0.1";
+const port = Number(env.PORT ?? 5185);
 
+const demo = env.DEMO === "1";
+if (demo) console.warn("[study] DEMO=1: after Finish the harness starts a fresh session instead of exiting. Do not use for real participants.");
 if (env.SHOW_CONDITION === "1") console.warn("[study] SHOW_CONDITION=1: the UI shows each trial's regime and variant. Do not use with real participants.");
 if (uid === undefined) console.warn("[sandbox] SANDBOX_UID not set: terminal runs as the server user and is NOT isolated (dev only)");
 
@@ -26,7 +31,8 @@ const app = buildApp({
   corpusDir,
   staticDir: env.STATIC_DIR ?? path.resolve(here, "../../client/dist"),
   devFallbackStory: env.DEV_FALLBACK_STORY,
-  exitOnFinish: env.EXIT_ON_FINISH !== "0",
+  exitOnFinish: !demo && env.EXIT_ON_FINISH !== "0",
+  demo,
   showCondition: env.SHOW_CONDITION === "1",
   previewUrl: env.PREVIEW_URL,
   sandbox: { uid, gid },
@@ -39,6 +45,6 @@ if (socketPath) {
   fs.chmodSync(socketPath, 0o666); // the directory (0700, host-owned) is what keeps the sandbox uid out
   console.log(`harness up for ${env.PARTICIPANT_ID} on ${socketPath}`);
 } else {
-  await app.listen({ host: "127.0.0.1", port: 5185 });
-  console.log(`harness up for ${env.PARTICIPANT_ID} on http://localhost:5185`);
+  await app.listen({ host, port });
+  console.log(`harness up for ${env.PARTICIPANT_ID} on http://${host}:${port}`);
 }

@@ -299,6 +299,37 @@ describe("study flow", () => {
   });
 });
 
+describe("demo mode", () => {
+  it("starts a fresh session after Finish instead of stopping", async () => {
+    const exportDir = fs.mkdtempSync(path.join(os.tmpdir(), "exp-"));
+    const app = buildApp({ participantId: "DEMO1", studySeed: "11", group: 5, exportDir, corpusDir, exitOnFinish: true, demo: true, sandbox: {} });
+    const post = async (url: string, payload?: unknown) => (await app.inject({ method: "POST", url, payload: payload as object })).json();
+
+    let view = (await app.inject({ url: "/api/study/state" })).json();
+    expect(view.demo).toBe(true);
+    for (let guard = 0; view.phase !== "debrief" && guard < 100; guard++) {
+      switch (view.phase) {
+        case "intro": view = await post("/api/study/action", { type: "begin" }); break;
+        case "presurvey": view = await post("/api/study/action", PRESURVEY); break;
+        case "stage1": await post("/api/study/action", { type: "ready" }); view = await post("/api/study/action", { type: "stage1", decision: "accept", scrollCoverage: 1 }); break;
+        case "stage2": view = await post("/api/study/action", { type: "stage2", probeAnswer: 0, final: "confirm" }); break;
+        case "unscored": await post("/api/study/action", { type: "ready" }); view = await post("/api/study/action", { type: "advance" }); break;
+        case "understanding": view = await post("/api/study/action", UNDERSTANDING); break;
+        case "postsurvey": view = await post("/api/study/action", POSTSURVEY); break;
+      }
+    }
+    expect(view.phase).toBe("debrief");
+    expect(await post("/api/study/finish")).toEqual({ ok: true, restarted: true });
+    expect(fs.existsSync(path.join(exportDir, "DEMO1_11.json"))).toBe(true);
+
+    const fresh = (await app.inject({ url: "/api/study/state" })).json();
+    expect(fresh.phase).toBe("intro");
+    expect(fresh.participantId).not.toBe("DEMO1");
+    expect(fresh.participantId).toMatch(/^[A-Z2-9]{6}$/);
+    expect((await post("/api/study/action", { type: "begin" })).phase).toBe("presurvey");
+  });
+});
+
 describe("condition tag (experimenter aid)", () => {
   const plan = generateSessionPlan({ participantId: "TG", studySeed: "5", group: 2 });
   const mk = (show: boolean) => new StudySession(plan, makeStoryLoader(corpusDir), () => {}, Date.now, () => {}, show);

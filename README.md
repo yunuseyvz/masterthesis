@@ -36,7 +36,7 @@ With no options the script generates a random alphanumeric participant ID and a 
 
 ## Isolation model
 
-- The container has network access by default (the experimenter observes the session; `--offline` turns it off, which also disables the Preview pane). The participant's dev server (port 3000) is published on `127.0.0.1` for the Preview pane. The harness itself serves on a unix socket; `scripts/forward.mjs` bridges it to `localhost:5185` on the host.
+- The container has network access by default (`--offline` turns it off). The participant's dev server (port 3000) is published on `127.0.0.1` for the Preview pane. The harness itself serves on a unix socket; `scripts/forward.mjs` bridges it to `localhost:5185` on the host.
 - The server runs as root only to start the participant's shell as uid 61234. `/app` (code and corpus with ground truth) is `0700`, and `exports/` and `.run/<id>` are `0700` on the host, so the shell cannot read variants or answers.
 - At startup the server checks (as the sandbox uid, `test -r`) that none of those paths are readable and refuses to start otherwise.
 - Without `SANDBOX_UID` (dev) the terminal is NOT isolated.

@@ -23,6 +23,9 @@ COPY --from=shopfront /opt/shopfront/node_modules /opt/shopfront/node_modules
 # Everything under /app (code, corpus with ground truth) is unreadable to that user.
 RUN groupadd --gid 61234 sandbox \
  && useradd --uid 61234 --gid 61234 --no-create-home --shell /usr/sbin/nologin sandbox \
- && chmod -R go-rwx /app
+ && chmod -R go-rwx /app \
+ && mkdir -p /exports && chmod 700 /exports
 ENV NODE_ENV=production SANDBOX_UID=61234 SANDBOX_GID=61234 EXPORT_DIR=/exports LISTEN_SOCKET=/run/study/app.sock
+# Only used when LISTEN_SOCKET is set to "" (TCP mode, e.g. for a demo behind a reverse proxy).
+EXPOSE 5185
 CMD ["npx", "tsx", "server/src/main.ts"]
