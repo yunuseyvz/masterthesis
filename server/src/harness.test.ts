@@ -23,11 +23,11 @@ const PRESURVEY = {
 
 const POSTSURVEY = {
   type: "postsurvey",
-  tlx: { mental: 60, physical: 5, temporal: 40, performance: 25, effort: 55, frustration: 30 },
-  paas: 6,
-  ranking: ["CHECKPOINT", "BATCH"],
+  ranking: ["PAUSE", "END"],
   comment: "fine",
 };
+
+const UNDERSTANDING = { type: "understanding", answers: [0, 0, 0, 0], confidences: [50, 70, 90, 100], paas: 6 };
 
 /** begin -> presurvey -> first checkpoint */
 async function startSession(session: StudySession) {
@@ -39,37 +39,40 @@ describe.each(["US0", "US1", "US2", "US3", "US4", "US5", "US6"])("%s corpus", (i
   const story = loadStory(corpusDir, id);
   const flawedDiffers = id !== "US0";
 
-  it("Correct variant: happy-path tests pass and the boundary behaviour is right", async () => {
-    const ws = story.testWorkspace("Correct");
-    const r = await runTests(ws, story.def.testFile);
-    expect(r.passed).toBe(3);
-    expect(r.failed).toBe(0);
-    expect(await runProbe(ws, story.probeScript())).toBe(story.def.probe.expected.Correct);
+  it("happy-path tests pass in both variants", async () => {
+    for (const v of ["Correct", "Flawed"] as const) {
+      const r = await runTests(story.testWorkspace(v), story.def.testFile);
+      expect(r.passed).toBe(3);
+      expect(r.failed).toBe(0);
+    }
   });
 
-  it("Flawed variant: same tests still pass, but the boundary behaviour diverges", async () => {
-    const ws = story.testWorkspace("Flawed");
-    const r = await runTests(ws, story.def.testFile);
-    expect(r.passed).toBe(3);
-    expect(r.failed).toBe(0);
-    expect(await runProbe(ws, story.probeScript())).toBe(story.def.probe.expected.Flawed);
-    if (flawedDiffers) expect(story.def.probe.expected.Flawed).not.toBe(story.def.probe.expected.Correct);
+  it("each probe prints its expected answer in both variants, and only the flaw step's probe tells them apart", async () => {
+    for (const probe of story.def.probes) {
+      for (const v of ["Correct", "Flawed"] as const) {
+        expect(await runProbe(story.projectWorkspace(v, 4), story.probeScript(probe))).toBe(probe.expected[v]);
+      }
+      const differs = probe.expected.Correct !== probe.expected.Flawed;
+      expect(differs).toBe(probe.step === story.flawStep);
+    }
   });
 
   it("probe options contain both expected answers and understanding answers are well-formed", () => {
-    const { options, expected } = story.def.probe;
-    expect(options).toContain(expected.Correct);
-    expect(options).toContain(expected.Flawed);
-    expect(new Set(options).size).toBe(4);
+    for (const { options, expected } of story.def.probes) {
+      expect(options).toContain(expected.Correct);
+      expect(options).toContain(expected.Flawed);
+      expect(new Set(options).size).toBe(4);
+    }
     const items = story.def.understanding.items;
-    expect(items).toHaveLength(3);
+    expect(items.map((it) => it.step)).toEqual([1, 2, 3, 4]); // one question per agent step
+    const probeQuestions = story.def.probes.map((p) => p.question);
     for (const it of items) {
       expect(new Set(it.options).size).toBe(4);
-      expect(it.question).not.toBe(story.def.probe.question); // the understanding items must not repeat the stage-2 question
+      expect(probeQuestions).not.toContain(it.question); // the understanding items must not repeat a stage-2 question
     }
     if (flawedDiffers) {
-      expect(items.some((it) => it.correct.Correct !== it.correct.Flawed)).toBe(true); // at least one item depends on the defect
-      expect(items.filter((it) => it.correct.Correct === it.correct.Flawed).length).toBeGreaterThanOrEqual(2); // and two do not
+      // exactly the item about the flaw step depends on the defect
+      for (const it of items) expect(it.correct.Correct !== it.correct.Flawed).toBe(it.step === story.flawStep);
     }
   });
 
@@ -91,16 +94,17 @@ describe.each(["US0", "US1", "US2", "US3", "US4", "US5", "US6"])("%s corpus", (i
     for (const step of [1, 2, 3, 4]) expect(story.projectWorkspace("Correct", step).has("README.md")).toBe(true);
   });
 
-  it("the milestone step is a short diff and the flawed variant differs only there", () => {
+  it("the milestone step is a short diff and the flawed variant differs only in the flaw step", () => {
     const ms = story.milestoneStep;
     const diffs = story.diff("Flawed", ms, ms);
     expect(diffs.every((d) => d.before === "")).toBe(true);
     const lines = diffs.reduce((n, d) => n + d.after.split("\n").length, 0);
     expect(lines).toBeGreaterThanOrEqual(8);
     expect(lines).toBeLessThan(35);
-    for (const n of [1, 2, 3, 4].filter((x) => x !== ms)) {
+    for (const n of [1, 2, 3, 4].filter((x) => x !== story.flawStep)) {
       expect(story.diff("Flawed", n, n)).toEqual(story.diff("Correct", n, n));
     }
+    if (flawedDiffers) expect(story.diff("Flawed", story.flawStep!, story.flawStep!)).not.toEqual(story.diff("Correct", story.flawStep!, story.flawStep!));
   });
 
   it("base files exist before step 1 and are never part of a diff", () => {
@@ -146,25 +150,40 @@ describe("agent narration", () => {
   });
 });
 
-describe("milestone position", () => {
+describe("milestone and flaw position", () => {
+  const measured = ["US1", "US2", "US3", "US4", "US5", "US6"].map((id) => loadStory(corpusDir, id));
+
   it("the milestone is at step 1, 2 and 3 in two stories each, so its position is no cue", () => {
-    const positions = ["US1", "US2", "US3", "US4", "US5", "US6"].map((id) => loadStory(corpusDir, id).milestoneStep).sort();
-    expect(positions).toEqual([1, 1, 2, 2, 3, 3]);
+    expect(measured.map((s) => s.milestoneStep).sort()).toEqual([1, 1, 2, 2, 3, 3]);
   });
 
-  it("the checkpoint regime pauses after the story's own milestone step", () => {
-    for (const ms of [1, 2, 3]) {
-      const [cp] = checkpointsFor("CHECKPOINT", ms);
-      expect(cp!.scored).toBe(true);
-      expect(stepsOf(cp!)).toEqual([ms]);
+  it("the flaw sits in the milestone step in three stories and in a non-milestone step in the other three", () => {
+    expect(measured.filter((s) => s.flawStep === s.milestoneStep)).toHaveLength(3);
+    expect(measured.filter((s) => s.flawStep !== null && s.flawStep !== s.milestoneStep)).toHaveLength(3);
+  });
+
+  it("MILESTONE pauses after the milestone, NON_MILESTONE after one of the two other steps among 1-3", () => {
+    for (const s of measured) {
+      expect(s.pauseStep("MILESTONE", 0)).toBe(s.milestoneStep);
+      expect(s.pauseStep("BATCH", 0)).toBe(4);
+      const drawn = [s.pauseStep("NON_MILESTONE", 0), s.pauseStep("NON_MILESTONE", 1)].sort();
+      expect(drawn).toEqual([1, 2, 3].filter((n) => n !== s.milestoneStep));
+    }
+  });
+
+  it("BATCH asks about the flaw step; a pause asks about the step it follows", () => {
+    for (const s of measured) {
+      expect(s.probeFor("BATCH", 4).step).toBe(s.flawStep);
+      for (const n of [1, 2, 3]) expect(s.probeFor("NON_MILESTONE", n).step).toBe(n);
     }
   });
 });
 
 describe("regimes", () => {
+  const REGIMES = ["BATCH", "MILESTONE", "NON_MILESTONE"] as const;
 
   it("each regime has exactly one scored pause, and it comes first; anything after it is an unscored wrap-up", () => {
-    for (const r of ["BATCH", "CHECKPOINT"] as const) {
+    for (const r of REGIMES) {
       const cps = checkpointsFor(r, 2);
       expect(cps.filter((c) => c.scored)).toHaveLength(1);
       expect(cps[0]!.scored).toBe(true);
@@ -175,11 +194,14 @@ describe("regimes", () => {
     }
   });
 
+  it("a pause shows exactly the step it follows", () => {
+    for (const n of [1, 2, 3]) expect(stepsOf(checkpointsFor("NON_MILESTONE", n)[0]!)).toEqual([n]);
+  });
+
   it("every regime shows every agent step exactly once before the understanding questions", () => {
-    for (const r of ["BATCH", "CHECKPOINT"] as const) {
-      for (const ms of [1, 2, 3]) {
-        const shown = checkpointsFor(r, ms).flatMap(stepsOf).sort();
-        expect(shown).toEqual([1, 2, 3, 4]);
+    for (const r of REGIMES) {
+      for (const n of [1, 2, 3]) {
+        expect(checkpointsFor(r, n).flatMap(stepsOf).sort()).toEqual([1, 2, 3, 4]);
       }
     }
   });
@@ -221,16 +243,16 @@ describe("study flow", () => {
         view = await post("/api/study/action", { type: "advance" });
       }
       expect(view.phase).toBe("understanding");
-      expect(view.understanding.items).toHaveLength(3);
+      expect(view.understanding.items).toHaveLength(4);
       for (const it of view.understanding.items) expect(it.options).toHaveLength(4);
-      view = await post("/api/study/action", { type: "understanding", answers: [0, 0, 0], confidence: 4, mentalDemand: 3, frustration: 2 });
+      expect((await app.inject({ method: "POST", url: "/api/study/action", payload: { ...UNDERSTANDING, confidences: [50, 70, 90, 95] } })).statusCode).toBe(400);
+      view = await post("/api/study/action", UNDERSTANDING);
     }
     expect(view.phase).toBe("postsurvey");
     expect(view.sessions).toHaveLength(7);
     expect(new Set(view.sessions.map((x: { project: string }) => x.project)).size).toBe(1); // all stories live in the shared codebase
     expect((await app.inject({ method: "POST", url: "/api/study/finish" })).statusCode).toBe(409); // not before the post-survey
-    expect((await app.inject({ method: "POST", url: "/api/study/action", payload: { ...POSTSURVEY, ranking: ["BATCH", "BATCH"] } })).statusCode).toBe(400);
-    expect((await app.inject({ method: "POST", url: "/api/study/action", payload: { ...POSTSURVEY, tlx: { ...POSTSURVEY.tlx, mental: 62 } } })).statusCode).toBe(400);
+    expect((await app.inject({ method: "POST", url: "/api/study/action", payload: { ...POSTSURVEY, ranking: ["END", "END"] } })).statusCode).toBe(400);
     view = await post("/api/study/action", POSTSURVEY);
     expect(view.phase).toBe("debrief");
     expect((await post("/api/study/finish")).ok).toBe(true);
@@ -240,14 +262,21 @@ describe("study flow", () => {
     expect(bundle.practice.story).toBe("US0");
     expect(bundle.survey.pre.scores.ncs6).toBeCloseTo((4 + 3 + 4 + 4 + 5 + 4) / 6); // items 3,4 reverse-keyed: 6-2=4
     expect(bundle.survey.pre.attentionCheckPassed).toBe(true);
-    expect(bundle.survey.post.ranking).toEqual(["CHECKPOINT", "BATCH"]);
-    expect(bundle.survey.post.scores.rawTlx).toBeCloseTo((60 + 5 + 40 + 25 + 55 + 30) / 6);
-    expect(bundle.survey.post.paas).toBe(6);
+    expect(bundle.survey.post.ranking).toEqual(["PAUSE", "END"]);
+    expect(new Set(bundle.trials.map((t: { regime: string }) => t.regime))).toEqual(new Set(["BATCH", "MILESTONE", "NON_MILESTONE"]));
+    for (const t of bundle.trials) {
+      expect(t.paas).toBe(6);
+      expect(t.understandingConfidences).toEqual([50, 70, 90, 100]);
+      if (t.regime === "BATCH") expect(t.pauseStep).toBe(4);
+      if (t.regime === "MILESTONE") expect(t.pauseStep).toBe(t.milestoneStep);
+      if (t.regime === "NON_MILESTONE") expect([1, 2, 3].filter((n) => n !== t.milestoneStep)).toContain(t.pauseStep);
+    }
     const csv = fs.readFileSync(path.join(exportDir, "trials.csv"), "utf8").trim().split("\n");
     expect(csv).toHaveLength(7);
     expect(csv[0]).toContain("understandingScore");
-    expect(csv[0]).toContain("u1_answer,u1_correct,u2_answer,u2_correct,u3_answer,u3_correct");
-    expect(bundle.trials[0].understandingAnswers).toHaveLength(3);
+    expect(csv[0]).toContain("u1_answer,u1_correct,u1_confidence,u1_milestone,u2_answer");
+    expect(csv[0]).toContain("u4_milestone");
+    expect(bundle.trials[0].understandingAnswers).toHaveLength(4);
     expect(bundle.trials[0].understandingScore).toBe(bundle.trials[0].understandingCorrects.filter(Boolean).length);
     const jsonl = fs.readFileSync(path.join(exportDir, "PT_42.events.jsonl"), "utf8").trim().split("\n");
     expect(jsonl.length).toBe(bundle.events.length);
@@ -273,13 +302,13 @@ describe("study flow", () => {
 describe("condition tag (experimenter aid)", () => {
   const plan = generateSessionPlan({ participantId: "TG", studySeed: "5", group: 2 });
   const mk = (show: boolean) => new StudySession(plan, makeStoryLoader(corpusDir), () => {}, Date.now, () => {}, show);
-  const letter = { BATCH: "B", CHECKPOINT: "K" } as const;
+  const letter = { BATCH: "B", MILESTONE: "M", NON_MILESTONE: "N" } as const;
 
   it("is absent by default, so participants cannot see their condition", async () => {
     const s = mk(false);
     await startSession(s);
     expect(s.view().debugTag).toBeUndefined();
-    expect(JSON.stringify(s.view())).not.toMatch(/debugTag|Flawed|Correct|BATCH|CHECKPOINT/);
+    expect(JSON.stringify(s.view())).not.toMatch(/debugTag|Flawed|Correct|BATCH|MILESTONE/);
   });
 
   it("shows regime letter and variant letter for the current trial when enabled", async () => {
@@ -288,7 +317,7 @@ describe("condition tag (experimenter aid)", () => {
     await startSession(s);
     const t = plan.practice;
     expect(s.view().debugTag).toBe(`${letter[t.regime]}·${t.variant === "Flawed" ? "F" : "C"}`);
-    expect(s.view().debugTag).toMatch(/^[BK]·[CF]$/);
+    expect(s.view().debugTag).toMatch(/^[BMN]·[CF]$/);
   });
 });
 

@@ -56,42 +56,63 @@
   ],
   "testFile": "test/greeting.test.ts",
   "testsAvailableFromStep": 2,
-  "probe": {
-    "question": "What does formatGreeting({ name: \"  Ada \", formal: true }) return?",
-    "options": [
-      "Dear Ada,",
-      "Dear   Ada ,",
-      "Hi Ada!",
-      "Dear Ada"
-    ],
-    "script": "probe.ts",
-    "expected": {
-      "Correct": "Dear Ada,",
-      "Flawed": "Dear Ada,"
+  "probes": [
+    {
+      "step": 1,
+      "question": "What does formatGreeting({ name: \"Ada\" }) return when no formal flag is given?",
+      "options": [
+        "Hi Ada!",
+        "Dear Ada,",
+        "Hello Ada",
+        "An error is thrown"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "Hi Ada!",
+        "Flawed": "Hi Ada!"
+      }
+    },
+    {
+      "step": 2,
+      "question": "What does formatGreeting({ name: \"  Ada \", formal: true }) return?",
+      "options": [
+        "Dear Ada,",
+        "Dear   Ada ,",
+        "Hi Ada!",
+        "Dear Ada"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "Dear Ada,",
+        "Flawed": "Dear Ada,"
+      }
+    },
+    {
+      "step": 3,
+      "question": "What does greetAll([\"Ada\", \"Grace\"], true) return?",
+      "options": [
+        "Dear Ada,, Dear Grace,",
+        "Hi Ada!, Hi Grace!",
+        "Dear Ada, Grace,",
+        "An error is thrown"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "Dear Ada,, Dear Grace,",
+        "Flawed": "Dear Ada,, Dear Grace,"
+      }
     }
-  },
+  ],
   "understanding": {
     "script": "understanding.ts",
     "items": [
       {
-        "question": "What does the app greet a user with when no name has been provided?",
+        "step": 1,
+        "question": "A greeting is requested for Ada without saying whether it should be formal. Which greeting does she get?",
         "options": [
-          "Hi there!",
-          "Hi undefined!",
-          "An error is thrown",
-          "An empty string"
-        ],
-        "correct": {
-          "Correct": 0,
-          "Flawed": 0
-        }
-      },
-      {
-        "question": "greetAll([\"Ada\", \"\", \"Grace\"]) returns one greeting per name. Which list does it return?",
-        "options": [
-          "Hi Ada!, Hi there!, Hi Grace!",
-          "Hi Ada!, Hi !, Hi Grace!",
-          "Hi Ada!, Hi Grace!",
+          "Hi Ada!",
+          "Dear Ada,",
+          "Hello Ada",
           "An error is thrown"
         ],
         "correct": {
@@ -106,6 +127,35 @@
           "Dear ,",
           "Dear there,",
           "An error is thrown"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        },
+        "step": 2
+      },
+      {
+        "question": "greetAll([\"Ada\", \"\", \"Grace\"]) returns one greeting per name. Which list does it return?",
+        "options": [
+          "Hi Ada!, Hi there!, Hi Grace!",
+          "Hi Ada!, Hi !, Hi Grace!",
+          "Hi Ada!, Hi Grace!",
+          "An error is thrown"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        },
+        "step": 3
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests not cover?",
+        "options": [
+          "A formal greeting without a name",
+          "An informal greeting with a name",
+          "A formal greeting with a name",
+          "An informal greeting without a name"
         ],
         "correct": {
           "Correct": 0,

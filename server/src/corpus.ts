@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import { StoryId, UNDERSTANDING_ITEMS, type Variant, type DiffFile } from "@beacon/shared";
+import { StoryId, UNDERSTANDING_ITEMS, type Regime, type Variant, type DiffFile } from "@beacon/shared";
 
 const Source = z.union([z.string(), z.object({ Correct: z.string(), Flawed: z.string() })]);
 const Four = z.tuple([z.string(), z.string(), z.string(), z.string()]);
@@ -27,19 +27,30 @@ export const StoryDef = z.object({
     .length(4),
   testFile: z.string(),
   testsAvailableFromStep: z.number().int().min(1).max(4),
-  probe: z.object({
-    question: z.string(),
-    options: Four,
-    script: z.string(),
-    /** What the probe script prints for each variant; must be one of `options`. */
-    expected: z.object({ Correct: z.string(), Flawed: z.string() }),
-  }),
+  /**
+   * One stage-2 behaviour question per step a pause can follow (1-3), about that step's code. BATCH, which reviews
+   * everything, asks the question for the step with the flaw.
+   */
+  probes: z
+    .array(
+      z.object({
+        step: z.number().int().min(1).max(3),
+        question: z.string(),
+        options: Four,
+        script: z.string(),
+        /** What the probe script prints for each variant; must be one of `options`. */
+        expected: z.object({ Correct: z.string(), Flawed: z.string() }),
+      }),
+    )
+    .length(3),
   understanding: z.object({
     /** Prints a JSON array with the true option text of every item, computed by running the story's code. */
     script: z.string(),
     items: z
       .array(
         z.object({
+          /** Agent step (1-4) whose code decides the answer; items are listed in step order. */
+          step: z.number().int().min(1).max(4),
           question: z.string(),
           options: Four,
           correct: z.object({ Correct: z.number().int().min(0).max(3), Flawed: z.number().int().min(0).max(3) }),
@@ -56,8 +67,14 @@ const packageJson = (name: string) =>
 export interface Story {
   def: StoryDef;
   dir: string;
-  /** Number (1-4) of the step marked `milestone`; it differs between stories. */
+  /** Number (1-3) of the step marked `milestone`; it differs between stories. */
   milestoneStep: number;
+  /** The only step whose code differs between the Correct and Flawed variant (the milestone in half the stories); null for the practice story. */
+  flawStep: number | null;
+  /** The stage-2 question asked after a review that ends at `pauseStep` (BATCH: the flaw step's question). */
+  probeFor(regime: Regime, pauseStep: number): StoryDef["probes"][number];
+  /** Step after which the scored review happens for a regime (BATCH: 4). */
+  pauseStep(regime: Regime, pauseDraw: number): number;
   /** Workspace contents after agent step `upTo` (0 = empty). */
   workspaceAt(variant: Variant, upTo: number): Map<string, string>;
   /** Files touched in steps from..to, with content before `from` and after `to`. */
@@ -66,7 +83,7 @@ export interface Story {
   testWorkspace(variant: Variant): Map<string, string>;
   /** What the participant sees in the file tree and can use in the terminal at a checkpoint after step `toStep`. */
   projectWorkspace(variant: Variant, toStep: number): Map<string, string>;
-  probeScript(): string;
+  probeScript(probe: StoryDef["probes"][number]): string;
   understandingScript(): string;
 }
 
@@ -87,6 +104,14 @@ export function loadStory(corpusDir: string, id: string): Story {
   const pick = (src: z.infer<typeof Source>, v: Variant) => read(typeof src === "string" ? src : src[v]);
   const milestones = def.steps.filter((s) => s.kind === "milestone");
   if (milestones.length !== 1) throw new Error(`${id}: exactly one step must be the milestone, found ${milestones.length}`);
+  const milestoneStep = milestones[0]!.n;
+  if (milestoneStep > 3) throw new Error(`${id}: the milestone must be step 1, 2 or 3 so that a pause after it is mid-run`);
+  const flawSteps = def.steps.filter((s) => s.files.some((f) => typeof f.source !== "string")).map((s) => s.n);
+  if (flawSteps.length > 1) throw new Error(`${id}: at most one step may have a Correct/Flawed source, found ${flawSteps.length}`);
+  if (def.probes.map((p) => p.step).join() !== "1,2,3") throw new Error(`${id}: probes must cover steps 1-3 in order`);
+  const itemSteps = def.understanding.items.map((it) => it.step);
+  if (itemSteps.join() !== "1,2,3,4") throw new Error(`${id}: understanding items must cover steps 1-4 in order, got ${itemSteps.join()}`);
+  const nonMilestoneSteps = [1, 2, 3].filter((n) => n !== milestoneStep);
   const baseFiles = def.base ? readTree(path.join(corpusDir, "_base", def.base)) : new Map<string, string>();
 
   const workspaceAt = (variant: Variant, upTo: number) => {
@@ -101,7 +126,17 @@ export function loadStory(corpusDir: string, id: string): Story {
   return {
     def,
     dir,
-    milestoneStep: milestones[0]!.n,
+    milestoneStep,
+    flawStep: flawSteps[0] ?? null,
+    probeFor(regime, pauseStep) {
+      const step = regime === "BATCH" ? (flawSteps[0] ?? milestoneStep) : pauseStep;
+      return def.probes[step - 1]!;
+    },
+    pauseStep(regime, pauseDraw) {
+      if (regime === "BATCH") return 4;
+      if (regime === "MILESTONE") return milestoneStep;
+      return nonMilestoneSteps[pauseDraw]!;
+    },
     workspaceAt,
     diff(variant, from, to) {
       const before = workspaceAt(variant, from - 1);
@@ -128,7 +163,7 @@ export function loadStory(corpusDir: string, id: string): Story {
       if (toStep >= def.testsAvailableFromStep && !ws.has(def.testFile)) ws.set(def.testFile, this.testWorkspace(variant).get(def.testFile)!);
       return ws;
     },
-    probeScript: () => read(def.probe.script),
+    probeScript: (probe) => read(probe.script),
     understandingScript: () => read(def.understanding.script),
   };
 }

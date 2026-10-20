@@ -27,19 +27,16 @@ const wrapUp = (reviewed: number[]): CheckpointSpec[] => {
 
 /**
  * Each checkpoint shows the diff since the previous pause (or since the start).
- *  BATCH:      (control) one scored pause on the finished work (steps 1-4).
- *  CHECKPOINT:  (intervention) the steps before the milestone pass silently, pause after the milestone step (scored).
- *               The milestone step differs per story (step 1, 2 or 3), so its position is no cue.
+ *  BATCH:          (reference) one scored pause on the finished work (steps 1-4).
+ *  MILESTONE:      the steps before `pauseStep` pass silently, the agent pauses after the milestone step (scored).
+ *  NON_MILESTONE:  the same, but `pauseStep` is a randomly drawn step that meets none of the criteria.
+ * The milestone step differs per story (step 1, 2 or 3), so the position of a pause is no cue.
  *
  * After the decision every regime shows the steps it has not shown yet in an unscored "wrap-up", so that each
  * participant has seen every step exactly once before the understanding questions. Only the reviewed step(s)
  * come with a decision.
  */
-export function checkpointsFor(regime: Regime, milestoneStep: number): CheckpointSpec[] {
-  switch (regime) {
-    case "BATCH":
-      return [{ id: "end", scored: true, fromStep: 1, toStep: 4 }, ...wrapUp([1, 2, 3, 4])];
-    case "CHECKPOINT":
-      return [{ id: `after-step-${milestoneStep}`, scored: true, fromStep: milestoneStep, toStep: milestoneStep }, ...wrapUp([milestoneStep])];
-  }
+export function checkpointsFor(regime: Regime, pauseStep: number): CheckpointSpec[] {
+  if (regime === "BATCH") return [{ id: "end", scored: true, fromStep: 1, toStep: 4 }, ...wrapUp([1, 2, 3, 4])];
+  return [{ id: `after-step-${pauseStep}`, scored: true, fromStep: pauseStep, toStep: pauseStep }, ...wrapUp([pauseStep])];
 }

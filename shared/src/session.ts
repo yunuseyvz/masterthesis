@@ -13,17 +13,13 @@ export const WILLIAMS_6: readonly (readonly number[])[] = (() => {
 })();
 
 /**
- * Cell index 0..5 -> (regime, variant). Even cells are BATCH (control), odd cells CHECKPOINT (intervention),
- * so each participant gets 3 stories per regime. Three stories are Flawed per participant. Because 3 does not
- * split evenly over 2 regimes, the Flawed set is one of two complementary sets (`flip` 0 or 1): with flip 0 the
- * cells 0, 2, 3 are Flawed, with flip 1 the cells 1, 4, 5. Over both flips every cell is Flawed exactly once, so
- * the 12 groups balance every story across every regime x variant cell (3 times each).
+ * Cell index 0..5 -> (regime, variant): cells 0-2 are Correct, 3-5 Flawed, and cell % 3 picks the regime.
+ * Each participant meets every cell once, so they get two stories per regime, one Correct and one Flawed.
  */
-const REGIMES: readonly Regime[] = ["BATCH", "CHECKPOINT"];
-const FLAWED_CELLS: readonly (readonly number[])[] = [[0, 2, 3], [1, 4, 5]];
-export const GROUPS = 12;
-function cellToCondition(cell: number, flip: number): { regime: Regime; variant: Variant } {
-  return { regime: REGIMES[cell % 2]!, variant: FLAWED_CELLS[flip]!.includes(cell) ? "Flawed" : "Correct" };
+const REGIMES: readonly Regime[] = ["BATCH", "MILESTONE", "NON_MILESTONE"];
+export const GROUPS = 6;
+function cellToCondition(cell: number): { regime: Regime; variant: Variant } {
+  return { regime: REGIMES[cell % 3]!, variant: cell < 3 ? "Correct" : "Flawed" };
 }
 
 const understandingOrders = (rng: () => number) =>
@@ -32,13 +28,13 @@ const understandingOrders = (rng: () => number) =>
 export interface PlanInput {
   participantId: string;
   studySeed: string;
-  /** Explicit group 0..11. Preferred: derive from participant number so groups stay balanced. */
+  /** Explicit group 0..5. Preferred: derive from participant number so groups stay balanced. */
   group?: number;
 }
 
 /**
- * Group g = 6 * flip + w. Story s in group g gets cell (s + w) mod 6 and Flawed set `flip`, so across the 12 groups
- * every story appears 3 times in every Regime x Variant cell. Balanced at N = multiple of 12 (36 = 3 x 12).
+ * Story s in group g gets cell (s + g) mod 6 and the presentation order of Williams row g, so across the 6 groups
+ * every story appears once in every Regime x Variant cell. Balanced at N = multiple of 6 (30 = 5 x 6).
  */
 export function generateSessionPlan(input: PlanInput): SessionPlan {
   const rng = makeRng(parseSeed(input.studySeed));
@@ -46,10 +42,9 @@ export function generateSessionPlan(input: PlanInput): SessionPlan {
   const group = input.group ?? drawnGroup;
   if (!Number.isInteger(group) || group < 0 || group >= GROUPS) throw new Error(`group must be 0..${GROUPS - 1}, got ${group}`);
 
-  const order = WILLIAMS_6[group % 6]!;
-  const flip = Math.floor(group / 6);
+  const order = WILLIAMS_6[group]!;
   const trials: TrialPlan[] = order.map((storyIdx, i) => {
-    const { regime, variant } = cellToCondition((storyIdx + group) % 6, flip);
+    const { regime, variant } = cellToCondition((storyIdx + group) % 6);
     return {
       position: i + 1,
       story: STORIES[storyIdx]!,
@@ -57,19 +52,21 @@ export function generateSessionPlan(input: PlanInput): SessionPlan {
       variant,
       probeOptionOrder: shuffle([0, 1, 2, 3], rng),
       understandingOptionOrders: understandingOrders(rng),
+      pauseDraw: rng() < 0.5 ? 0 : 1,
     };
   });
 
   // Drawn last so adding/changing the practice trial never shifts the measured trials' shuffles.
-  // The practice trial only teaches the flow. It uses the intervention regime so that the participant also sees
-  // the wrap-up screen once; the defect never needs to be found.
+  // The practice trial only teaches the flow. It pauses at the milestone so that the participant also sees the
+  // wrap-up screen once; the defect never needs to be found.
   const practice: TrialPlan = {
     position: 0,
     story: "US0",
-    regime: "CHECKPOINT",
+    regime: "MILESTONE",
     variant: "Correct",
     probeOptionOrder: shuffle([0, 1, 2, 3], rng),
     understandingOptionOrders: understandingOrders(rng),
+    pauseDraw: 0,
   };
 
   return { participantId: input.participantId, studySeed: input.studySeed, group, practice, trials };

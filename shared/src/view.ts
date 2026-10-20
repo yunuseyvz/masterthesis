@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Regime, UNDERSTANDING_ITEMS, type Decision } from "./schema.js";
+import { Confidence, Style, UNDERSTANDING_ITEMS, type Decision } from "./schema.js";
 
 /** What the client may see. Never contains variant, ground truth, or regime. */
 
@@ -29,7 +29,7 @@ export interface ViewState {
   /** Number of measured trials (excludes practice). */
   nTrials: number;
   practice: boolean;
-  /** Experimenter aid, only set when the server runs with SHOW_CONDITION=1: regime letter (B/A/P) and variant letter (C/F). */
+  /** Experimenter aid, only set when the server runs with SHOW_CONDITION=1: regime letter (B/M/N) and variant letter (C/F). */
   debugTag?: string;
   /** Sessions started so far (the sidebar), one per story/project. */
   sessions: { trial: number; title: string; project: string }[];
@@ -51,18 +51,6 @@ export const Demographics = z.object({
 });
 export type Demographics = z.infer<typeof Demographics>;
 
-const Percent = z.number().int().min(0).max(100).refine((n) => n % 5 === 0, "steps of 5");
-
-export const Tlx = z.object({
-  mental: Percent,
-  physical: Percent,
-  temporal: Percent,
-  performance: Percent,
-  effort: Percent,
-  frustration: Percent,
-});
-export type Tlx = z.infer<typeof Tlx>;
-
 const Scale = (max: number) => z.number().int().min(1).max(max);
 
 export const Action = z.discriminatedUnion("type", [
@@ -83,12 +71,8 @@ export const Action = z.discriminatedUnion("type", [
   z.object({ type: z.literal("stage1"), decision: z.enum(["accept", "reject"]), scrollCoverage: z.number().min(0).max(1) }),
   z.object({
     type: z.literal("postsurvey"),
-    /** Raw NASA-TLX, 0-100 in steps of 5. Performance: 0 = perfect, 100 = failure (original orientation). */
-    tlx: Tlx,
-    /** Paas mental-effort scale, 1-9. */
-    paas: Scale(9),
     /** Preferred oversight style, best first. */
-    ranking: z.array(Regime).length(2).refine((r) => new Set(r).size === 2, "each regime once"),
+    ranking: z.array(Style).length(2).refine((r) => new Set(r).size === 2, "each style once"),
     comment: z.string().max(2000).optional(),
   }),
   z.object({ type: z.literal("advance") }),
@@ -102,9 +86,10 @@ export const Action = z.discriminatedUnion("type", [
     type: z.literal("understanding"),
     /** Index into the displayed options, one entry per item. */
     answers: z.array(z.number().int().min(0).max(3)).length(UNDERSTANDING_ITEMS),
-    confidence: Scale(7),
-    mentalDemand: Scale(5),
-    frustration: Scale(5),
+    /** Confidence in each answer, 50-100 %. */
+    confidences: z.array(Confidence).length(UNDERSTANDING_ITEMS),
+    /** Paas mental-effort scale for this feature, 1-9. */
+    paas: Scale(9),
   }),
 ]);
 export type Action = z.infer<typeof Action>;

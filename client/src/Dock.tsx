@@ -31,11 +31,14 @@ function Scale({ label, max, value, onChange }: { label: string; max: number; va
   );
 }
 
+/** 50 % = guessing between two options, 100 % = certain. */
+const CONFIDENCE = [50, 60, 70, 80, 90, 100];
+
 export interface DockHandlers {
   onStage1: (d: "accept" | "reject") => void;
   onAdvance: () => void;
   onStage2: (probe: number, final: "confirm" | "reverse") => void;
-  onUnderstanding: (a: { answers: number[]; confidence: number; mentalDemand: number; frustration: number }) => void;
+  onUnderstanding: (a: { answers: number[]; confidences: number[]; paas: number }) => void;
 }
 
 /** Number keys act like the real tool's prompts, but never while typing in the terminal. */
@@ -57,10 +60,9 @@ function useNumberKeys(enabled: boolean, onKey: (n: number) => void) {
 export function Dock({ view, busy, h }: { view: ViewState; busy: boolean; h: DockHandlers }) {
   const [probe, setProbe] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
-  const [step, setStep] = useState(0); // understanding: one question per step, then the ratings
-  const [conf, setConf] = useState(0);
-  const [demand, setDemand] = useState(0);
-  const [frus, setFrus] = useState(0);
+  const [confs, setConfs] = useState<(number | null)[]>([]);
+  const [step, setStep] = useState(0); // understanding: one question per screen, then the effort rating
+  const [paas, setPaas] = useState(0);
 
   useNumberKeys(!busy && view.phase === "stage1", (n) => { if (n === 1) h.onStage1("accept"); else if (n === 2) h.onStage1("reject"); });
   useNumberKeys(view.phase === "stage2" && !!view.probe, (n) => {
@@ -117,33 +119,38 @@ export function Dock({ view, busy, h }: { view: ViewState; busy: boolean; h: Doc
   if (view.phase === "understanding" && view.understanding) {
     const items = view.understanding.items;
     const picked = items.map((_, k) => answers[k] ?? null);
-    const onRatings = step >= items.length;
+    const sure = items.map((_, k) => confs[k] ?? null);
+    const onEffort = step >= items.length;
     const k = Math.min(step, items.length - 1);
-    const ratingsDone = conf > 0 && demand > 0 && frus > 0;
+    const set = (prev: (number | null)[], v: number) => { const next = items.map((_, j) => prev[j] ?? null); next[k] = v; return next; };
     return (
       <div className="dock">
-        <h4>{onRatings ? "Almost done" : `Question ${step + 1} of ${items.length}`}</h4>
-        {!onRatings ? (
+        <h4>{onEffort ? "Almost done" : `Question ${step + 1} of ${items.length}`}</h4>
+        {!onEffort ? (
           <>
             <p className="q">{items[k]!.question}</p>
-            <Options options={items[k]!.options} value={picked[k]!} onChange={(i) => setAnswers((prev) => { const next = items.map((_, j) => prev[j] ?? null); next[k] = i; return next; })} />
+            <Options options={items[k]!.options} value={picked[k]!} onChange={(i) => setAnswers((prev) => set(prev, i))} />
+            <div className="scale">
+              <span className="lbl">How sure are you?</span>
+              <span className="pills">
+                {CONFIDENCE.map((c) => (
+                  <button key={c} className={sure[k] === c ? "sel" : ""} onClick={() => setConfs((prev) => set(prev, c))}>{c}%</button>
+                ))}
+              </span>
+            </div>
           </>
         ) : (
           <>
-            <p>How did working on this feature feel?</p>
-            <div className="scales">
-              <Scale label="Confidence (1–7)" max={7} value={conf} onChange={setConf} />
-              <Scale label="Mental demand (1–5)" max={5} value={demand} onChange={setDemand} />
-              <Scale label="Frustration (1–5)" max={5} value={frus} onChange={setFrus} />
-            </div>
+            <p>How much mental effort did you invest in reviewing this feature?</p>
+            <Scale label="1 = very, very low · 9 = very, very high" max={9} value={paas} onChange={setPaas} />
           </>
         )}
         <div className="btn-row">
           {step > 0 && <button className="btn" disabled={busy} onClick={() => setStep(step - 1)}>Back</button>}
-          {!onRatings ? (
-            <button className="btn primary" disabled={picked[k] === null} onClick={() => setStep(step + 1)}>Continue</button>
+          {!onEffort ? (
+            <button className="btn primary" disabled={picked[k] === null || sure[k] === null} onClick={() => setStep(step + 1)}>Continue</button>
           ) : (
-            <button className="btn primary" disabled={busy || !ratingsDone || picked.some((a) => a === null)} onClick={() => h.onUnderstanding({ answers: picked as number[], confidence: conf, mentalDemand: demand, frustration: frus })}>Next</button>
+            <button className="btn primary" disabled={busy || paas === 0 || picked.some((a) => a === null) || sure.some((c) => c === null)} onClick={() => h.onUnderstanding({ answers: picked as number[], confidences: sure as number[], paas })}>Next</button>
           )}
         </div>
       </div>

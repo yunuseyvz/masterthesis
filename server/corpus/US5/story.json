@@ -63,23 +63,84 @@
   ],
   "testFile": "test/limiter.test.ts",
   "testsAvailableFromStep": 3,
-  "probe": {
-    "question": "With a limit of 2 requests per minute, a client makes 2 calls at t=0 and then a third call at t=10s that is rejected. How many timestamps are stored for that client afterwards?",
-    "options": [
-      "2",
-      "3",
-      "0",
-      "1"
-    ],
-    "script": "probe.ts",
-    "expected": {
-      "Correct": "2",
-      "Flawed": "3"
+  "probes": [
+    {
+      "step": 1,
+      "question": "What is the rate limiter's default configuration?",
+      "options": [
+        "2 requests per 60 seconds",
+        "10 requests per 60 seconds",
+        "2 requests per second",
+        "100 requests per hour"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "2 requests per 60 seconds",
+        "Flawed": "2 requests per 60 seconds"
+      }
+    },
+    {
+      "step": 2,
+      "question": "A request arrives without an x-client-id header. Which client id does clientIdOf return?",
+      "options": [
+        "anonymous",
+        "An empty string",
+        "The caller's IP address",
+        "null"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "anonymous",
+        "Flawed": "anonymous"
+      }
+    },
+    {
+      "step": 3,
+      "question": "With a limit of 2 requests per minute, a client makes 2 calls at t=0 and then a third call at t=10s that is rejected. How many timestamps are stored for that client afterwards?",
+      "options": [
+        "2",
+        "3",
+        "0",
+        "1"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "2",
+        "Flawed": "3"
+      }
     }
-  },
+  ],
   "understanding": {
     "script": "understanding.ts",
     "items": [
+      {
+        "step": 1,
+        "question": "With the default configuration, how long after a request does it stop counting against the client's limit?",
+        "options": [
+          "60 seconds",
+          "1 second",
+          "10 minutes",
+          "It never stops counting"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "Two different callers send one request each, neither with an x-client-id header. How does the rate limiter see them?",
+        "options": [
+          "As the same client",
+          "As two separate clients",
+          "It rejects both",
+          "It ignores them"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
       {
         "question": "A client sends one request every 25 seconds under a limit of 2 requests per 60 seconds. After its first rejection, what happens to its later requests?",
         "options": [
@@ -91,20 +152,8 @@
         "correct": {
           "Correct": 0,
           "Flawed": 1
-        }
-      },
-      {
-        "question": "A client makes 2 requests within one second and then a third request. What does the gateway respond to the third request?",
-        "options": [
-          "429 with a retry-after time",
-          "200 OK",
-          "500 server error",
-          "429 without any retry-after time"
-        ],
-        "correct": {
-          "Correct": 0,
-          "Flawed": 0
-        }
+        },
+        "step": 3
       },
       {
         "question": "Client A has used up its limit. Client B has not sent anything yet. What does B's first request get?",
@@ -117,7 +166,8 @@
         "correct": {
           "Correct": 0,
           "Flawed": 0
-        }
+        },
+        "step": 4
       }
     ]
   }

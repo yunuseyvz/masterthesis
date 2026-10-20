@@ -24,10 +24,7 @@
       "files": [
         {
           "path": "src/lib/tenants/config.ts",
-          "source": {
-            "Correct": "src/config.correct.ts",
-            "Flawed": "src/config.flawed.ts"
-          }
+          "source": "src/config.ts"
         }
       ],
       "narration": "Now the main logic: combining a tenant's own settings with the organization defaults."
@@ -39,7 +36,10 @@
       "files": [
         {
           "path": "src/lib/tenants/quota.ts",
-          "source": "src/quota.ts"
+          "source": {
+            "Correct": "src/quota.correct.ts",
+            "Flawed": "src/quota.flawed.ts"
+          }
         }
       ],
       "narration": "Next I'm adding the quota checks and a wrapper that applies them."
@@ -59,34 +59,82 @@
   ],
   "testFile": "test/config.test.ts",
   "testsAvailableFromStep": 2,
-  "probe": {
-    "question": "The organization default is allowExport = true and the tenant override is allowExport = false. What does getEffectiveConfig() return for allowExport?",
-    "options": [
-      "false",
-      "true",
-      "undefined",
-      "null"
-    ],
-    "script": "probe.ts",
-    "expected": {
-      "Correct": "false",
-      "Flawed": "true"
+  "probes": [
+    {
+      "step": 1,
+      "question": "How many seats does a tenant get by default, according to the organization defaults?",
+      "options": [
+        "10",
+        "100",
+        "25",
+        "Unlimited"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "10",
+        "Flawed": "10"
+      }
+    },
+    {
+      "step": 2,
+      "question": "The organization default is allowExport = true and the tenant override is allowExport = false. What does getEffectiveConfig() return for allowExport?",
+      "options": [
+        "false",
+        "true",
+        "undefined",
+        "null"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "false",
+        "Flawed": "false"
+      }
+    },
+    {
+      "step": 3,
+      "question": "With the override { rateLimit: 2 }, checkQuota is called three times for tenant \"t1\" on a fresh quota state. How many of the calls are allowed?",
+      "options": [
+        "2",
+        "3",
+        "1",
+        "0"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "2",
+        "Flawed": "3"
+      }
     }
-  },
+  ],
   "understanding": {
     "script": "understanding.ts",
     "items": [
       {
-        "question": "A tenant's rate limit override is set to 0 while the organization default is 100. What happens to that tenant's requests?",
+        "step": 1,
+        "question": "A tenant overrides nothing. Which plan does it end up on?",
         "options": [
-          "All of the tenant's requests are blocked",
-          "Requests are still allowed, up to the organization default of 100",
-          "Requests are allowed but logged for review",
-          "Only the first request is blocked"
+          "team",
+          "enterprise",
+          "free",
+          "No plan is set"
         ],
         "correct": {
           "Correct": 0,
-          "Flawed": 1
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "A tenant overrides its rate limit with 0, while the organization default is 100. Which rate limit does getEffectiveConfig give the tenant?",
+        "options": [
+          "0",
+          "100",
+          "Unlimited",
+          "An error is thrown"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
         }
       },
       {
@@ -99,16 +147,18 @@
         ],
         "correct": {
           "Correct": 0,
-          "Flawed": 0
-        }
+          "Flawed": 1
+        },
+        "step": 3
       },
       {
-        "question": "A tenant overrides only its number of seats, setting it to 25. Which settings does it end up with?",
+        "step": 4,
+        "question": "Which case do the unit tests not cover?",
         "options": [
-          "plan: team, allowExport: true, rateLimit: 100, seats: 25",
-          "plan: team, allowExport: true, rateLimit: 0, seats: 25",
-          "Only seats: 25; every other setting is undefined",
-          "plan: team, allowExport: false, rateLimit: 100, seats: 10"
+          "An override set to 0 or false",
+          "An override that changes the plan",
+          "A tenant without overrides",
+          "Switching on a flag that is off by default"
         ],
         "correct": {
           "Correct": 0,

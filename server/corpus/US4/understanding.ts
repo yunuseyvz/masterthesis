@@ -1,10 +1,41 @@
-// Runs the story's code and prints the true option text for every understanding item.
+// Runs the story's code and prints the true option text for every understanding item (one per agent step).
 // The harness test compares this output with the item's `correct` index for both variants.
+import { readFileSync } from "node:fs";
+import { parseDurationMs } from "./src/lib/sla/duration.ts";
 import { createInvoice } from "./src/lib/sla/invoice.ts";
+import { TIERS } from "./src/lib/sla/types.ts";
 
-const O: string[][] = [["A credit for the 30 minutes beyond the threshold", "No credit: the outage is treated as shorter than the threshold", "A credit for the full 1h30m", "An error because of the duration format"], ["5.0%", "10.0%", "0.0%", "2.5%"], ["15.0%", "10.0%", "5.0%", "20.0%"]];
-const idx: number[] = [];
-  idx.push(await (async () => { const i = createInvoice("standard", "1h30m"); return i.creditPercent === 2.5 && i.billableMs === 1_800_000 ? 0 : i.creditPercent === 0 ? 1 : i.billableMs === 5_400_000 ? 2 : -1; })());
-  idx.push(await (async () => { const p = createInvoice("standard", "2h").creditPercent.toFixed(1) + "%"; return p === "5.0%" ? 0 : p === "10.0%" ? 1 : p === "0.0%" ? 2 : p === "2.5%" ? 3 : -1; })());
-  idx.push(await (async () => { const p = createInvoice("premium", "2h").creditPercent.toFixed(1) + "%"; return p === "15.0%" ? 0 : p === "10.0%" ? 1 : p === "5.0%" ? 2 : p === "20.0%" ? 3 : -1; })());
-console.log(JSON.stringify(idx.map((i, k) => O[k]![i] ?? null)));
+const items: (() => Promise<string> | string)[] = [
+  // step 1
+  async () => {
+    try {
+      const ms = parseDurationMs("1h 30m");
+      return ms === 5_400_000 ? "Reads it as 1h30m" : ms === 1_800_000 ? "Reads it as 30m" : ms === 3_600_000 ? "Reads it as 1h" : "?";
+    } catch {
+      return "Rejects it as an invalid duration";
+    }
+  },
+  // step 2
+  async () => {
+    return `${TIERS.premium!.creditPercentPerHour}%`;
+  },
+  // step 3
+  async () => {
+    return createInvoice("standard", "2h").creditPercent.toFixed(1) + "%";
+  },
+  // step 4
+  async () => {
+    const t = readFileSync("test/duration.test.ts", "utf8");
+    return /"\d+[hms]\d+[hms]/.test(t) ? "?" : 'A combined duration such as "1h30m"';
+  },
+];
+
+const out: (string | null)[] = [];
+for (const item of items) {
+  try {
+    out.push(await item());
+  } catch {
+    out.push(null);
+  }
+}
+console.log(JSON.stringify(out));

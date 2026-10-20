@@ -63,23 +63,70 @@
   ],
   "testFile": "test/inventory.test.ts",
   "testsAvailableFromStep": 2,
-  "probe": {
-    "question": "Starting with stock = 2 for SKU \"A\", a reservation of 5 units fails with an error. What is the stock of \"A\" afterwards?",
-    "options": [
-      "2",
-      "0",
-      "-3",
-      "undefined"
-    ],
-    "script": "probe.ts",
-    "expected": {
-      "Correct": "2",
-      "Flawed": "-3"
+  "probes": [
+    {
+      "step": 1,
+      "question": "An OutOfStockError is created for SKU \"A\" with 5 requested units. Which HTTP status does it carry?",
+      "options": [
+        "409",
+        "404",
+        "400",
+        "500"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "409",
+        "Flawed": "409"
+      }
+    },
+    {
+      "step": 2,
+      "question": "Starting with stock = 2 for SKU \"A\", a reservation of 5 units fails with an error. What is the stock of \"A\" afterwards?",
+      "options": [
+        "2",
+        "0",
+        "-3",
+        "undefined"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "2",
+        "Flawed": "-3"
+      }
+    },
+    {
+      "step": 3,
+      "question": "A checkout request arrives with the body {\"skuId\": \"mug\"}, without a qty. Which status does handleCheckout return after parseCheckout?",
+      "options": [
+        "400",
+        "200",
+        "404",
+        "500"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "400",
+        "Flawed": "400"
+      }
     }
-  },
+  ],
   "understanding": {
     "script": "understanding.ts",
     "items": [
+      {
+        "step": 1,
+        "question": "The store is created with createStore({ mug: 20, pen: 5 }). What does it hold for the SKU \"cup\"?",
+        "options": [
+          "No entry: the SKU is unknown",
+          "An entry with stock 0",
+          "An entry with stock -1",
+          "An error is thrown"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
       {
         "question": "A single oversized reservation has just failed. How does the checkout endpoint behave on the next valid order for that item?",
         "options": [
@@ -91,15 +138,17 @@
         "correct": {
           "Correct": 0,
           "Flawed": 1
-        }
+        },
+        "step": 2
       },
       {
-        "question": "A customer orders 3 units of a product that does not exist in the store. What does the checkout endpoint respond with?",
+        "step": 3,
+        "question": "Right after the server starts, how many notebooks can the checkout endpoint sell in total?",
         "options": [
-          "Status 404 with an error message",
-          "Status 409: out of stock",
-          "Status 400: invalid quantity",
-          "Status 200 with 0 units remaining"
+          "12",
+          "20",
+          "5",
+          "There is no limit"
         ],
         "correct": {
           "Correct": 0,
@@ -107,12 +156,13 @@
         }
       },
       {
-        "question": "A product has 10 units in stock. Three orders of 4 units each arrive one after another. What happens?",
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
         "options": [
-          "The first two succeed; the third is rejected as out of stock",
-          "All three succeed and the stock goes negative",
-          "Only the first succeeds; the other two are rejected",
-          "The first two succeed and the third gets the 2 remaining units"
+          "Reserving the entire remaining stock",
+          "Ordering more units than are in stock",
+          "Ordering a product that does not exist",
+          "Ordering 0 units"
         ],
         "correct": {
           "Correct": 0,

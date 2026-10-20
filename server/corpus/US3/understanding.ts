@@ -1,12 +1,41 @@
-// Runs the story's code and prints the true option text for every understanding item.
+// Runs the story's code and prints the true option text for every understanding item (one per agent step).
 // The harness test compares this output with the item's `correct` index for both variants.
-import { ORG_DEFAULTS, createQuotaState } from "./src/lib/tenants/types.ts";
+import { readFileSync } from "node:fs";
 import { getEffectiveConfig } from "./src/lib/tenants/config.ts";
 import { checkQuota } from "./src/lib/tenants/quota.ts";
+import { ORG_DEFAULTS, createQuotaState } from "./src/lib/tenants/types.ts";
 
-const O: string[][] = [["All of the tenant's requests are blocked", "Requests are still allowed, up to the organization default of 100", "Requests are allowed but logged for review", "Only the first request is blocked"], ["It is blocked with the reason \"rate limit reached\"", "It is allowed; the counter resets", "It is allowed but logged for review", "It is blocked only if exports are disabled"], ["plan: team, allowExport: true, rateLimit: 100, seats: 25", "plan: team, allowExport: true, rateLimit: 0, seats: 25", "Only seats: 25; every other setting is undefined", "plan: team, allowExport: false, rateLimit: 100, seats: 10"]];
-const idx: number[] = [];
-  idx.push(await (async () => { const r = checkQuota("t1", { rateLimit: 0 }, createQuotaState()); return r.allowed ? 1 : 0; })());
-  idx.push(await (async () => { const s = createQuotaState(); for (let i = 0; i < 100; i++) checkQuota("t2", {}, s); const r = checkQuota("t2", {}, s); return !r.allowed && r.reason === "rate limit reached" ? 0 : r.allowed ? 1 : -1; })());
-  idx.push(await (async () => { const c = getEffectiveConfig(ORG_DEFAULTS, { seats: 25 }); const t = `plan: ${c.plan}, allowExport: ${c.allowExport}, rateLimit: ${c.rateLimit}, seats: ${c.seats}`; return t === "plan: team, allowExport: true, rateLimit: 100, seats: 25" ? 0 : t === "plan: team, allowExport: true, rateLimit: 0, seats: 25" ? 1 : -1; })());
-console.log(JSON.stringify(idx.map((i, k) => O[k]![i] ?? null)));
+const items: (() => Promise<string> | string)[] = [
+  // step 1
+  async () => {
+    return getEffectiveConfig(ORG_DEFAULTS, {}).plan;
+  },
+  // step 2
+  async () => {
+    const limit = getEffectiveConfig(ORG_DEFAULTS, { rateLimit: 0 }).rateLimit;
+    return limit === 0 ? "0" : limit === 100 ? "100" : "?";
+  },
+  // step 3
+  async () => {
+    const s = createQuotaState();
+    for (let i = 0; i < 100; i++) checkQuota("t2", {}, s);
+    const r = checkQuota("t2", {}, s);
+    return !r.allowed && r.reason === "rate limit reached" ? 'It is blocked with the reason "rate limit reached"' : r.allowed ? "It is allowed; the counter resets" : "?";
+  },
+  // step 4
+  async () => {
+    const t = readFileSync("test/config.test.ts", "utf8");
+    const overrides = [...t.matchAll(/getEffectiveConfig\([^)]*?,\s*(\{[^}]*\})\)/g)].map((m) => m[1]!);
+    return overrides.length > 0 && overrides.every((o) => !/:\s*(0|false)\b/.test(o)) ? "An override set to 0 or false" : "?";
+  },
+];
+
+const out: (string | null)[] = [];
+for (const item of items) {
+  try {
+    out.push(await item());
+  } catch {
+    out.push(null);
+  }
+}
+console.log(JSON.stringify(out));

@@ -59,20 +59,53 @@
   ],
   "testFile": "test/pricing.test.ts",
   "testsAvailableFromStep": 1,
-  "probe": {
-    "question": "What does clampPercent(-15) return in this implementation?",
-    "options": [
-      "0",
-      "-15",
-      "100",
-      "NaN"
-    ],
-    "script": "probe.ts",
-    "expected": {
-      "Correct": "0",
-      "Flawed": "-15"
+  "probes": [
+    {
+      "step": 1,
+      "question": "What does clampPercent(-15) return in this implementation?",
+      "options": [
+        "0",
+        "-15",
+        "100",
+        "NaN"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "0",
+        "Flawed": "-15"
+      }
+    },
+    {
+      "step": 2,
+      "question": "Which fields does an order summary returned by summarizeOrder have?",
+      "options": [
+        "Subtotal, discount and total",
+        "Subtotal and total only",
+        "Total only",
+        "Subtotal, tax and total"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "Subtotal, discount and total",
+        "Flawed": "Subtotal, discount and total"
+      }
+    },
+    {
+      "step": 3,
+      "question": "summarizeOrder is called without a coupon for an order of 6000 cents. What is the discount?",
+      "options": [
+        "0 cents",
+        "600 cents",
+        "6000 cents",
+        "An error is thrown"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "0 cents",
+        "Flawed": "0 cents"
+      }
     }
-  },
+  ],
   "understanding": {
     "script": "understanding.ts",
     "items": [
@@ -87,6 +120,21 @@
         "correct": {
           "Correct": 0,
           "Flawed": 1
+        },
+        "step": 1
+      },
+      {
+        "step": 2,
+        "question": "How does a coupon express its discount?",
+        "options": [
+          "As a percentage, e.g. 10 for 10%",
+          "As a fraction, e.g. 0.1 for 10%",
+          "As an amount in cents",
+          "As a code that is looked up elsewhere"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
         }
       },
       {
@@ -100,15 +148,17 @@
         "correct": {
           "Correct": 0,
           "Flawed": 0
-        }
+        },
+        "step": 3
       },
       {
-        "question": "A 150% coupon is applied to an order of 6000 cents. What is the total?",
+        "step": 4,
+        "question": "Which case do the unit tests not cover?",
         "options": [
-          "0: the discount is capped at 100%",
-          "-3000: the total goes negative",
-          "6000: the coupon is ignored",
-          "Checkout fails with an error"
+          "A negative discount",
+          "A discount above 100%",
+          "A 0% discount",
+          "A regular 10% discount"
         ],
         "correct": {
           "Correct": 0,

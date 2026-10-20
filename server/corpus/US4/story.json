@@ -16,10 +16,7 @@
         },
         {
           "path": "src/lib/sla/duration.ts",
-          "source": {
-            "Correct": "src/duration.correct.ts",
-            "Flawed": "src/duration.flawed.ts"
-          }
+          "source": "src/duration.ts"
         }
       ],
       "narration": "I'll start with the core: parsing durations like \"2h\" or \"45m\" so outages can be measured against the SLA."
@@ -43,7 +40,10 @@
       "files": [
         {
           "path": "src/lib/sla/invoice.ts",
-          "source": "src/invoice.ts"
+          "source": {
+            "Correct": "src/invoice.correct.ts",
+            "Flawed": "src/invoice.flawed.ts"
+          }
         }
       ],
       "narration": "Now the invoice generator that applies the SLA credit."
@@ -63,34 +63,82 @@
   ],
   "testFile": "test/duration.test.ts",
   "testsAvailableFromStep": 1,
-  "probe": {
-    "question": "What does parseDurationMs(\"1h30m\") return, in milliseconds?",
-    "options": [
-      "5400000",
-      "1800000",
-      "5400",
-      "null"
-    ],
-    "script": "probe.ts",
-    "expected": {
-      "Correct": "5400000",
-      "Flawed": "1800000"
+  "probes": [
+    {
+      "step": 1,
+      "question": "What does parseDurationMs(\"1h30m\") return, in milliseconds?",
+      "options": [
+        "5400000",
+        "1800000",
+        "5400",
+        "null"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "5400000",
+        "Flawed": "5400000"
+      }
+    },
+    {
+      "step": 2,
+      "question": "What is the outage threshold of the premium tier, in minutes?",
+      "options": [
+        "30",
+        "60",
+        "15",
+        "0"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "30",
+        "Flawed": "30"
+      }
+    },
+    {
+      "step": 3,
+      "question": "createInvoice(\"standard\", \"2h\") is called. What is billableMs, in milliseconds?",
+      "options": [
+        "3600000",
+        "7200000",
+        "0",
+        "5400000"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "3600000",
+        "Flawed": "7200000"
+      }
     }
-  },
+  ],
   "understanding": {
     "script": "understanding.ts",
     "items": [
       {
-        "question": "An outage lasts 1h30m against the standard tier's 1h threshold. What does the invoice generator compute?",
+        "step": 1,
+        "question": "An outage duration is written as \"1h 30m\", with a space. What does the duration parser do?",
         "options": [
-          "A credit for the 30 minutes beyond the threshold",
-          "No credit: the outage is treated as shorter than the threshold",
-          "A credit for the full 1h30m",
-          "An error because of the duration format"
+          "Rejects it as an invalid duration",
+          "Reads it as 1h30m",
+          "Reads it as 30m",
+          "Reads it as 1h"
         ],
         "correct": {
           "Correct": 0,
-          "Flawed": 1
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "How much credit does a premium customer get per hour of outage beyond the threshold?",
+        "options": [
+          "10%",
+          "5%",
+          "15%",
+          "20%"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
         }
       },
       {
@@ -103,16 +151,18 @@
         ],
         "correct": {
           "Correct": 0,
-          "Flawed": 0
-        }
+          "Flawed": 1
+        },
+        "step": 3
       },
       {
-        "question": "A premium-tier customer has the same 2h outage. What credit does the invoice show?",
+        "step": 4,
+        "question": "Which kind of duration do the unit tests not cover?",
         "options": [
-          "15.0%",
-          "10.0%",
-          "5.0%",
-          "20.0%"
+          "A combined duration such as \"1h30m\"",
+          "Hours only",
+          "Minutes only",
+          "Seconds only"
         ],
         "correct": {
           "Correct": 0,

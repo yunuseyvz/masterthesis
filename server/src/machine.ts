@@ -23,7 +23,7 @@ const TEST_COMMAND = /\b(npm\s+(run\s+)?test|npm\s+t\b|node\s+(--\S+\s+)*--test|
 
 type Phase = ViewState["phase"];
 
-const REGIME_LETTER = { BATCH: "B", CHECKPOINT: "K" } as const;
+const REGIME_LETTER = { BATCH: "B", MILESTONE: "M", NON_MILESTONE: "N" } as const;
 
 interface Stage1Record {
   decision: Decision;
@@ -78,8 +78,14 @@ export class StudySession {
   private get story(): Story {
     return this.loadStory(this.trial.story);
   }
+  private get pauseStep(): number {
+    return this.story.pauseStep(this.trial.regime, this.trial.pauseDraw);
+  }
+  private get probe() {
+    return this.story.probeFor(this.trial.regime, this.pauseStep);
+  }
   private get checkpoints(): CheckpointSpec[] {
-    return checkpointsFor(this.trial.regime, this.story.milestoneStep);
+    return checkpointsFor(this.trial.regime, this.pauseStep);
   }
   private get checkpoint(): CheckpointSpec {
     return this.checkpoints[this.cpIdx]!;
@@ -113,7 +119,7 @@ export class StudySession {
     this.cpIdx = 0;
     this.stage1 = null;
     this.pending = null;
-    this.log("trial_start", { practice: this.trialIdx === 0, position: this.trial.position, story: this.trial.story, regime: this.trial.regime, variant: this.trial.variant });
+    this.log("trial_start", { practice: this.trialIdx === 0, position: this.trial.position, story: this.trial.story, regime: this.trial.regime, variant: this.trial.variant, milestoneStep: this.story.milestoneStep, pauseStep: this.pauseStep });
     this.showCheckpoint();
   }
 
@@ -163,11 +169,9 @@ export class StudySession {
       workspace: [...story.projectWorkspace(variant, cp.toStep)].map(([path, content]) => ({ path, content })),
     };
     if (this.phase === "stage2") {
+      const probe = this.probe;
       base.initialDecision = this.stage1!.decision;
-      base.probe = {
-        question: story.def.probe.question,
-        options: this.trial.probeOptionOrder.map((i) => story.def.probe.options[i]!),
-      };
+      base.probe = { question: probe.question, options: this.trial.probeOptionOrder.map((i) => probe.options[i]!) };
     }
     return base;
   }
@@ -212,12 +216,7 @@ export class StudySession {
       case "postsurvey": {
         this.require("postsurvey");
         const { type: _t, ...answers } = action;
-        const t = answers.tlx;
-        this.postSurvey = {
-          ...answers,
-          durationMs: this.now() - this.shownAt,
-          scores: { rawTlx: (t.mental + t.physical + t.temporal + t.performance + t.effort + t.frustration) / 6 },
-        };
+        this.postSurvey = { ...answers, durationMs: this.now() - this.shownAt };
         this.log("postsurvey_submit", this.postSurvey);
         this.phase = "debrief";
         this.log("debrief_shown", {});
@@ -251,8 +250,10 @@ export class StudySession {
         const s1 = this.stage1!;
         const latency = this.now() - this.shownAt;
         const canonical = action.probeAnswer === -1 ? -1 : this.trial.probeOptionOrder[action.probeAnswer]!;
-        const executed = await runProbe(story.testWorkspace(this.trial.variant), story.probeScript());
-        const probeCorrect = canonical !== -1 && executed !== null && story.def.probe.options[canonical] === executed;
+        const probe = this.probe;
+        // Run against the finished feature, so the probe for any step has all the code it needs.
+        const executed = await runProbe(story.projectWorkspace(this.trial.variant, 4), story.probeScript(probe));
+        const probeCorrect = canonical !== -1 && executed !== null && probe.options[canonical] === executed;
         const finalDecision: Decision =
           action.final === "confirm" ? s1.decision : s1.decision === "accept" ? "reject" : "accept";
         this.pending = {
@@ -260,6 +261,9 @@ export class StudySession {
           story: this.trial.story,
           regime: this.trial.regime,
           variant: this.trial.variant,
+          milestoneStep: story.milestoneStep,
+          pauseStep: this.pauseStep,
+          probeStep: probe.step,
           initialDecision: s1.decision,
           finalDecision,
           decisionReversed: finalDecision !== s1.decision,
@@ -282,13 +286,12 @@ export class StudySession {
         const canonical = action.answers.map((a, k) => this.trial.understandingOptionOrders[k]![a]!);
         const corrects = canonical.map((c, k) => c === items[k]!.correct[this.trial.variant]);
         const result: TrialResult = {
-          ...(this.pending as Omit<TrialResult, "understandingAnswers" | "understandingCorrects" | "understandingScore" | "confidence" | "mentalDemand" | "frustration">),
+          ...(this.pending as Omit<TrialResult, "understandingAnswers" | "understandingCorrects" | "understandingConfidences" | "understandingScore" | "paas">),
           understandingAnswers: canonical,
           understandingCorrects: corrects,
+          understandingConfidences: action.confidences,
           understandingScore: corrects.filter(Boolean).length,
-          confidence: action.confidence,
-          mentalDemand: action.mentalDemand,
-          frustration: action.frustration,
+          paas: action.paas,
         };
         if (this.trialIdx === 0) this.practiceResult = result;
         else this.results.push(result);

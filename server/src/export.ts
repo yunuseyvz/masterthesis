@@ -14,14 +14,16 @@ export function makeEventSink(exportDir: string, participantId: string, studySee
 }
 
 const CSV_COLUMNS: (keyof TrialResult)[] = [
-  "position", "story", "regime", "variant", "initialDecision", "finalDecision", "decisionReversed",
-  "stage1DwellMs", "diffScrollCoverage", "testRunsStage1", "stage2ProbeLatencyMs", "probeAnswer",
-  "probeCorrect", "understandingScore", "confidence", "mentalDemand", "frustration",
+  "position", "story", "regime", "variant", "milestoneStep", "pauseStep", "probeStep", "initialDecision", "finalDecision",
+  "decisionReversed", "stage1DwellMs", "diffScrollCoverage", "testRunsStage1", "stage2ProbeLatencyMs", "probeAnswer",
+  "probeCorrect", "understandingScore", "paas",
 ];
 
-/** Per-item understanding columns: u1_answer, u1_correct, u2_answer, ... */
-const ITEM_COLUMNS = (n: number) => Array.from({ length: n }, (_, k) => [`u${k + 1}_answer`, `u${k + 1}_correct`]).flat();
-const itemValues = (t: TrialResult) => t.understandingAnswers.flatMap((a, k) => [a, t.understandingCorrects[k]]);
+/** Per-item understanding columns (item k asks about agent step k): u1_answer, u1_correct, u1_confidence, u1_milestone, ... */
+const ITEM_COLUMNS = (n: number) =>
+  Array.from({ length: n }, (_, k) => [`u${k + 1}_answer`, `u${k + 1}_correct`, `u${k + 1}_confidence`, `u${k + 1}_milestone`]).flat();
+const itemValues = (t: TrialResult) =>
+  t.understandingAnswers.flatMap((a, k) => [a, t.understandingCorrects[k], t.understandingConfidences[k], k + 1 === t.milestoneStep]);
 
 export function writeBundle(exportDir: string, bundle: SessionBundle) {
   fs.mkdirSync(exportDir, { recursive: true });

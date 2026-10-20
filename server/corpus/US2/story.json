@@ -1,6 +1,7 @@
 {
   "id": "US2",
   "project": "shopfront",
+  "base": "shopfront",
   "title": "Webhook Payment Idempotency & Retry",
   "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
   "steps": [
@@ -24,7 +25,10 @@
       "files": [
         {
           "path": "src/lib/webhooks/handlers.ts",
-          "source": "src/handlers.ts"
+          "source": {
+            "Correct": "src/handlers.correct.ts",
+            "Flawed": "src/handlers.flawed.ts"
+          }
         }
       ]
     },
@@ -35,10 +39,7 @@
       "files": [
         {
           "path": "src/lib/webhooks/idempotency.ts",
-          "source": {
-            "Correct": "src/idempotency.correct.ts",
-            "Flawed": "src/idempotency.flawed.ts"
-          }
+          "source": "src/idempotency.ts"
         }
       ],
       "narration": "Now the core of the feature: handling repeated deliveries of the same event and retrying when processing fails."
@@ -66,30 +67,78 @@
   ],
   "testFile": "test/webhook.test.ts",
   "testsAvailableFromStep": 3,
-  "probe": {
-    "question": "The handler throws a transient error on its first attempt for event \"evt_9\", and the retry loop calls processing for \"evt_9\" again. What does that retry call do?",
-    "options": [
-      "Re-runs handler",
-      "Skips as already processed",
-      "Throws duplicate error",
-      "null"
-    ],
-    "script": "probe.ts",
-    "expected": {
-      "Correct": "Re-runs handler",
-      "Flawed": "Skips as already processed"
+  "probes": [
+    {
+      "step": 1,
+      "question": "Two event logs are created with createEventLog(). The id \"evt_1\" is added to the first one. Does the second log contain it?",
+      "options": [
+        "No, each log is separate",
+        "Yes, they share one set",
+        "Only after a restart",
+        "An error is thrown"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "No, each log is separate",
+        "Flawed": "No, each log is separate"
+      }
+    },
+    {
+      "step": 2,
+      "question": "parseEvent receives {\"id\": \"evt_5\", \"type\": \"payment.failed\", \"accountId\": \"acc_1\", \"amountCents\": 500}. What happens?",
+      "options": [
+        "Throws a validation error",
+        "Returns the event unchanged",
+        "Returns the event as a refund",
+        "Returns null"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "Throws a validation error",
+        "Flawed": "Returns the event unchanged"
+      }
+    },
+    {
+      "step": 3,
+      "question": "The handler throws a transient error on its first attempt for event \"evt_9\", and the retry loop calls processing for \"evt_9\" again. What does that retry call do?",
+      "options": [
+        "Re-runs handler",
+        "Skips as already processed",
+        "Throws duplicate error",
+        "null"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "Re-runs handler",
+        "Flawed": "Re-runs handler"
+      }
     }
-  },
+  ],
   "understanding": {
     "script": "understanding.ts",
     "items": [
       {
-        "question": "A payment webhook's handler throws a transient error on its first attempt. What does the endpoint end up doing for that event?",
+        "step": 1,
+        "question": "A new event log is created and the id \"evt_1\" is added to it twice. How many entries does the log hold?",
         "options": [
-          "It succeeds on a retry and the account is credited",
-          "It returns 200 OK on a retry, but the account is never credited",
-          "It returns 500 on every retry until the server restarts",
-          "It credits the account twice"
+          "1",
+          "2",
+          "0",
+          "An error is thrown"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "The provider sends a payment.failed event for 500 cents to an account with a balance of 1000 cents. What is the balance after the event has been parsed and handled?",
+        "options": [
+          "1000 cents: the event is rejected",
+          "1500 cents",
+          "500 cents",
+          "The webhook crashes"
         ],
         "correct": {
           "Correct": 0,
@@ -107,15 +156,17 @@
         "correct": {
           "Correct": 0,
           "Flawed": 0
-        }
+        },
+        "step": 3
       },
       {
-        "question": "A payment.refunded event for 500 cents is processed for an account whose balance is 2000 cents. What is the balance afterwards?",
+        "step": 4,
+        "question": "The handler fails on every attempt. How many times does the webhook endpoint call it before answering 500?",
         "options": [
-          "1500 cents",
-          "2500 cents",
-          "500 cents",
-          "2000 cents"
+          "3",
+          "1",
+          "2",
+          "Until it succeeds"
         ],
         "correct": {
           "Correct": 0,
@@ -123,6 +174,5 @@
         }
       }
     ]
-  },
-  "base": "shopfront"
+  }
 }

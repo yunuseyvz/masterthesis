@@ -179,11 +179,6 @@ svg { flex: none; }
 .lk-l { font-size: 10.5px; line-height: 1.2; text-align: center; opacity: .8; }
 .lk-ends { display: flex; justify-content: space-between; margin-top: 4px; color: var(--faint); font-size: 12px; }
 
-.slider { display: grid; grid-template-columns: repeat(21, 1fr); gap: 3px; align-items: end; height: 30px; }
-.tick { height: 14px; padding: 0; border: none; border-radius: 3px; background: var(--border-2); }
-.tick.major { height: 22px; background: #4a4a46; }
-.tick:hover { background: #6a6a64; }
-.tick.sel { height: 30px; background: var(--accent); }
 .item-text b { font-weight: 600; }
 .ranking { margin-top: 10px; padding: 10px 12px; background: var(--panel-2); border-radius: 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
 .ranking > div { display: flex; gap: 10px; align-items: baseline; }

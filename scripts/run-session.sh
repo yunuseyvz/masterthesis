@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 # One participant session in a fresh container.
 #
-# Usage: scripts/run-session.sh [--participant ID] [--seed N] [--group 0-11] [--show-condition] [--offline] [--dry-run]
+# Usage: scripts/run-session.sh [--participant ID] [--seed N] [--group 0-5] [--show-condition] [--offline] [--dry-run]
 #
 # With no options everything is generated:
 #   participant  random 6-character ID (letters/digits, no look-alikes), e.g. K7QX2M
 #   seed         random 32-bit integer; drives option shuffles and is part of the export file names
-#   group        number of completed sessions in exports/ modulo 12, so groups stay balanced as
+#   group        number of completed sessions in exports/ modulo 6, so groups stay balanced as
 #                you run participants one after another, and a dropout's slot is re-run
 # Any of them can be set explicitly. --dry-run prints the resolved values and exits.
 # --offline runs the container without network (and without the Preview pane).
 # --show-condition (experimenter aid, never for real participants) shows "<regime>·<variant>" next to the
-# participant ID in the sidebar: regime B = batch (control), K = checkpoint (intervention); variant C/F = correct/flawed.
+# participant ID in the sidebar: regime B = batch (review at the end), M = milestone pause, N = non-milestone pause;
+# variant C/F = correct/flawed.
 set -euo pipefail
 
 usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; }
@@ -45,13 +46,13 @@ fi
 if [ -z "$GROUP" ]; then
   # exports/ may not exist yet on a fresh checkout: that just means zero completed sessions
   DONE=$({ find "$EXPORTS" -maxdepth 1 -name '*.json' 2>/dev/null || true; } | wc -l)
-  GROUP=$((DONE % 12))
+  GROUP=$((DONE % 6))
 fi
 
 # The ID ends up in file and container names, so keep it strictly alphanumeric.
 [[ "$PARTICIPANT" =~ ^[A-Za-z0-9]{1,32}$ ]] || { echo "participant ID must be 1-32 letters/digits, got '$PARTICIPANT'" >&2; exit 2; }
 [[ "$SEED" =~ ^[0-9]{1,10}$ ]]              || { echo "seed must be a non-negative integer, got '$SEED'" >&2; exit 2; }
-[[ "$GROUP" =~ ^([0-9]|1[01])$ ]]           || { echo "group must be 0-11, got '$GROUP'" >&2; exit 2; }
+[[ "$GROUP" =~ ^[0-5]$ ]]                   || { echo "group must be 0-5, got '$GROUP'" >&2; exit 2; }
 
 echo "Participant $PARTICIPANT  seed $SEED  group $GROUP"
 [ "$DRY" = 1 ] && exit 0
