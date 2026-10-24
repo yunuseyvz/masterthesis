@@ -1,0 +1,1017 @@
+{
+ "format": "beacon-capture/1",
+ "id": "US0",
+ "createdAt": "2026-10-23T09:52:08.980Z",
+ "source": "synthetic",
+ "model": {
+  "id": "synthetic"
+ },
+ "workspace": {
+  "dir": "/synthetic/US0",
+  "initial": "e735bb12d9b1dc161d70266fe48c44636d7cf6f1",
+  "final": "84ab6d2fa2eae7df92480e4e0d538e08be56bb14"
+ },
+ "mainThread": "t:1e9b53b3327b2262",
+ "turns": [
+  {
+   "text": "As a user, I want the app to greet me by name, so that it feels friendly. This is a practice story: take your time to explore the interface.",
+   "agent": "plan",
+   "at": 0
+  },
+  {
+   "text": "The plan looks good. Go ahead.",
+   "agent": "build",
+   "at": 6929
+  }
+ ],
+ "calls": [
+  {
+   "index": 0,
+   "thread": "t:1e9b53b3327b2262",
+   "position": 0,
+   "at": 0,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 1,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Let me look \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"at how the p\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"roject is or\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ganized firs\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 920,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_0_0\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1340,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"README.md\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1360,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_0_1\",\"type\":\"function\",\"function\":{\"name\":\"glob\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1789,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"pattern\\\":\\\"src/lib/**/*.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1809,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":4000,\"completion_tokens\":25,\"total_tokens\":4025}}"
+    },
+    {
+     "t": 1809,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "cd1ac3b5b5c46ef0f0043e59010e2a8358b6e2d8"
+  },
+  {
+   "index": 1,
+   "thread": "t:1e9b53b3327b2262",
+   "position": 1,
+   "at": 2409,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 3,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"# Plan: gree\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t the user b\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"y name\\n\\n## C\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ontext\\n\\n- `s\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"hopfront` ke\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eps business\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" logic in `s\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1020,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rc/lib/` (no\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1060,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" React, test\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1100,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"able with `n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1140,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ode --test`)\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1180,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\", one folder\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1220,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" or file per\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1260,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" area.\\n- The\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1300,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"re is no gre\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1340,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eting logic \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1380,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"yet. The REA\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1420,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"DME lists th\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1460,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e modules un\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1500,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"der \\\"Layout\\\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1540,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\\n\\n## Approa\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1580,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ch\\n\\nA small \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1620,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`src/lib/gre\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1660,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eting/` modu\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1700,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"le with a fo\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1740,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rmatter and \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1780,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"a helper for\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1820,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" several use\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1860,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rs, plus uni\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1900,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t tests.\\n\\n##\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1940,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" Steps\\n\\n### \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1980,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"1. Add greet\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2020,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ing types\\n- \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2060,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`src/lib/gre\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2100,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eting/types.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2140,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ts`: `Greeti\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2180,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ngOptions { \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2220,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"name: string\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2260,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"; formal?: b\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2300,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"oolean }`.\\n\\n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2340,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"### 2. Imple\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2380,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ment the gre\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2420,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eting format\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2460,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ter\\n- `src/l\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2500,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ib/greeting/\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2540,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"greeting.ts`\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2580,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\": `formatGre\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2620,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eting(opts: \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2660,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"GreetingOpti\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2700,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ons): string\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2740,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`.\\n- Trims t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2780,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"he name. Inf\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2820,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ormal: `Hi <\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2860,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"name>!`; for\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2900,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"mal: `Dear <\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2940,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"name>,`.\\n- A\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2980,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"n empty name\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3020,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" falls back \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3060,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"to a generic\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3100,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" greeting.\\n\\n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3140,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"### 3. Add a\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3180,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" helper that\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3220,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" greets seve\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3260,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ral users\\n- \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3300,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`src/lib/gre\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3340,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eting/batch.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3380,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ts`: `greetA\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3420,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ll(names: st\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3460,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ring[], form\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3500,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"al = false):\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3540,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" string[]`, \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3580,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"one greeting\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3620,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" per name vi\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3660,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"a `formatGre\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3700,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eting`.\\n\\n###\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3740,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" 4. Add unit\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3780,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" tests for g\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3820,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"reetings\\n- `\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3860,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"test/greetin\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3900,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"g.test.ts`: \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3940,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"informal, fo\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3980,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rmal and emp\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4020,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ty-name case\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4060,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s.\\n- README:\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4100,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" add `greeti\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4140,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ng/` under \\\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4180,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Layout\\\".\\n\\n##\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4220,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" Verificatio\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4260,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"n\\n\\n`npm test\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4300,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"` (or `node \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4340,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"--test test/\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4380,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"greeting.tes\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4420,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t.ts`).\\n\\nSha\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4460,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ll I go ahea\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4500,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"d?\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4520,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":4600,\"completion_tokens\":283,\"total_tokens\":4883}}"
+    },
+    {
+     "t": 4520,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "a4dae1fc17788f9975771ca85238f040cac7eaf0"
+  },
+  {
+   "index": 2,
+   "thread": "t:1e9b53b3327b2262",
+   "position": 2,
+   "at": 6929,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 5,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"I'll start w\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ith a small \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"type for the\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" greeting op\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tions.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 920,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_2_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1095,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/greeting/types.ts\\\",\\\"content\\\":\\\"e\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1271,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"xport interface GreetingOptions {\\\\n  name: strin\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1446,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"g;\\\\n  formal?: boolean;\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1466,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":5200,\"completion_tokens\":45,\"total_tokens\":5245}}"
+    },
+    {
+     "t": 1466,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "15c0071d99ddc40ed15c150b73d15239b96bee15"
+  },
+  {
+   "index": 3,
+   "thread": "t:1e9b53b3327b2262",
+   "position": 3,
+   "at": 8695,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 7,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Now the form\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"atter itself\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\", which buil\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ds the greet\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ing from a n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ame.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 960,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_3_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1063,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/greeting/greeting.ts\\\",\\\"content\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1167,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\":\\\"import type { GreetingOptions } from \\\\\\\"./types\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1270,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\".ts\\\\\\\";\\\\n\\\\nexport function formatGreeting(opts: G\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1373,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"reetingOptions): string {\\\\n  const name = opts.n\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1476,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ame.trim();\\\\n  if (name === \\\\\\\"\\\\\\\") {\\\\n    return \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\\\\\"Hi there!\\\\\\\";\\\\n  }\\\\n  return opts.formal ? `Dea\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1683,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"r ${name},` : `Hi ${name}!`;\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1703,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":5800,\"completion_tokens\":97,\"total_tokens\":5897}}"
+    },
+    {
+     "t": 1703,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "7d0cc76f0dbac71f6ac35f931140294f68d49c37"
+  },
+  {
+   "index": 4,
+   "thread": "t:1e9b53b3327b2262",
+   "position": 4,
+   "at": 10698,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 9,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Next, a help\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"er that gree\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ts several u\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"sers at once\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 920,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_4_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1027,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/greeting/batch.ts\\\",\\\"content\\\":\\\"i\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1134,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"mport { formatGreeting } from \\\\\\\"./greeting.ts\\\\\\\";\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1240,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\\n\\\\nexport function greetAll(names: string[], fo\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1347,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"rmal = false): string[] {\\\\n  return names.map((n\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1454,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ame) => formatGreeting({ name, formal }));\\\\n}\\\\n\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1561,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1581,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":6400,\"completion_tokens\":73,\"total_tokens\":6473}}"
+    },
+    {
+     "t": 1581,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "832e20d1e91b999852865a4865a9f0d9126bb663"
+  },
+  {
+   "index": 5,
+   "thread": "t:1e9b53b3327b2262",
+   "position": 5,
+   "at": 12579,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 11,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Last, unit t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ests for the\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" greetings, \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"and a line a\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"bout the new\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" module in t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"he README.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1000,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_5_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1076,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"test/greeting.test.ts\\\",\\\"content\\\":\\\"impor\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1152,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"t { test } from \\\\\\\"node:test\\\\\\\";\\\\nimport assert fr\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1228,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"om \\\\\\\"node:assert/strict\\\\\\\";\\\\nimport { formatGreet\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1304,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ing } from \\\\\\\"../src/lib/greeting/greeting.ts\\\\\\\";\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1380,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"n\\\\ntest(\\\\\\\"greets informally by default\\\\\\\", () => \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1456,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\\n  assert.equal(formatGreeting({ name: \\\\\\\"Ada\\\\\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1531,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" }), \\\\\\\"Hi Ada!\\\\\\\");\\\\n});\\\\n\\\\ntest(\\\\\\\"greets formall\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1607,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"y when asked\\\\\\\", () => {\\\\n  assert.equal(formatGr\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1683,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"eeting({ name: \\\\\\\"Ada\\\\\\\", formal: true }), \\\\\\\"Dear \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1759,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"Ada,\\\\\\\");\\\\n});\\\\n\\\\ntest(\\\\\\\"falls back to a generic \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1835,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"greeting without a name\\\\\\\", () => {\\\\n  assert.equ\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1911,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"al(formatGreeting({ name: \\\\\\\"\\\\\\\" }), \\\\\\\"Hi there!\\\\\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1987,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\");\\\\n});\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2006.9999999999998,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_5_1\",\"type\":\"function\",\"function\":{\"name\":\"edit\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2117,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"README.md\\\",\\\"oldString\\\":\\\"  - `audit.ts`,\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2227,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\" `events.ts`, `ids.ts`, `serialize.ts`, `logger.\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2337,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ts`, `clock.ts`\\\\n\\\",\\\"newString\\\":\\\"  - `audit.ts`, \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2446,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"`events.ts`, `ids.ts`, `serialize.ts`, `logger.t\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2556,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"s`, `clock.ts`\\\\n  - `greeting/` – greetings for \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2666,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"signed-in users\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2686,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":7000,\"completion_tokens\":232,\"total_tokens\":7232}}"
+    },
+    {
+     "t": 2686,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "9cbd06d637481a877e3b1b7973d2932b14e6b379"
+  },
+  {
+   "index": 6,
+   "thread": "t:1e9b53b3327b2262",
+   "position": 6,
+   "at": 15865,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 13,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Running the \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tests.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 800,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_6_0\",\"type\":\"function\",\"function\":{\"name\":\"shell\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1247,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"command\\\":\\\"node --test test/greeting.test.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1267,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":7600,\"completion_tokens\":17,\"total_tokens\":7617}}"
+    },
+    {
+     "t": 1267,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "b074ca62e79ae5a9bef809677f75cb245e5156ce"
+  },
+  {
+   "index": 7,
+   "thread": "t:1e9b53b3327b2262",
+   "position": 7,
+   "at": 17432,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 15,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"That's every\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"thing. The f\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eature is fi\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nished.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 880,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":8200,\"completion_tokens\":11,\"total_tokens\":8211}}"
+    },
+    {
+     "t": 880,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "892ce659e889c412d6227f9fabcc354f6c041289"
+  }
+ ]
+}

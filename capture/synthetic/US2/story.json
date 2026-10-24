@@ -1,0 +1,142 @@
+{
+  "id": "US2",
+  "title": "Webhook Payment Idempotency & Retry",
+  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
+  "steps": [
+    {
+      "n": 1,
+      "summary": "Add webhook event types and the event log",
+      "files": [
+        {
+          "path": "src/lib/webhooks/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "I'll begin with the webhook event types and the event log."
+    },
+    {
+      "n": 2,
+      "summary": "Add event parsing and the credit handler",
+      "narration": "Next I'm adding the event parsing and the handler that credits the account.",
+      "files": [
+        {
+          "path": "src/lib/webhooks/handlers.ts",
+          "source": "src/handlers.ts"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "summary": "Implement event deduplication and retry",
+      "files": [
+        {
+          "path": "src/lib/webhooks/idempotency.ts",
+          "source": "src/idempotency.ts"
+        }
+      ],
+      "narration": "Now the core of the feature: handling repeated deliveries of the same event and retrying when processing fails."
+    },
+    {
+      "n": 4,
+      "summary": "Add the webhook endpoint and unit tests",
+      "narration": "Finally, the webhook endpoint that ties it together, with the event log in the shared db, unit tests for the webhook processing, and the README.",
+      "files": [
+        {
+          "path": "src/lib/webhooks/webhook.ts",
+          "source": "src/webhook.ts"
+        },
+        {
+          "path": "src/app/api/webhooks/payments/route.ts",
+          "source": "src/webhook.route.ts"
+        },
+        {
+          "path": "test/webhook.test.ts",
+          "source": "test/webhook.test.ts"
+        },
+        {
+          "path": "src/lib/db.ts",
+          "edits": [
+            {
+              "find": "import { createCatalog, type Catalog } from \"./catalog.ts\";\n",
+              "replace": "import { createCatalog, type Catalog } from \"./catalog.ts\";\nimport { createEventLog, type EventLog } from \"./webhooks/types.ts\";\n"
+            },
+            {
+              "find": "  catalog: Catalog;\n}\n",
+              "replace": "  catalog: Catalog;\n  /** Payment webhook events already handled. */\n  webhookEvents: EventLog;\n}\n"
+            },
+            {
+              "find": "      { sku: \"notebook\", name: \"Dot-grid notebook\", priceCents: 1800 },\n    ]),\n",
+              "replace": "      { sku: \"notebook\", name: \"Dot-grid notebook\", priceCents: 1800 },\n    ]),\n    webhookEvents: createEventLog(),\n"
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "edits": [
+            {
+              "find": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n",
+              "replace": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n  - `webhooks/` – payment provider webhooks (`POST /api/webhooks/payments`)\n"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "plan": {
+    "explore": [
+      {
+        "text": "Let me look at how the project is organized first.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "README.md"
+            }
+          },
+          {
+            "name": "glob",
+            "args": {
+              "pattern": "src/**/*.ts"
+            }
+          }
+        ]
+      },
+      {
+        "text": "Balances are in accounts.ts; I'll read that and the shared db.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/accounts.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/db.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/http.ts"
+            }
+          }
+        ]
+      },
+      {
+        "tools": [
+          {
+            "name": "grep",
+            "args": {
+              "pattern": "adjustBalance",
+              "include": "*.ts"
+            }
+          }
+        ]
+      }
+    ],
+    "file": "plan.md"
+  },
+  "testFile": "test/webhook.test.ts"
+}

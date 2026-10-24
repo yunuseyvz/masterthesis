@@ -1,0 +1,1729 @@
+{
+ "format": "beacon-capture/1",
+ "id": "US5",
+ "createdAt": "2026-10-23T09:52:11.658Z",
+ "source": "synthetic",
+ "model": {
+  "id": "synthetic"
+ },
+ "workspace": {
+  "dir": "/synthetic/US5",
+  "initial": "202f4fdde4e37a2dc215d73d34ebb75dabe71083",
+  "final": "0174698d5929ddd4d0292e8c47406c3d450e9bd6"
+ },
+ "mainThread": "t:bcd494271652035d",
+ "turns": [
+  {
+   "text": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.",
+   "agent": "plan",
+   "at": 0
+  },
+  {
+   "text": "The plan looks good. Go ahead.",
+   "agent": "build",
+   "at": 13260
+  }
+ ],
+ "calls": [
+  {
+   "index": 0,
+   "thread": "t:bcd494271652035d",
+   "position": 0,
+   "at": 0,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 1,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Let me look \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"at how the p\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"roject is or\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ganized firs\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 920,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_0_0\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1340,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"README.md\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1360,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_0_1\",\"type\":\"function\",\"function\":{\"name\":\"glob\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1785,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"pattern\\\":\\\"src/**/*.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1805,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":4000,\"completion_tokens\":24,\"total_tokens\":4024}}"
+    },
+    {
+     "t": 1805,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "b500f16c57f96e56ca73c1fdd5c974cc2accbd58"
+  },
+  {
+   "index": 1,
+   "thread": "t:bcd494271652035d",
+   "position": 1,
+   "at": 2405,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 3,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"I'll check t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"he response \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"helpers and \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"the clock.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 880,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_1_0\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1306,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/http.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1326,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_1_1\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1753,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/clock.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1773,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":4600,\"completion_tokens\":25,\"total_tokens\":4625}}"
+    },
+    {
+     "t": 1773,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "11e40edaaa1698e1133413f12ced3824ae9e21d8"
+  },
+  {
+   "index": 2,
+   "thread": "t:bcd494271652035d",
+   "position": 2,
+   "at": 4778,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 5,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 720,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_2_0\",\"type\":\"function\",\"function\":{\"name\":\"grep\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1162,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"pattern\\\":\\\"x-client-id\\\",\\\"include\\\":\\\"*.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1182,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":5200,\"completion_tokens\":11,\"total_tokens\":5211}}"
+    },
+    {
+     "t": 1182,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "68f54e4aee17d9fbd64818f224d95f7a2bc1026c"
+  },
+  {
+   "index": 3,
+   "thread": "t:bcd494271652035d",
+   "position": 3,
+   "at": 6260,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 7,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"# Plan: slid\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ing-window r\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ate limiter \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"for the API\\n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\\n## Context\\n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\\n- Route han\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"dlers are pl\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ain `(req: R\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"equest) => P\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"romise<Respo\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nse>` functi\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ons; `src/li\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"b/http.ts` h\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"as `text()` \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"and `json()`\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\\n- Time com\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"es from `src\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"/lib/clock.t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s` (`Clock`,\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" with `fakeC\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lock` for te\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"sts).\\n- Clie\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nts identify\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" themselves \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"with an `x-c\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lient-id` he\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ader.\\n\\n## Ap\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"proach\\n\\nA `s\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rc/lib/ratel\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"imit/` modul\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e: per-clien\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t buckets of\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" recent requ\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"est timestam\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ps, a slidin\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"g-window che\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ck, a filter\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" that keeps \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"one bucket p\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"er client, a\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nd a wrapper\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" for route h\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"andlers. Ove\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"r-limit requ\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ests get a 4\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"29 with a `R\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"etry-After` \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"header.\\n\\n## \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Steps\\n\\n### 1\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\". Add rate l\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"imiter types\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" and default\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" config\\n- `s\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rc/lib/ratel\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"imit/types.t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s`: `Limiter\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Config { lim\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"it; windowMs\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" }`, `Client\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Bucket { tim\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"estamps: num\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ber[] }`, `F\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ilterResult \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"{ status: 20\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"0 | 429; ret\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ryAfterMs? }\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`, `DEFAULT_\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"CONFIG` (2 p\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"er minute fo\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"r now), `cre\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ateBucket()`\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\\n\\n### 2. Ad\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"d client ide\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ntification \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"and the 429 \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"response\\n- `\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"src/lib/rate\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"limit/respon\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"d.ts`: `clie\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ntIdOf(req)`\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" (the header\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\", or one sha\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"red id for a\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nonymous cal\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lers); `toRe\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"sponse(resul\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t)`.\\n- `src/\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lib/http.ts`\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\": `tooManyRe\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"quests(retry\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"AfterMs, bod\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"y)`: a 429 J\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"SON response\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" with `Retry\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"-After` in w\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"hole seconds\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\\n\\n### 3. Im\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"plement the \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"sliding-wind\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ow check\\n- `\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"src/lib/rate\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"limit/limite\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"r.ts`: `chec\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"kAndRecord(b\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ucket, now, \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"cfg): boolea\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"n`: drops ti\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"mestamps tha\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t have left \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"the window, \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"decides whet\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"her this req\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"uest is allo\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"wed and reco\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rds it in th\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e bucket.\\n\\n#\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"## 4. Add th\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e rate-limit\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" filter and \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"unit tests\\n-\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" `src/lib/ra\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"telimit/gate\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"way.ts`: `Ra\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"teLimitFilte\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"r` (one buck\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"et per clien\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t; `handle(c\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lientId, now\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\")` → `Filter\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Result` with\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" `retryAfter\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Ms` from the\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" oldest time\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"stamp; `rese\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t`, `activeC\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lients`) and\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" `withRateLi\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"mit(filter, \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"clock, clien\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tOf, next)`.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\\n- `test/lim\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"iter.test.ts\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`: requests \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"under the li\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"mit pass, se\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"parate clien\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ts have sepa\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rate limits,\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" the window \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"frees up aga\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"in over time\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\\n- README: \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"add `ratelim\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"it/` under \\\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Layout\\\".\\n\\nSh\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"all I go ahe\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ad?\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7000,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":5800,\"completion_tokens\":469,\"total_tokens\":6269}}"
+    },
+    {
+     "t": 7000,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "83072d4c31ac7939f413a96b06ca0281822fd87d"
+  },
+  {
+   "index": 4,
+   "thread": "t:bcd494271652035d",
+   "position": 4,
+   "at": 13260,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 9,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"I'll start w\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ith the rate\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" limiter typ\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"es and a def\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ault configu\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ration.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 960,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_4_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1044,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/ratelimit/types.ts\\\",\\\"content\\\":\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1128,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"export interface LimiterConfig {\\\\n  limit: numbe\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1211,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"r;\\\\n  windowMs: number;\\\\n}\\\\n\\\\nexport interface C\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1295,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"lientBucket {\\\\n  timestamps: number[];\\\\n}\\\\n\\\\nexp\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1379,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ort interface FilterResult {\\\\n  status: 200 | 42\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1463,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"9;\\\\n  retryAfterMs?: number;\\\\n}\\\\n\\\\nexport const \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1547,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"DEFAULT_CONFIG: LimiterConfig = { limit: 2, wind\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1630,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"owMs: 60_000 };\\\\n\\\\nexport function createBucket(\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1714,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"): ClientBucket {\\\\n  return { timestamps: [] };\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1798,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1818,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":6400,\"completion_tokens\":127,\"total_tokens\":6527}}"
+    },
+    {
+     "t": 1818,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "6cdf2f51fcc102892b047cc508eae8c9b55cb2e8"
+  },
+  {
+   "index": 5,
+   "thread": "t:bcd494271652035d",
+   "position": 5,
+   "at": 15378,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 11,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Next I'm add\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ing how a cl\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ient is iden\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tified and t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"he response \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"sent when it\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" is over the\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1020,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" limit, with\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1060,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" a small 429\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1100,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" helper in h\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1140,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ttp.ts.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1160,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_5_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1234,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/ratelimit/respond.ts\\\",\\\"content\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1307,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\":\\\"import { text, tooManyRequests } from \\\\\\\"../htt\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1381,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"p.ts\\\\\\\";\\\\nimport type { FilterResult } from \\\\\\\"./t\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1455,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ypes.ts\\\\\\\";\\\\n\\\\n/** Identifies the caller: the `x-\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1529,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"client-id` header, or one shared id for anonymou\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1602,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"s callers. */\\\\nexport function clientIdOf(req: R\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1676,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"equest): string {\\\\n  return req.headers.get(\\\\\\\"x-\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1750,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"client-id\\\\\\\") ?? \\\\\\\"anonymous\\\\\\\";\\\\n}\\\\n\\\\nexport func\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1823,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"tion toResponse(result: FilterResult): Response \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1897,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\\n  if (result.status === 200) {\\\\n    return te\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1971,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"xt(200, \\\\\\\"ok\\\\\\\");\\\\n  }\\\\n  return tooManyRequests(\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2045,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"result.retryAfterMs ?? 0, { error: \\\\\\\"rate limit \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2118,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"exceeded\\\\\\\", retryAfterMs: result.retryAfterMs })\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2192,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\";\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2212.000000000001,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_5_1\",\"type\":\"function\",\"function\":{\"name\":\"edit\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2288,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/http.ts\\\",\\\"oldString\\\":\\\"/** JSON \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2363,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"response with the given status. */\\\\nexport funct\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2439,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ion json(status: number, value: unknown): Respon\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2515,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"se {\\\\n  return Response.json(value, { status });\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2591,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"\\\\n}\\\\n\\\",\\\"newString\\\":\\\"/** JSON response with the g\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2666,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"iven status. */\\\\nexport function json(status: nu\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2742,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"mber, value: unknown): Response {\\\\n  return Resp\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2818,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"onse.json(value, { status });\\\\n}\\\\n\\\\n/** 429 Too \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2893,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"Many Requests, with a Retry-After header in whol\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2969,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"e seconds. */\\\\nexport function tooManyRequests(r\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3045,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"etryAfterMs: number, value: unknown): Response {\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3121,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"\\\\n  const res = json(429, value);\\\\n  res.headers\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3196,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\".set(\\\\\\\"retry-after\\\\\\\", String(Math.ceil(retryAfte\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3272,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"rMs / 1000)));\\\\n  return res;\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3292,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":7000,\"completion_tokens\":355,\"total_tokens\":7355}}"
+    },
+    {
+     "t": 3292,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "3edd97e01bbe73383644725f6d9adba52ce0a1ee"
+  },
+  {
+   "index": 6,
+   "thread": "t:bcd494271652035d",
+   "position": 6,
+   "at": 19270,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 13,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Now the main\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" logic: a sl\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"iding-window\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" check on a \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"client's rec\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ent requests\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1000,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_6_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1080,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/ratelimit/limiter.ts\\\",\\\"content\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1160,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\":\\\"import type { ClientBucket, LimiterConfig } fr\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1239,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"om \\\\\\\"./types.ts\\\\\\\";\\\\n\\\\n/**\\\\n * Sliding-window che\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1319,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ck. Returns true if the request is allowed.\\\\n * \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1399,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"Only allowed requests count against the client's\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1479,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" window.\\\\n */\\\\nexport function checkAndRecord(bu\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1559,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"cket: ClientBucket, now: number, cfg: LimiterCon\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1639,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"fig): boolean {\\\\n  bucket.timestamps = bucket.ti\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1718,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"mestamps.filter((t) => now - t < cfg.windowMs);\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1798,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"n  if (bucket.timestamps.length >= cfg.limit) {\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1878,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"n    return false;\\\\n  }\\\\n  bucket.timestamps.pus\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1958,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"h(now);\\\\n  return true;\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1978,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":7600,\"completion_tokens\":158,\"total_tokens\":7758}}"
+    },
+    {
+     "t": 1978,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "dc1585c02bfd9477360efaec839602984f7f4fb4"
+  },
+  {
+   "index": 7,
+   "thread": "t:bcd494271652035d",
+   "position": 7,
+   "at": 21548,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 15,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Finally, the\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" filter that\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" applies the\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" limiter per\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" client, uni\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t tests for \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"the limiter,\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1020,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" and the REA\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1060,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"DME.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1080,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_7_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1139,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/ratelimit/gateway.ts\\\",\\\"content\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1199,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\":\\\"import type { Clock } from \\\\\\\"../clock.ts\\\\\\\";\\\\ni\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1258,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"mport { checkAndRecord } from \\\\\\\"./limiter.ts\\\\\\\";\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1317,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"nimport { toResponse } from \\\\\\\"./respond.ts\\\\\\\";\\\\ni\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1377,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"mport { DEFAULT_CONFIG, createBucket, type Clien\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1436,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"tBucket, type FilterResult, type LimiterConfig }\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1495,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" from \\\\\\\"./types.ts\\\\\\\";\\\\n\\\\nexport class RateLimitF\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1555,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ilter {\\\\n  private readonly buckets = new Map<st\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1614,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ring, ClientBucket>();\\\\n  private readonly confi\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1673,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"g: LimiterConfig;\\\\n\\\\n  constructor(config: Limit\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1733,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"erConfig = DEFAULT_CONFIG) {\\\\n    this.config = \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1792,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"config;\\\\n  }\\\\n\\\\n  handle(clientId: string, now: \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1851,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"number): FilterResult {\\\\n    let bucket = this.b\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1911,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"uckets.get(clientId);\\\\n    if (!bucket) {\\\\n     \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1970,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" bucket = createBucket();\\\\n      this.buckets.se\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2029,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"t(clientId, bucket);\\\\n    }\\\\n    if (checkAndRec\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2088,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ord(bucket, now, this.config)) {\\\\n      return {\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2148,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" status: 200 };\\\\n    }\\\\n    const oldest = bucke\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2207,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"t.timestamps[0] ?? now;\\\\n    return { status: 42\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2266,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"9, retryAfterMs: Math.max(0, oldest + this.confi\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2326,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"g.windowMs - now) };\\\\n  }\\\\n\\\\n  reset(clientId: s\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2385,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"tring): void {\\\\n    this.buckets.delete(clientId\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2444,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\");\\\\n  }\\\\n\\\\n  activeClients(): number {\\\\n    retu\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2504,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"rn this.buckets.size;\\\\n  }\\\\n}\\\\n\\\\n/** Wraps a rou\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2563,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"te handler: requests over the client's limit get\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2622,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" a 429, everything else reaches `next`. */\\\\nexpo\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2682,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"rt function withRateLimit(\\\\n  filter: RateLimitF\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2741,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ilter,\\\\n  clock: Clock,\\\\n  clientOf: (req: Reque\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2800,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"st) => string,\\\\n  next: (req: Request) => Promis\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2860,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"e<Response>,\\\\n): (req: Request) => Promise<Respo\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2919,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"nse> {\\\\n  return async (req) => {\\\\n    const res\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2978,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ult = filter.handle(clientOf(req), clock.now());\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3038,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\\n    return result.status === 200 ? next(req) :\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3097,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" toResponse(result);\\\\n  };\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3117.000000000002,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_7_1\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3182,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"test/limiter.test.ts\\\",\\\"content\\\":\\\"import\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3247,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\" { test } from \\\\\\\"node:test\\\\\\\";\\\\nimport assert fro\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3312,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"m \\\\\\\"node:assert/strict\\\\\\\";\\\\nimport { checkAndReco\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3377,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"rd } from \\\\\\\"../src/lib/ratelimit/limiter.ts\\\\\\\";\\\\n\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3442,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"import { createBucket } from \\\\\\\"../src/lib/rateli\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3506,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"mit/types.ts\\\\\\\";\\\\n\\\\nconst cfg = { limit: 2, windo\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3571,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"wMs: 60_000 };\\\\n\\\\ntest(\\\\\\\"allows requests under t\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3636,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"he limit\\\\\\\", () => {\\\\n  const bucket = createBuck\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3701,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"et();\\\\n  assert.equal(checkAndRecord(bucket, 0, \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3766,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"cfg), true);\\\\n  assert.equal(checkAndRecord(buck\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3831,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"et, 1_000, cfg), true);\\\\n});\\\\n\\\\ntest(\\\\\\\"rejects o\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3896,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"nce the limit is reached\\\\\\\", () => {\\\\n  const buc\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3961,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ket = createBucket();\\\\n  checkAndRecord(bucket, \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4026,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"0, cfg);\\\\n  checkAndRecord(bucket, 0, cfg);\\\\n  a\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4091,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ssert.equal(checkAndRecord(bucket, 0, cfg), fals\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4155,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"e);\\\\n});\\\\n\\\\ntest(\\\\\\\"allows again after the window\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4220,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\" has passed\\\\\\\", () => {\\\\n  const bucket = createB\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4285,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ucket();\\\\n  checkAndRecord(bucket, 0, cfg);\\\\n  c\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4350,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"heckAndRecord(bucket, 0, cfg);\\\\n  assert.equal(c\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4415,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"heckAndRecord(bucket, 61_000, cfg), true);\\\\n});\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4480,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4500,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"id\":\"call_7_2\",\"type\":\"function\",\"function\":{\"name\":\"edit\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4612,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"README.md\\\",\\\"oldString\\\":\\\"  - `audit.ts`,\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4723,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\" `events.ts`, `ids.ts`, `serialize.ts`, `logger.\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4835,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"ts`, `clock.ts`\\\\n\\\",\\\"newString\\\":\\\"  - `audit.ts`, \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4947,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"`events.ts`, `ids.ts`, `serialize.ts`, `logger.t\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5058,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"s`, `clock.ts`\\\\n  - `ratelimit/` – sliding-windo\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5170,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"w rate limiting per client\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5190,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":8200,\"completion_tokens\":738,\"total_tokens\":8938}}"
+    },
+    {
+     "t": 5190,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "ff4cb0c39754c2ed92132ce79959655cda594276"
+  },
+  {
+   "index": 8,
+   "thread": "t:bcd494271652035d",
+   "position": 8,
+   "at": 27638,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 17,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Running the \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tests.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 800,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_8_0\",\"type\":\"function\",\"function\":{\"name\":\"shell\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1246,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"command\\\":\\\"node --test test/limiter.test.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1266,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":8800,\"completion_tokens\":16,\"total_tokens\":8816}}"
+    },
+    {
+     "t": 1266,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "d5c68e46c62b2769d5ec4590783f73de5bf65213"
+  },
+  {
+   "index": 9,
+   "thread": "t:bcd494271652035d",
+   "position": 9,
+   "at": 29204,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 19,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"That's every\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"thing. The f\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eature is fi\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nished.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 880,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":9400,\"completion_tokens\":11,\"total_tokens\":9411}}"
+    },
+    {
+     "t": 880,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "1f2149bdd56fce6ea7b8bd916d6eee19d83b3ef7"
+  }
+ ]
+}

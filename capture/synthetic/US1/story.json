@@ -1,0 +1,153 @@
+{
+  "id": "US1",
+  "title": "Flash-Sale Inventory Reservation",
+  "brief": "As a customer during a flash sale, I want to reserve stock for the items in my cart so that I don't lose them while I check out. If the shop can't fulfil my order, I should be told.",
+  "steps": [
+    {
+      "n": 1,
+      "summary": "Add SKU and store types",
+      "files": [
+        {
+          "path": "src/lib/inventory/types.ts",
+          "source": "src/types.ts"
+        },
+        {
+          "path": "src/lib/errors.ts",
+          "edits": [
+            {
+              "find": "export class ValidationError extends AppError {\n  constructor(message: string) {\n    super(400, message);\n  }\n}\n",
+              "replace": "export class ValidationError extends AppError {\n  constructor(message: string) {\n    super(400, message);\n  }\n}\n\n/** The shop cannot fulfil a request for this many units of a SKU. */\nexport class OutOfStockError extends AppError {\n  readonly skuId: string;\n  readonly requested: number;\n\n  constructor(skuId: string, requested: number) {\n    super(409, `Not enough stock for ${skuId} (requested ${requested})`);\n    this.skuId = skuId;\n    this.requested = requested;\n  }\n}\n"
+            }
+          ]
+        }
+      ],
+      "narration": "I'll begin with the types for SKUs and the store, plus a way to create a store. The out-of-stock error goes with the other app errors in errors.ts."
+    },
+    {
+      "n": 2,
+      "summary": "Implement stock reservation",
+      "files": [
+        {
+          "path": "src/lib/inventory/inventory.ts",
+          "source": "src/inventory.ts"
+        }
+      ],
+      "narration": "Now the main part: reserving stock for the items in a cart."
+    },
+    {
+      "n": 3,
+      "summary": "Add the checkout handler and API route",
+      "files": [
+        {
+          "path": "src/lib/inventory/checkout.ts",
+          "source": "src/checkout.ts"
+        },
+        {
+          "path": "src/app/api/checkout/route.ts",
+          "source": "src/checkout.route.ts"
+        },
+        {
+          "path": "src/lib/db.ts",
+          "edits": [
+            {
+              "find": "import { createCatalog, type Catalog } from \"./catalog.ts\";\n",
+              "replace": "import { createCatalog, type Catalog } from \"./catalog.ts\";\nimport { createStore, type Store } from \"./inventory/types.ts\";\n"
+            },
+            {
+              "find": "  catalog: Catalog;\n}\n",
+              "replace": "  catalog: Catalog;\n  /** Flash-sale stock per SKU. */\n  inventory: Store;\n}\n"
+            },
+            {
+              "find": "      { sku: \"notebook\", name: \"Dot-grid notebook\", priceCents: 1800 },\n    ]),\n",
+              "replace": "      { sku: \"notebook\", name: \"Dot-grid notebook\", priceCents: 1800 },\n    ]),\n    inventory: createStore({ mug: 20, pen: 5, notebook: 12 }),\n"
+            }
+          ]
+        }
+      ],
+      "narration": "Next I'm adding the checkout handler and the API route that exposes it. The stock goes into the shared in-memory db, next to the accounts and the catalog."
+    },
+    {
+      "n": 4,
+      "summary": "Add unit tests for reservations",
+      "files": [
+        {
+          "path": "test/inventory.test.ts",
+          "source": "test/inventory.test.ts"
+        },
+        {
+          "path": "README.md",
+          "edits": [
+            {
+              "find": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n",
+              "replace": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n  - `inventory/` – flash-sale stock reservations and the checkout handler (`POST /api/checkout`)\n"
+            }
+          ]
+        }
+      ],
+      "narration": "Finally, unit tests for the reservations, and the new module in the README."
+    }
+  ],
+  "plan": {
+    "explore": [
+      {
+        "text": "Let me look at how the project is organized first.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "README.md"
+            }
+          },
+          {
+            "name": "glob",
+            "args": {
+              "pattern": "src/**/*.ts"
+            }
+          }
+        ]
+      },
+      {
+        "text": "I'll check the error handling, the shared db and an existing route.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/errors.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/http.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/db.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/app/api/health/route.ts"
+            }
+          }
+        ]
+      },
+      {
+        "tools": [
+          {
+            "name": "grep",
+            "args": {
+              "pattern": "export function",
+              "path": "src/lib/validation.ts"
+            }
+          }
+        ]
+      }
+    ],
+    "file": "plan.md"
+  },
+  "testFile": "test/inventory.test.ts"
+}

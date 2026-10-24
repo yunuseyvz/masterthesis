@@ -1,0 +1,23 @@
+{
+  "name": "@beacon/capture",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Records real opencode sessions at the model boundary, for replay in the study harness",
+  "scripts": {
+    "capture": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@beacon/shared": "*",
+    "@opencode/cli": "2.1.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

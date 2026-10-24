@@ -1,0 +1,104 @@
+{
+  "id": "US4",
+  "title": "SLA Duration & Billing Window Calculator",
+  "brief": "As a billing owner, I want outages measured against our SLA threshold and credited on the invoice, so that customers are compensated when we miss the SLA.",
+  "steps": [
+    {
+      "n": 1,
+      "summary": "Implement duration parsing",
+      "files": [
+        {
+          "path": "src/lib/sla/time.ts",
+          "source": "src/time.ts"
+        },
+        {
+          "path": "src/lib/sla/duration.ts",
+          "source": "src/duration.ts"
+        }
+      ],
+      "narration": "I'll start with the core: parsing durations like \"2h\" or \"45m\" so outages can be measured against the SLA."
+    },
+    {
+      "n": 2,
+      "summary": "Add billing tiers and the invoice type",
+      "files": [
+        {
+          "path": "src/lib/sla/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "Next I'm adding the billing tiers and the invoice type."
+    },
+    {
+      "n": 3,
+      "summary": "Add the SLA credit invoice generator",
+      "files": [
+        {
+          "path": "src/lib/sla/invoice.ts",
+          "source": "src/invoice.ts"
+        }
+      ],
+      "narration": "Now the invoice generator that applies the SLA credit."
+    },
+    {
+      "n": 4,
+      "summary": "Add unit tests for durations and invoices",
+      "files": [
+        {
+          "path": "test/duration.test.ts",
+          "source": "test/duration.test.ts"
+        },
+        {
+          "path": "README.md",
+          "edits": [
+            {
+              "find": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n",
+              "replace": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n  - `sla/` – SLA outage durations and invoice credits\n"
+            }
+          ]
+        }
+      ],
+      "narration": "Finally, unit tests for the durations and the invoices, and the README."
+    }
+  ],
+  "plan": {
+    "explore": [
+      {
+        "text": "Let me look at how the project is organized first.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "README.md"
+            }
+          },
+          {
+            "name": "glob",
+            "args": {
+              "pattern": "src/lib/**/*.ts"
+            }
+          }
+        ]
+      },
+      {
+        "text": "I'll read how money and balances are handled.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/money.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/accounts.ts"
+            }
+          }
+        ]
+      }
+    ],
+    "file": "plan.md"
+  },
+  "testFile": "test/duration.test.ts"
+}

@@ -1,0 +1,1917 @@
+{
+ "format": "beacon-capture/1",
+ "id": "US1",
+ "createdAt": "2026-10-23T09:52:09.541Z",
+ "source": "synthetic",
+ "model": {
+  "id": "synthetic"
+ },
+ "workspace": {
+  "dir": "/synthetic/US1",
+  "initial": "50a79698dab66fdda512ff73f9df81c59b79d410",
+  "final": "0f1e596bfa4680bee2d718ca9f287dc9b64b6bcc"
+ },
+ "mainThread": "t:437a091d6ac7de8a",
+ "turns": [
+  {
+   "text": "As a customer during a flash sale, I want to reserve stock for the items in my cart so that I don't lose them while I check out. If the shop can't fulfil my order, I should be told.",
+   "agent": "plan",
+   "at": 0
+  },
+  {
+   "text": "The plan looks good. Go ahead.",
+   "agent": "build",
+   "at": 15741
+  }
+ ],
+ "calls": [
+  {
+   "index": 0,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 0,
+   "at": 0,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 1,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Let me look \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"at how the p\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"roject is or\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ganized firs\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 920,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_0_0\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1340,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"README.md\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1360,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_0_1\",\"type\":\"function\",\"function\":{\"name\":\"glob\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1785,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"pattern\\\":\\\"src/**/*.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1805,
+     "data": "{\"id\":\"chatcmpl-synthetic-0\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":4000,\"completion_tokens\":24,\"total_tokens\":4024}}"
+    },
+    {
+     "t": 1805,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "8116245995e40974f81d90bb409dda32d0d060f1"
+  },
+  {
+   "index": 1,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 1,
+   "at": 2405,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 3,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"I'll check t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"he error han\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"dling, the s\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"hared db and\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" an existing\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" route.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 960,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_1_0\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1388,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/errors.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1408,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_1_1\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1834,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/http.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1854,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"id\":\"call_1_2\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2278,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/db.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2298,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":3,\"id\":\"call_1_3\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2736,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":3,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/app/api/health/route.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2756,
+     "data": "{\"id\":\"chatcmpl-synthetic-1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":4600,\"completion_tokens\":46,\"total_tokens\":4646}}"
+    },
+    {
+     "t": 2756,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "7ec6dbfdac1e0aad75052a74eebe56f1e3475dd2"
+  },
+  {
+   "index": 2,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 2,
+   "at": 6361,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 5,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 720,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_2_0\",\"type\":\"function\",\"function\":{\"name\":\"grep\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 950,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"pattern\\\":\\\"export function\\\",\\\"path\\\":\\\"src/lib/val\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1180,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"idation.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1200,
+     "data": "{\"id\":\"chatcmpl-synthetic-2\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":5200,\"completion_tokens\":15,\"total_tokens\":5215}}"
+    },
+    {
+     "t": 1200,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "dc2620f536411a4aa390b1253889fb85a2ce367a"
+  },
+  {
+   "index": 3,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 3,
+   "at": 7861,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 7,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"# Plan: flas\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"h-sale stock\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" reservation\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\\n\\n## Context\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\\n\\n- Errors t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"hat reach th\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e client ext\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"end `AppErro\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"r` in `src/l\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ib/errors.ts\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"` (it carrie\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s the HTTP s\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tatus); `err\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"orResponse()\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"` in `src/li\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"b/http.ts` t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"urns them in\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"to JSON resp\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"onses.\\n- Sha\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"red in-memor\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"y data lives\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" in `src/lib\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"/db.ts` (`ge\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tDb()`: acco\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"unts, catalo\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"g). There is\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" no notion o\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"f stock yet.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\\n- Route han\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"dlers stay t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"hin: parse, \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"call into `s\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rc/lib/`, bu\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ild the `Res\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ponse` (see \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`src/app/api\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"/health/rout\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e.ts`).\\n- Re\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"quest parsin\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"g helpers ex\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ist in `src/\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lib/validati\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"on.ts` (`par\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"seJsonObject\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`, `requireS\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tring`).\\n\\n##\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" Approach\\n\\nA\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" new `src/li\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"b/inventory/\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"` module wit\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"h the store \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"and the rese\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rvation logi\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"c, a checkou\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t handler on\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" top, and `P\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"OST /api/che\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ckout` wired\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" to a store \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"in the share\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"d db.\\n\\n## St\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eps\\n\\n### 1. \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Add SKU and \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"store types\\n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"- `src/lib/i\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nventory/typ\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"es.ts`: `Sku\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" { id; stock\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" }`, `Store \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"{ skus: Map<\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"string, Sku>\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" }`, `create\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Store(initia\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"l: Record<st\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ring, number\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\">)`.\\n- `src/\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lib/errors.t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s`: `OutOfSt\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ockError ext\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ends AppErro\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"r` (409) wit\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"h `skuId` an\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"d `requested\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`, next to t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"he other app\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" errors.\\n\\n##\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"# 2. Impleme\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nt stock res\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ervation\\n- `\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"src/lib/inve\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ntory/invent\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ory.ts`: `re\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"serveStock(s\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tore, skuId,\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" qty): numbe\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"r` returns t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"he remaining\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" stock.\\n  - \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Unknown SKU \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"→ `NotFoundE\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rror`; `qty`\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" must be a p\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ositive inte\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ger → `Valid\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ationError`.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\\n  - Throws \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`OutOfStockE\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"rror` when t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"he shop can'\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t fulfil the\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" request.\\n- \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"`getStock(st\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ore, skuId)`\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" for reads.\\n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\\n### 3. Add \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"the checkout\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" handler and\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" API route\\n-\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" `src/lib/in\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ventory/chec\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"kout.ts`: `p\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"arseCheckout\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"(body)` → `{\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" skuId, qty \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"}`; `handleC\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"heckout(stor\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e, req)` → `\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"200 { ok: tr\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ue, remainin\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"g }`, errors\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" via `errorR\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"esponse`, wi\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"th a log lin\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e for reserv\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ations and r\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ejections.\\n-\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" `src/lib/db\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".ts`: add `i\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nventory: St\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ore` to `Db`\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\", seeded wit\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"h the flash-\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"sale stock (\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"mug 20, pen \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"5, notebook \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"12).\\n- `src/\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"app/api/chec\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"kout/route.t\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s`: `POST` →\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" `handleChec\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"kout(getDb()\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".inventory, \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"parseCheckou\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t(body))`.\\n\\n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6900,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"### 4. Add u\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6940,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nit tests fo\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 6980,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"r reservatio\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7020,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ns\\n- `test/i\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7060,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nventory.tes\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7100,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t.ts`: succe\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7140,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ssful reserv\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7180,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ation, unkno\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7220,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"wn SKU, inva\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7260,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"lid quantity\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7300,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\".\\n- README: \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7340,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"add `invento\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7380,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ry/` under \\\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7420,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Layout\\\".\\n\\n##\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7460,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" Out of scop\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7500,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e\\n\\nReleasing\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7540,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" reservation\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7580,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s when a che\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7620,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ckout is aba\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7660,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ndoned, and \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7700,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"persistence \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7740,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"(the db is i\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7780,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"n memory).\\n\\n\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7820,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Shall I go a\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7860,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"head?\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 7880,
+     "data": "{\"id\":\"chatcmpl-synthetic-3\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":5800,\"completion_tokens\":536,\"total_tokens\":6336}}"
+    },
+    {
+     "t": 7880,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "117e117cc9e2c750cf750b483218b31090a35d89"
+  },
+  {
+   "index": 4,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 4,
+   "at": 15741,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 9,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"I'll begin w\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ith the type\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s for SKUs a\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nd the store\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\", plus a way\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" to create a\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" store. The \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1020,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"out-of-stock\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1060,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" error goes \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1100,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"with the oth\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1140,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"er app error\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1180,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"s in errors.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1220,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ts.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1240,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_4_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1329,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/inventory/types.ts\\\",\\\"content\\\":\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1418,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"export interface Sku {\\\\n  id: string;\\\\n  stock: \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1506,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"number;\\\\n}\\\\n\\\\nexport interface Store {\\\\n  skus: \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1595,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"Map<string, Sku>;\\\\n}\\\\n\\\\nexport function createSt\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1684,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ore(initial: Record<string, number>): Store {\\\\n \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1773,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" const skus = new Map<string, Sku>();\\\\n  for (co\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1861,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"nst [id, stock] of Object.entries(initial)) {\\\\n \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1950,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"   skus.set(id, { id, stock });\\\\n  }\\\\n  return {\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2039,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" skus };\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2059.0000000000005,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_4_1\",\"type\":\"function\",\"function\":{\"name\":\"edit\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2135,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/errors.ts\\\",\\\"oldString\\\":\\\"export \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2211,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"class ValidationError extends AppError {\\\\n  cons\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2287,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"tructor(message: string) {\\\\n    super(400, messa\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2364,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ge);\\\\n  }\\\\n}\\\\n\\\",\\\"newString\\\":\\\"export class Valida\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2440,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"tionError extends AppError {\\\\n  constructor(mess\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2516,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"age: string) {\\\\n    super(400, message);\\\\n  }\\\\n}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2592,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"\\\\n\\\\n/** The shop cannot fulfil a request for thi\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2668,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"s many units of a SKU. */\\\\nexport class OutOfSto\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2744,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ckError extends AppError {\\\\n  readonly skuId: st\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2820,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ring;\\\\n  readonly requested: number;\\\\n\\\\n  constr\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2897,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"uctor(skuId: string, requested: number) {\\\\n    s\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2973,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"uper(409, `Not enough stock for ${skuId} (reques\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3049,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ted ${requested})`);\\\\n    this.skuId = skuId;\\\\n \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3125,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"   this.requested = requested;\\\\n  }\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3145,
+     "data": "{\"id\":\"chatcmpl-synthetic-4\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":6400,\"completion_tokens\":303,\"total_tokens\":6703}}"
+    },
+    {
+     "t": 3145,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "6e2cd4c4d7dcb10722d24397a36bcb209f11c0d4"
+  },
+  {
+   "index": 5,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 5,
+   "at": 19486,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 11,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Now the main\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" part: reser\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ving stock f\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"or the items\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" in a cart.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 920,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_5_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 987,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/inventory/inventory.ts\\\",\\\"conten\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1053,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"t\\\":\\\"import { NotFoundError, OutOfStockError, Val\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1120,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"idationError } from \\\\\\\"../errors.ts\\\\\\\";\\\\nimport ty\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1187,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"pe { Store } from \\\\\\\"./types.ts\\\\\\\";\\\\n\\\\n/**\\\\n * Res\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1254,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"erve `qty` units of `skuId`. Returns the remaini\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1320,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ng stock.\\\\n * Throws OutOfStockError if the shop\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1387,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" cannot fulfil the order.\\\\n */\\\\nexport function \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1454,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"reserveStock(store: Store, skuId: string, qty: n\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1521,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"umber): number {\\\\n  const sku = store.skus.get(s\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1587,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"kuId);\\\\n  if (!sku) {\\\\n    throw new NotFoundErr\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1654,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"or(`sku ${skuId}`);\\\\n  }\\\\n  if (!Number.isIntege\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1721,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"r(qty) || qty <= 0) {\\\\n    throw new ValidationE\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1788,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"rror(\\\\\\\"qty must be a positive integer\\\\\\\");\\\\n  }\\\\n\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1854,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"  if (sku.stock < qty) {\\\\n    throw new OutOfSto\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1921,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ckError(skuId, qty);\\\\n  }\\\\n  sku.stock -= qty;\\\\n\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1988,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"  return sku.stock;\\\\n}\\\\n\\\\nexport function getSto\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2055,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ck(store: Store, skuId: string): number | undefi\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2121,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ned {\\\\n  return store.skus.get(skuId)?.stock;\\\\n}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2188,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2208,
+     "data": "{\"id\":\"chatcmpl-synthetic-5\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":7000,\"completion_tokens\":232,\"total_tokens\":7232}}"
+    },
+    {
+     "t": 2208,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "4a674fffb450e101dc9ebcbbed968179ae8742d6"
+  },
+  {
+   "index": 6,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 6,
+   "at": 21994,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 13,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Next I'm add\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ing the chec\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"kout handler\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" and the API\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" route that \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"exposes it. \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"The stock go\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1020,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"es into the \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1060,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"shared in-me\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1100,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"mory db, nex\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1140,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t to the acc\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1180,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ounts and th\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1220,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e catalog.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1240,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_6_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1301,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/inventory/checkout.ts\\\",\\\"content\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1363,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\":\\\"import { AppError } from \\\\\\\"../errors.ts\\\\\\\";\\\\ni\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1424,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"mport { errorResponse, json } from \\\\\\\"../http.ts\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1485,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\";\\\\nimport { createLogger } from \\\\\\\"../logger.ts\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1546,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\";\\\\nimport { parseJsonObject, requireString } fr\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1608,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"om \\\\\\\"../validation.ts\\\\\\\";\\\\nimport { reserveStock \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1669,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"} from \\\\\\\"./inventory.ts\\\\\\\";\\\\nimport type { Store \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1730,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"} from \\\\\\\"./types.ts\\\\\\\";\\\\n\\\\nexport interface Check\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1791,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"outRequest {\\\\n  skuId: string;\\\\n  qty: number;\\\\n\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1853,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"}\\\\n\\\\nconst log = createLogger(() => {});\\\\n\\\\n/** \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1914,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"Reads a checkout request from a JSON body. A mis\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1975,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"sing or non-numeric qty becomes NaN and is rejec\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2036,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ted by reserveStock. */\\\\nexport function parseCh\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2098,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"eckout(body: string): CheckoutRequest {\\\\n  const\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2159,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\" data = parseJsonObject(body);\\\\n  return { skuId\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2220,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\": requireString(data.skuId, \\\\\\\"skuId\\\\\\\"), qty: Num\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2281,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ber(data.qty) };\\\\n}\\\\n\\\\nexport function handleChe\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2343,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ckout(store: Store, req: CheckoutRequest): Respo\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2404,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"nse {\\\\n  try {\\\\n    const remaining = reserveSto\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2465,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ck(store, req.skuId, req.qty);\\\\n    log.info(\\\\\\\"r\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2526,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"eserved\\\\\\\", { skuId: req.skuId, qty: req.qty, rem\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2588,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"aining });\\\\n    return json(200, { ok: true, rem\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2649,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"aining });\\\\n  } catch (err) {\\\\n    if (err insta\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2710,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"nceof AppError) {\\\\n      log.warn(\\\\\\\"checkout rej\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2771,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ected\\\\\\\", { skuId: req.skuId, status: err.status \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2833,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"});\\\\n    }\\\\n    return errorResponse(err);\\\\n  }\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2894,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2913.9999999999995,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_6_1\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2999,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/app/api/checkout/route.ts\\\",\\\"content\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3083,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"\\\":\\\"import { getDb } from \\\\\\\"../../../lib/db.ts\\\\\\\";\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3168,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"\\\\nimport { errorResponse } from \\\\\\\"../../../lib/h\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3252,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ttp.ts\\\\\\\";\\\\nimport { handleCheckout, parseCheckou\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3337,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"t } from \\\\\\\"../../../lib/inventory/checkout.ts\\\\\\\";\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3422,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"\\\\n\\\\nexport async function POST(request: Request)\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3506,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\" {\\\\n  try {\\\\n    return handleCheckout(getDb().i\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3591,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"nventory, parseCheckout(await request.text()));\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3675,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"n  } catch (err) {\\\\n    return errorResponse(err\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3760,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\");\\\\n  }\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3779.9999999999986,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"id\":\"call_6_2\",\"type\":\"function\",\"function\":{\"name\":\"edit\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3888,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/db.ts\\\",\\\"oldString\\\":\\\"import { cr\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 3996,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"eateCatalog, type Catalog } from \\\\\\\"./catalog.ts\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4103,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"\\\";\\\\n\\\",\\\"newString\\\":\\\"import { createCatalog, type \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4211,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"Catalog } from \\\\\\\"./catalog.ts\\\\\\\";\\\\nimport { creat\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4319,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"eStore, type Store } from \\\\\\\"./inventory/types.ts\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4427,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":2,\"function\":{\"arguments\":\"\\\\\\\";\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4446.999999999998,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":3,\"id\":\"call_6_3\",\"type\":\"function\",\"function\":{\"name\":\"edit\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4587,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":3,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/db.ts\\\",\\\"oldString\\\":\\\"  catalog: \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4726,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":3,\"function\":{\"arguments\":\"Catalog;\\\\n}\\\\n\\\",\\\"newString\\\":\\\"  catalog: Catalog;\\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 4866,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":3,\"function\":{\"arguments\":\"n  /** Flash-sale stock per SKU. */\\\\n  inventory\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5006,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":3,\"function\":{\"arguments\":\": Store;\\\\n}\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5025.999999999998,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":4,\"id\":\"call_6_4\",\"type\":\"function\",\"function\":{\"name\":\"edit\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5125,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":4,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"src/lib/db.ts\\\",\\\"oldString\\\":\\\"      { sku\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5223,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":4,\"function\":{\"arguments\":\": \\\\\\\"notebook\\\\\\\", name: \\\\\\\"Dot-grid notebook\\\\\\\", pri\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5322,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":4,\"function\":{\"arguments\":\"ceCents: 1800 },\\\\n    ]),\\\\n\\\",\\\"newString\\\":\\\"      \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5420,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":4,\"function\":{\"arguments\":\"{ sku: \\\\\\\"notebook\\\\\\\", name: \\\\\\\"Dot-grid notebook\\\\\\\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5519,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":4,\"function\":{\"arguments\":\", priceCents: 1800 },\\\\n    ]),\\\\n    inventory: c\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5617,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":4,\"function\":{\"arguments\":\"reateStore({ mug: 20, pen: 5, notebook: 12 }),\\\\n\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5716,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":4,\"function\":{\"arguments\":\"\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 5736,
+     "data": "{\"id\":\"chatcmpl-synthetic-6\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":7600,\"completion_tokens\":638,\"total_tokens\":8238}}"
+    },
+    {
+     "t": 5736,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "fb2bf7321c8161b1ace97c0dda00cfe966208d01"
+  },
+  {
+   "index": 7,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 7,
+   "at": 29230,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 15,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Finally, uni\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"t tests for \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"the reservat\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ions, and th\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 900,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"e new module\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 940,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\" in the READ\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 980,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ME.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1000,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_7_0\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1069,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"test/inventory.test.ts\\\",\\\"content\\\":\\\"impo\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1137,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"rt { test } from \\\\\\\"node:test\\\\\\\";\\\\nimport assert f\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1206,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"rom \\\\\\\"node:assert/strict\\\\\\\";\\\\nimport { createStor\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1274,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"e } from \\\\\\\"../src/lib/inventory/types.ts\\\\\\\";\\\\nimp\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1343,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"ort { getStock, reserveStock } from \\\\\\\"../src/lib\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1412,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"/inventory/inventory.ts\\\\\\\";\\\\n\\\\ntest(\\\\\\\"reserves un\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1480,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"its that are in stock\\\\\\\", () => {\\\\n  const store \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1549,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"= createStore({ A: 10 });\\\\n  assert.equal(reserv\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1617,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"eStock(store, \\\\\\\"A\\\\\\\", 3), 7);\\\\n  assert.equal(get\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1686,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"Stock(store, \\\\\\\"A\\\\\\\"), 7);\\\\n});\\\\n\\\\ntest(\\\\\\\"can rese\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1755,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"rve the entire remaining stock\\\\\\\", () => {\\\\n  con\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1823,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"st store = createStore({ A: 4 });\\\\n  assert.equa\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1892,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"l(reserveStock(store, \\\\\\\"A\\\\\\\", 4), 0);\\\\n});\\\\n\\\\ntes\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1961,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"t(\\\\\\\"successive reservations accumulate\\\\\\\", () => \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2029,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\\n  const store = createStore({ A: 10 });\\\\n  re\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2098,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"serveStock(store, \\\\\\\"A\\\\\\\", 2);\\\\n  reserveStock(sto\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2166,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"re, \\\\\\\"A\\\\\\\", 5);\\\\n  assert.equal(getStock(store, \\\\\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2235,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\"A\\\\\\\"), 3);\\\\n});\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2255,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call_7_1\",\"type\":\"function\",\"function\":{\"name\":\"edit\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2356,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"README.md\\\",\\\"oldString\\\":\\\"  - `audit.ts`,\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2457,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\" `events.ts`, `ids.ts`, `serialize.ts`, `logger.\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2558,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ts`, `clock.ts`\\\\n\\\",\\\"newString\\\":\\\"  - `audit.ts`, \"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2660,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"`events.ts`, `ids.ts`, `serialize.ts`, `logger.t\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2761,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"s`, `clock.ts`\\\\n  - `inventory/` – flash-sale st\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2862,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"ock reservations and the checkout handler (`POST\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2963,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\" /api/checkout`)\\\\n\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 2983,
+     "data": "{\"id\":\"chatcmpl-synthetic-7\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":8200,\"completion_tokens\":305,\"total_tokens\":8505}}"
+    },
+    {
+     "t": 2983,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "08dd8c47a511293cbf799eba834f0a7cea0fdfa6"
+  },
+  {
+   "index": 8,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 8,
+   "at": 32813,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 17,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Running the \"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"tests.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 800,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_8_0\",\"type\":\"function\",\"function\":{\"name\":\"shell\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1248,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"command\\\":\\\"node --test test/inventory.test.ts\\\"}\"}}]},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 1268,
+     "data": "{\"id\":\"chatcmpl-synthetic-8\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}],\"usage\":{\"prompt_tokens\":8800,\"completion_tokens\":17,\"total_tokens\":8817}}"
+    },
+    {
+     "t": 1268,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "5dc082655f6d4f48305dff6c6eef66650e071fcf"
+  },
+  {
+   "index": 9,
+   "thread": "t:437a091d6ac7de8a",
+   "position": 9,
+   "at": 34381,
+   "request": {
+    "model": "synthetic",
+    "stream": true,
+    "tools": [
+     "read",
+     "glob",
+     "grep",
+     "write",
+     "edit",
+     "shell"
+    ],
+    "messages": 19,
+    "preview": ""
+   },
+   "status": 200,
+   "chunks": [
+    {
+     "t": 700,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 740,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"That's every\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 780,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"thing. The f\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 820,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"eature is fi\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 860,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"nished.\"},\"finish_reason\":null}]}"
+    },
+    {
+     "t": 880,
+     "data": "{\"id\":\"chatcmpl-synthetic-9\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"synthetic\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":9400,\"completion_tokens\":11,\"total_tokens\":9411}}"
+    },
+    {
+     "t": 880,
+     "data": "[DONE]"
+    }
+   ],
+   "snapshot": "92ff35f9a9163191c9e2978a0fe922fcd1e31a35"
+  }
+ ]
+}

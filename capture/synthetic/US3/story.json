@@ -1,0 +1,111 @@
+{
+  "id": "US3",
+  "title": "Multi-Tenant Feature Flags & Quotas",
+  "brief": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.",
+  "steps": [
+    {
+      "n": 1,
+      "summary": "Add tenant configuration types and organization defaults",
+      "files": [
+        {
+          "path": "src/lib/tenants/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "I'll start with the tenant configuration types and the organization defaults."
+    },
+    {
+      "n": 2,
+      "summary": "Implement tenant configuration merging",
+      "files": [
+        {
+          "path": "src/lib/tenants/config.ts",
+          "source": "src/config.ts"
+        }
+      ],
+      "narration": "Now the main logic: combining a tenant's own settings with the organization defaults."
+    },
+    {
+      "n": 3,
+      "summary": "Add quota checks and a quota wrapper",
+      "files": [
+        {
+          "path": "src/lib/tenants/quota.ts",
+          "source": "src/quota.ts"
+        },
+        {
+          "path": "src/lib/errors.ts",
+          "edits": [
+            {
+              "find": "export class ValidationError extends AppError {\n  constructor(message: string) {\n    super(400, message);\n  }\n}\n",
+              "replace": "export class ValidationError extends AppError {\n  constructor(message: string) {\n    super(400, message);\n  }\n}\n\n/** A tenant has used up one of its quotas. */\nexport class QuotaExceededError extends AppError {\n  constructor(message: string) {\n    super(429, message);\n  }\n}\n"
+            }
+          ]
+        }
+      ],
+      "narration": "Next I'm adding the quota checks and a wrapper that applies them, with an error for exceeded quotas in errors.ts."
+    },
+    {
+      "n": 4,
+      "summary": "Add unit tests for configuration and quotas",
+      "files": [
+        {
+          "path": "test/config.test.ts",
+          "source": "test/config.test.ts"
+        },
+        {
+          "path": "README.md",
+          "edits": [
+            {
+              "find": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n",
+              "replace": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n  - `tenants/` – per-tenant configuration over the organization defaults, and quotas\n"
+            }
+          ]
+        }
+      ],
+      "narration": "Finally, unit tests for the configuration and the quotas, and the README."
+    }
+  ],
+  "plan": {
+    "explore": [
+      {
+        "text": "Let me look at how the project is organized first.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "README.md"
+            }
+          },
+          {
+            "name": "glob",
+            "args": {
+              "pattern": "src/lib/**/*.ts"
+            }
+          }
+        ]
+      },
+      {
+        "text": "I'll check whether there is anything tenant-related already, and how errors are modelled.",
+        "tools": [
+          {
+            "name": "grep",
+            "args": {
+              "pattern": "tenant",
+              "include": "*.ts",
+              "caseSensitive": false
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/errors.ts"
+            }
+          }
+        ]
+      }
+    ],
+    "file": "plan.md"
+  },
+  "testFile": "test/config.test.ts"
+}

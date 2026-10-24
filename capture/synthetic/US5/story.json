@@ -1,0 +1,124 @@
+{
+  "id": "US5",
+  "title": "Sliding-Window API Rate Limiter",
+  "brief": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.",
+  "steps": [
+    {
+      "n": 1,
+      "summary": "Add rate limiter types and default config",
+      "files": [
+        {
+          "path": "src/lib/ratelimit/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "I'll start with the rate limiter types and a default configuration."
+    },
+    {
+      "n": 2,
+      "summary": "Add client identification and the 429 response",
+      "narration": "Next I'm adding how a client is identified and the response sent when it is over the limit, with a small 429 helper in http.ts.",
+      "files": [
+        {
+          "path": "src/lib/ratelimit/respond.ts",
+          "source": "src/respond.ts"
+        },
+        {
+          "path": "src/lib/http.ts",
+          "edits": [
+            {
+              "find": "/** JSON response with the given status. */\nexport function json(status: number, value: unknown): Response {\n  return Response.json(value, { status });\n}\n",
+              "replace": "/** JSON response with the given status. */\nexport function json(status: number, value: unknown): Response {\n  return Response.json(value, { status });\n}\n\n/** 429 Too Many Requests, with a Retry-After header in whole seconds. */\nexport function tooManyRequests(retryAfterMs: number, value: unknown): Response {\n  const res = json(429, value);\n  res.headers.set(\"retry-after\", String(Math.ceil(retryAfterMs / 1000)));\n  return res;\n}\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "summary": "Implement the sliding-window check",
+      "files": [
+        {
+          "path": "src/lib/ratelimit/limiter.ts",
+          "source": "src/limiter.ts"
+        }
+      ],
+      "narration": "Now the main logic: a sliding-window check on a client's recent requests."
+    },
+    {
+      "n": 4,
+      "summary": "Add the rate-limit filter and unit tests",
+      "narration": "Finally, the filter that applies the limiter per client, unit tests for the limiter, and the README.",
+      "files": [
+        {
+          "path": "src/lib/ratelimit/gateway.ts",
+          "source": "src/gateway.ts"
+        },
+        {
+          "path": "test/limiter.test.ts",
+          "source": "test/limiter.test.ts"
+        },
+        {
+          "path": "README.md",
+          "edits": [
+            {
+              "find": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n",
+              "replace": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n  - `ratelimit/` – sliding-window rate limiting per client\n"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "plan": {
+    "explore": [
+      {
+        "text": "Let me look at how the project is organized first.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "README.md"
+            }
+          },
+          {
+            "name": "glob",
+            "args": {
+              "pattern": "src/**/*.ts"
+            }
+          }
+        ]
+      },
+      {
+        "text": "I'll check the response helpers and the clock.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/http.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/clock.ts"
+            }
+          }
+        ]
+      },
+      {
+        "tools": [
+          {
+            "name": "grep",
+            "args": {
+              "pattern": "x-client-id",
+              "include": "*.ts"
+            }
+          }
+        ]
+      }
+    ],
+    "file": "plan.md"
+  },
+  "testFile": "test/limiter.test.ts"
+}

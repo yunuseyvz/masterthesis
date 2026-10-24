@@ -1,0 +1,83 @@
+{
+  "id": "US0",
+  "title": "Practice: Greeting Formatter",
+  "brief": "As a user, I want the app to greet me by name, so that it feels friendly. This is a practice story: take your time to explore the interface.",
+  "steps": [
+    {
+      "n": 1,
+      "summary": "Add greeting types",
+      "files": [
+        {
+          "path": "src/lib/greeting/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "I'll start with a small type for the greeting options."
+    },
+    {
+      "n": 2,
+      "summary": "Implement the greeting formatter",
+      "files": [
+        {
+          "path": "src/lib/greeting/greeting.ts",
+          "source": "src/greeting.ts"
+        }
+      ],
+      "narration": "Now the formatter itself, which builds the greeting from a name."
+    },
+    {
+      "n": 3,
+      "summary": "Add a helper that greets several users",
+      "files": [
+        {
+          "path": "src/lib/greeting/batch.ts",
+          "source": "src/batch.ts"
+        }
+      ],
+      "narration": "Next, a helper that greets several users at once."
+    },
+    {
+      "n": 4,
+      "summary": "Add unit tests for greetings",
+      "files": [
+        {
+          "path": "test/greeting.test.ts",
+          "source": "test/greeting.test.ts"
+        },
+        {
+          "path": "README.md",
+          "edits": [
+            {
+              "find": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n",
+              "replace": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n  - `greeting/` – greetings for signed-in users\n"
+            }
+          ]
+        }
+      ],
+      "narration": "Last, unit tests for the greetings, and a line about the new module in the README."
+    }
+  ],
+  "plan": {
+    "explore": [
+      {
+        "text": "Let me look at how the project is organized first.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "README.md"
+            }
+          },
+          {
+            "name": "glob",
+            "args": {
+              "pattern": "src/lib/**/*.ts"
+            }
+          }
+        ]
+      }
+    ],
+    "file": "plan.md"
+  },
+  "testFile": "test/greeting.test.ts"
+}

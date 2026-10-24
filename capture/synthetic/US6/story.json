@@ -1,0 +1,106 @@
+{
+  "id": "US6",
+  "title": "Discount Tiers & Percentage Clamping",
+  "brief": "As a shopper, I want to apply a coupon to my order, so that I pay the discounted price.",
+  "steps": [
+    {
+      "n": 1,
+      "summary": "Implement discount calculation",
+      "files": [
+        {
+          "path": "src/lib/pricing/pricing.ts",
+          "source": "src/pricing.ts"
+        }
+      ],
+      "narration": "I'll start with the core calculation: applying a coupon's percentage discount to a price."
+    },
+    {
+      "n": 2,
+      "summary": "Add coupon and order summary types",
+      "files": [
+        {
+          "path": "src/lib/pricing/types.ts",
+          "source": "src/types.ts"
+        }
+      ],
+      "narration": "Next I'm adding the coupon and order summary types."
+    },
+    {
+      "n": 3,
+      "summary": "Add the order summary calculator",
+      "files": [
+        {
+          "path": "src/lib/pricing/order.ts",
+          "source": "src/order.ts"
+        }
+      ],
+      "narration": "Now the order summary calculator that uses the discount."
+    },
+    {
+      "n": 4,
+      "summary": "Add unit tests for pricing",
+      "files": [
+        {
+          "path": "test/pricing.test.ts",
+          "source": "test/pricing.test.ts"
+        },
+        {
+          "path": "README.md",
+          "edits": [
+            {
+              "find": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n",
+              "replace": "  - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`\n  - `pricing/` – coupon discounts and order summaries\n"
+            }
+          ]
+        }
+      ],
+      "narration": "Finally, unit tests for the pricing, and the README."
+    }
+  ],
+  "plan": {
+    "explore": [
+      {
+        "text": "Let me look at how the project is organized first.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "README.md"
+            }
+          },
+          {
+            "name": "glob",
+            "args": {
+              "pattern": "src/lib/**/*.ts"
+            }
+          }
+        ]
+      },
+      {
+        "text": "I'll read how orders and prices work.",
+        "tools": [
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/orders.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/catalog.ts"
+            }
+          },
+          {
+            "name": "read",
+            "args": {
+              "path": "src/lib/money.ts"
+            }
+          }
+        ]
+      }
+    ],
+    "file": "plan.md"
+  },
+  "testFile": "test/pricing.test.ts"
+}
