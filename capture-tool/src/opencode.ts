@@ -49,7 +49,7 @@ export function writeConfig(home: string, proxyUrl: string, model: string, allow
         providers: {
           capture: { name: "Captured model", package: "@opencode/ai/providers/openai-compatible", settings: { baseURL: proxyUrl, apiKey: "capture" }, models: { [model]: { name: model } } },
         },
-        model: `capture/${model}`,
+        model: `capture-tool/${model}`,
         permissions: deny,
         // Agents add their own rules (Plan mode allows questions); the last matching rule wins, so deny again per agent.
         agents: allowQuestions ? {} : { plan: { permissions: deny }, build: { permissions: deny } },

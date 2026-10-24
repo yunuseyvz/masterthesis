@@ -22,7 +22,7 @@ export interface RecordOptions {
   turns?: { text: string; agent?: string }[];
   /** Let the agent ask multiple-choice questions (off by default: a replay could not answer them). */
   allowQuestions?: boolean;
-  /** Standing instructions for the agent (e.g. capture/briefs/study.md), hidden from the person driving the session. */
+  /** Standing instructions for the agent (e.g. capture-tool/briefs/study.md), hidden from the person driving the session. */
   brief?: string;
   /** Print the URL of opencode's web UI instead of starting its terminal UI; Ctrl+C ends the capture. */
   web?: boolean;

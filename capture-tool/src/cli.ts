@@ -8,23 +8,23 @@ import { synthesize } from "./synthesize.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
-// npm runs workspace scripts inside capture/; paths on the command line are meant from where it was called.
+// npm runs workspace scripts inside capture-tool/; paths on the command line are meant from where it was called.
 const cwd = process.env.INIT_CWD ?? process.cwd();
 const abs = (p: string) => path.resolve(cwd, p);
 const USAGE = `beacon capture: record opencode sessions for replay in the study harness
 
   record --id ID --model MODEL [--seed DIR] [--upstream URL] [--out DIR] [--web] [--turns FILE] [--brief FILE]
-      Starts opencode on a fresh copy of the seed project (default capture/seeds/shopfront) with MODEL behind a
+      Starts opencode on a fresh copy of the seed project (default capture-tool/seeds/shopfront) with MODEL behind a
       recording proxy, and opens opencode's terminal UI (--web: its web UI). Work in the session as usual and quit
       when done; the capture is written to captures/ID. The upstream is any OpenAI-compatible API (default
       https://openrouter.ai/api/v1); its key comes from CAPTURE_API_KEY. --turns sends scripted turns instead
       (a JSON array of {text, agent}). The agent's question tool is off unless --allow-questions (a replay
       could not answer it). --brief gives the agent standing instructions it follows without the person seeing
-      them (capture/briefs/study.md: four numbered steps, one per response, so checkpoints fall between steps).
-      Repeat it to add more (e.g. a story's step outline from capture/briefs/outlines/); they are joined in order.
+      them (capture-tool/briefs/study.md: four numbered steps, one per response, so checkpoints fall between steps).
+      Repeat it to add more (e.g. a story's step outline from capture-tool/briefs/outlines/); they are joined in order.
 
   synthesize --story DIR [--seed DIR] [--out DIR]
-      Turns a scripted story (capture/synthetic/<id>) into a capture.
+      Turns a scripted story (capture-tool/synthetic/<id>) into a capture.
 
   inspect DIR
       Lists the main thread's responses with their positions, tools and changed files.`;
@@ -55,7 +55,7 @@ if (cmd === "record") {
   const capture = await record({
     id,
     model,
-    seed: abs(str("seed") ?? path.join(root, "capture/seeds/shopfront")),
+    seed: abs(str("seed") ?? path.join(root, "capture-tool/seeds/shopfront")),
     out: abs(str("out") ?? path.join(root, "captures", id)),
     upstream: str("upstream") ?? "https://openrouter.ai/api/v1",
     apiKey: process.env.CAPTURE_API_KEY,
@@ -72,7 +72,7 @@ if (cmd === "record") {
   if (!story) throw new Error("synthesize needs --story");
   const id = path.basename(story);
   const out = abs(str("out") ?? path.join(root, "captures", id));
-  const r = synthesize(abs(story), abs(str("seed") ?? path.join(root, "capture/seeds/shopfront")), out);
+  const r = synthesize(abs(story), abs(str("seed") ?? path.join(root, "capture-tool/seeds/shopfront")), out);
   console.log(`synthesized ${r.capture.calls.length} calls → ${out}; steps start at ${JSON.stringify(r.stepStarts)}`);
 } else if (cmd === "inspect" && rest[0]) {
   console.log(inspect(abs(rest[0])));

@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * A capture is a real opencode session recorded at the model boundary: every request opencode made to the model and
  * the response stream it got back, chunk by chunk with timings, plus the workspace as it was before each request.
- * The capture tool (capture/) writes captures; the study harness (harness/) replays them 1:1.
+ * The capture tool (capture-tool/) writes captures; the study harness (study-harness/) replays them 1:1.
  *
  * On disk a capture is a folder: `capture.json` (this schema) and `history.bundle` (a git bundle with one commit per
  * snapshot of the workspace).

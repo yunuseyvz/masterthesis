@@ -6,7 +6,7 @@ Two small checks before data collection. Each is a one-page task.
 
 **Goal.** Make sure the three questions per feature measure understanding, are not guessable, and fit the time budget.
 
-**Who.** Three to five people with programming experience who are not in the later sample. Run the full session (`harness/scripts/run-session.sh --show-condition` is for you, never for them).
+**Who.** Three to five people with programming experience who are not in the later sample. Run the full session (`study-harness/scripts/run-session.sh --show-condition` is for you, never for them).
 
 **What to look at** (from the exported `trials.csv` and the logs):
 

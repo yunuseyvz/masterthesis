@@ -59,7 +59,7 @@ export function inspect(dir: string): string {
 }
 
 /**
- * Step starts from the agent's "Step N: ..." sentences (what capture/briefs/study.md asks for): the first response
+ * Step starts from the agent's "Step N: ..." sentences (what capture-tool/briefs/study.md asks for): the first response
  * that announces step N starts it. Warns when a response announces two steps, which no checkpoint could separate.
  */
 export function proposeSteps(responses: { position: number; text: string }[]): string[] {

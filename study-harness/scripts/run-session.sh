@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One participant session in a fresh container.
 #
-# Usage: harness/scripts/run-session.sh [--participant ID] [--seed N] [--group 0-5] [--show-condition] [--demo] [--no-window] [--no-recording] [--dry-run]
+# Usage: study-harness/scripts/run-session.sh [--participant ID] [--seed N] [--group 0-5] [--show-condition] [--demo] [--no-window] [--no-recording] [--dry-run]
 #
 # With no options everything is generated:
 #   participant  random 6-character ID (letters/digits, no look-alikes), e.g. K7QX2M
@@ -73,7 +73,7 @@ mkdir -p "$EXPORTS" "$RUN"
 chmod 700 "$EXPORTS" "$RUN"
 rm -f "$RUN/app.sock"
 
-docker build -q -f "$ROOT/harness/Dockerfile" -t beacon-study-harness "$ROOT" >/dev/null
+docker build -q -f "$ROOT/study-harness/Dockerfile" -t beacon-study-harness "$ROOT" >/dev/null
 
 # The container has network access (the experimenter observes the session). The study page, which is opencode's
 # web app in study mode, is reached through the unix socket below; opencode itself is not published.
@@ -89,7 +89,7 @@ DOCKER_PID=$!
 for _ in $(seq 1 100); do [ -S "$RUN/app.sock" ] && break; sleep 0.2; done
 [ -S "$RUN/app.sock" ] || { echo "harness did not start" >&2; kill "$DOCKER_PID" 2>/dev/null || true; exit 1; }
 
-node "$ROOT/harness/scripts/forward.mjs" "$RUN/app.sock" 5185 &
+node "$ROOT/study-harness/scripts/forward.mjs" "$RUN/app.sock" 5185 &
 FWD_PID=$!
 trap 'kill "$FWD_PID" 2>/dev/null || true; docker rm -f "beacon-$PARTICIPANT" >/dev/null 2>&1 || true; rm -f "$RUN/app.sock"' EXIT
 

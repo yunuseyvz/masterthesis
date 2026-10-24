@@ -3,8 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { fakeModel } from "../../../capture/src/fake-model.js";
-import { record } from "../../../capture/src/record.js";
+import { fakeModel } from "../../../capture-tool/src/fake-model.js";
+import { record } from "../../../capture-tool/src/record.js";
 import { OpencodeHost } from "./agent.js";
 import { loadCapture } from "./captures.js";
 import { ReplayEndpoint } from "./replay.js";
@@ -21,7 +21,7 @@ describe.skipIf(process.env.OPENCODE_IT !== "1")("capture → replay roundtrip",
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "roundtrip-"));
     const out = path.join(tmp, "capture");
     try {
-      await record({ id: "hello", seed: path.join(root, "capture/seeds/shopfront"), out, model: "fake", upstream: model.url, bin, turns: [{ text: "Create hello.txt saying hi.", agent: "build" }], log: () => {} });
+      await record({ id: "hello", seed: path.join(root, "capture-tool/seeds/shopfront"), out, model: "fake", upstream: model.url, bin, turns: [{ text: "Create hello.txt saying hi.", agent: "build" }], log: () => {} });
     } finally {
       model.close();
     }

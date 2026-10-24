@@ -6,7 +6,7 @@ import { loadStory } from "./trial.js";
 
 const load = (id: string) => loadStory(trialsDir, capturesDir, id);
 const ALL = ["US0", "US1", "US2", "US3", "US4", "US5", "US6"];
-/** Trials on recorded captures (capture/briefs/study.md), not (yet) in the session plan. */
+/** Trials on recorded captures (capture-tool/briefs/study.md), not (yet) in the session plan. */
 const RECORDED = ["lowstock"];
 
 describe.each([...ALL, ...RECORDED])("trial %s", (id) => {

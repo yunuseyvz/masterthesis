@@ -4,7 +4,7 @@ import type { LoadedCapture } from "./captures.js";
 import { patchArgs, type Patch } from "./trial.js";
 
 /**
- * The model opencode talks to in the study: it replays a capture (capture/) 1:1. Every request opencode makes is
+ * The model opencode talks to in the study: it replays a capture (capture-tool/) 1:1. Every request opencode makes is
  * matched to the recorded one (same conversation thread, same position in it) and answered with the recorded
  * stream, chunk by chunk with the recorded timing. opencode executes the recorded tool calls for real, so files,
  * diffs and test runs come out as they did in the captured session.

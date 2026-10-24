@@ -12,7 +12,7 @@ import { synthesize } from "./synthesize.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
-const seed = path.join(root, "capture/seeds/shopfront");
+const seed = path.join(root, "capture-tool/seeds/shopfront");
 
 describe("capture format", () => {
   it("keys threads by their first real message, independent of the project's path", () => {
@@ -45,9 +45,9 @@ describe("capture format", () => {
 });
 
 describe("synthetic captures", () => {
-  it.each(["US0", "US1", "US2", "US3", "US4", "US5", "US6"])("captures/%s is what synthesize makes from capture/synthetic", (id) => {
+  it.each(["US0", "US1", "US2", "US3", "US4", "US5", "US6"])("captures/%s is what synthesize makes from capture-tool/synthetic", (id) => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), "synth-"));
-    const fresh = synthesize(path.join(root, "capture/synthetic", id), seed, out).capture;
+    const fresh = synthesize(path.join(root, "capture-tool/synthetic", id), seed, out).capture;
     const stored = Capture.parse(JSON.parse(fs.readFileSync(path.join(root, "captures", id, "capture.json"), "utf8")));
     // Snapshot ids carry commit times; everything the replay plays must be identical.
     const strip = (c: Capture) => ({ ...c, createdAt: "", workspace: { ...c.workspace, initial: "", final: "" }, calls: c.calls.map((x) => ({ ...x, snapshot: "" })) });

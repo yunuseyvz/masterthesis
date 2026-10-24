@@ -5,7 +5,7 @@ import { CAPTURE_FORMAT, Capture, threadKey, type Call, type Chunk } from "@beac
 import { Snapshots } from "./snapshots.js";
 
 /**
- * A scripted story (capture/synthetic/<id>/story.json): what a run should look like, step by step. `synthesize` turns
+ * A scripted story (capture-tool/synthetic/<id>/story.json): what a run should look like, step by step. `synthesize` turns
  * it into a capture in the same format a real session produces, with timing modelled on a streaming model, so the
  * harness treats both alike. The Correct variant is the one written; the harness's trial defines the Flawed one as
  * a patch.

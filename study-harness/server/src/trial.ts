@@ -28,7 +28,7 @@ export type Patch = z.infer<typeof Patch>;
 const Four = z.tuple([z.string(), z.string(), z.string(), z.string()]);
 
 /**
- * A trial (harness/trials/<id>/trial.json): a capture plus everything the study adds to it. The capture is replayed
+ * A trial (study-harness/trials/<id>/trial.json): a capture plus everything the study adds to it. The capture is replayed
  * as recorded; the trial says where its four steps start (the places a checkpoint can go), which variant patch makes
  * the Flawed (or Correct) code, and what the participant is asked.
  */

@@ -2,22 +2,22 @@
 
 This document describes how the project is built and how its parts fit together. What the study records is in
 [telemetry.md](telemetry.md). How to run things is in the [README](../README.md) and
-[capture/README.md](../capture/README.md).
+[capture-tool/README.md](../capture-tool/README.md).
 
 ## 1. Overview
 
 The project has two tools that meet in one file format:
 
-- The **capture tool** (`capture/`) records a real [opencode](https://opencode.ai) v2 session with a real model. It
+- The **capture tool** (`capture-tool/`) records a real [opencode](https://opencode.ai) v2 session with a real model. It
   sits between opencode and the model as a proxy and records every model response as it was streamed (each chunk
   with its timing), the person's messages, and the project before each response.
-- The **study harness** (`harness/`) runs the study. Participants work in opencode's own web app (a study build);
+- The **study harness** (`study-harness/`) runs the study. Participants work in opencode's own web app (a study build);
   the model behind the agent replays a capture 1:1. The study plants its **checkpoints** into the replay (the agent
   stops for review where the condition says) and its **variants** (one recorded tool call patched, e.g. to plant a
   flaw).
 
 ```
- capture/                                         captures/<id>/              harness/
+ capture-tool/                                         captures/<id>/              study-harness/
 ┌────────────────────────────────┐               ┌───────────────────┐       ┌──────────────────────────────────┐
 │ opencode (TUI/web/scripted)    │               │ capture.json      │       │ trials/<id>/trial.json           │
 │   │ /v1/chat/completions       │   writes      │  calls: chunks +  │ reads │   capture, step starts,          │
@@ -53,31 +53,31 @@ session. Study page and agent share one origin; the browser never talks to openc
 |---|---|
 | `shared/src/capture.ts` | The capture format (zod schema) and the helpers both tools must agree on: thread keys, positions, chunk parsing |
 | `shared/src/` (rest) | Study types: session plan, trial results, actions, UI events (`schema.ts`, `view.ts`), plan generator (`session.ts`), seeded PRNG |
-| `capture/src/record.ts` | `record`: prepares the project, runs opencode with the recording proxy, collects the turns, writes the capture |
-| `capture/src/proxy.ts` | The recording proxy |
-| `capture/src/snapshots.ts` | Project snapshots in a git directory of their own |
-| `capture/src/opencode.ts` | Starts `opencode serve` and its terminal UI for a capture |
-| `capture/src/synthesize.ts` | Makes a capture from a scripted story (`capture/synthetic/`) |
-| `capture/src/inspect.ts` | Prints a capture's outline with positions (for placing checkpoints) |
-| `capture/src/cli.ts` | `npm run capture -- record \| synthesize \| inspect` |
-| `capture/seeds/shopfront/` | The project captured sessions start from |
-| `capture/synthetic/US0..US6/` | Scripted stories (Correct code, narration, plan) |
+| `capture-tool/src/record.ts` | `record`: prepares the project, runs opencode with the recording proxy, collects the turns, writes the capture |
+| `capture-tool/src/proxy.ts` | The recording proxy |
+| `capture-tool/src/snapshots.ts` | Project snapshots in a git directory of their own |
+| `capture-tool/src/opencode.ts` | Starts `opencode serve` and its terminal UI for a capture |
+| `capture-tool/src/synthesize.ts` | Makes a capture from a scripted story (`capture-tool/synthetic/`) |
+| `capture-tool/src/inspect.ts` | Prints a capture's outline with positions (for placing checkpoints) |
+| `capture-tool/src/cli.ts` | `npm run capture -- record \| synthesize \| inspect` |
+| `capture-tool/seeds/shopfront/` | The project captured sessions start from |
+| `capture-tool/synthetic/US0..US6/` | Scripted stories (Correct code, narration, plan) |
 | `captures/<id>/` | Captures: `capture.json`, `history.bundle` |
-| `harness/trials/<id>/` | Trial definitions: `trial.json`, probe and understanding scripts |
-| `harness/server/src/app.ts` | Fastify app: study routes, proxy to opencode, static hosting, recording endpoints |
-| `harness/server/src/machine.ts` | `StudySession`: the study's state machine and telemetry aggregation |
-| `harness/server/src/replay.ts` | The replay endpoint (the model during the study) |
-| `harness/server/src/captures.ts` | Reads captures and their snapshots |
-| `harness/server/src/trial.ts` | Trial definitions: steps, variants, workspaces at each step, diffs, hunks, flaw regions |
-| `harness/server/src/agent.ts` | `OpencodeHost` (real opencode) and `FakeAgentHost` (tests, no UI) |
-| `harness/server/src/workspace.ts` | Per-trial git repositories and step commits |
-| `harness/server/src/lines.ts` | Line diff (LCS) and range helpers for hunks and flaw regions |
-| `harness/server/src/runner.ts` | Runs probe and understanding scripts against a trial's code (grading) |
-| `harness/server/src/sandbox.ts` | Privilege checks, process cleanup, ownership |
-| `harness/server/src/export.ts` | Event log sink, bundle and `trials.csv` |
-| `harness/agent-ui/` | The study build of opencode's web app: `study/`, `opencode.patch`, `build.sh` |
-| `harness/scripts/` | `run-session.sh` (one participant session in a container), `forward.mjs` |
-| `harness/Dockerfile` | The study image (built from the repository root) |
+| `study-harness/trials/<id>/` | Trial definitions: `trial.json`, probe and understanding scripts |
+| `study-harness/server/src/app.ts` | Fastify app: study routes, proxy to opencode, static hosting, recording endpoints |
+| `study-harness/server/src/machine.ts` | `StudySession`: the study's state machine and telemetry aggregation |
+| `study-harness/server/src/replay.ts` | The replay endpoint (the model during the study) |
+| `study-harness/server/src/captures.ts` | Reads captures and their snapshots |
+| `study-harness/server/src/trial.ts` | Trial definitions: steps, variants, workspaces at each step, diffs, hunks, flaw regions |
+| `study-harness/server/src/agent.ts` | `OpencodeHost` (real opencode) and `FakeAgentHost` (tests, no UI) |
+| `study-harness/server/src/workspace.ts` | Per-trial git repositories and step commits |
+| `study-harness/server/src/lines.ts` | Line diff (LCS) and range helpers for hunks and flaw regions |
+| `study-harness/server/src/runner.ts` | Runs probe and understanding scripts against a trial's code (grading) |
+| `study-harness/server/src/sandbox.ts` | Privilege checks, process cleanup, ownership |
+| `study-harness/server/src/export.ts` | Event log sink, bundle and `trials.csv` |
+| `study-harness/agent-ui/` | The study build of opencode's web app: `study/`, `opencode.patch`, `build.sh` |
+| `study-harness/scripts/` | `run-session.sh` (one participant session in a container), `forward.mjs` |
+| `study-harness/Dockerfile` | The study image (built from the repository root) |
 
 ## 3. The capture format
 
@@ -123,7 +123,7 @@ response. This was checked against real opencode (§11).
 
 ### 4.1 Recording (`record`)
 
-1. Copies the seed project (default `capture/seeds/shopfront`) into a temporary folder, adds `.gitignore`, makes it a
+1. Copies the seed project (default `capture-tool/seeds/shopfront`) into a temporary folder, adds `.gitignore`, makes it a
    git repository with an "Initial commit" (as the harness does for a trial), and links the seed's `node_modules`.
 2. Takes the initial snapshot and starts the recording proxy on a free loopback port.
 3. Writes opencode's global config into a private home: one provider `capture`
@@ -145,27 +145,27 @@ capture config denies opencode's `question` tool unless `--allow-questions` (a r
 answer from the participant). `--brief FILE` is written as opencode's global `AGENTS.md` in the capture's private
 home, so it is part of every request's system prompt (not a user message: thread keys are unaffected) and stored in
 `capture.json`; the harness's opencode has no such file, and the replay serves responses without looking at the
-system prompt. `capture/briefs/study.md` makes the agent work in four announced steps, one per response, which
+system prompt. `capture-tool/briefs/study.md` makes the agent work in four announced steps, one per response, which
 `inspect` turns into proposed step starts. Before forwarding it snapshots the project and
 records the call's thread and position; while streaming it records each event with its arrival time. Other requests
 (model lists) pass through unrecorded.
 
 ### 4.3 Synthetic captures (`synthesize`)
 
-A scripted story (`capture/synthetic/<id>/story.json`: brief, four steps with their files and narration, plan
+A scripted story (`capture-tool/synthetic/<id>/story.json`: brief, four steps with their files and narration, plan
 exploration and `plan.md`) becomes a capture in the same format: a plan turn (read-only `read`/`glob`/`grep` calls,
 then the plan) and a build turn (per step: narration with `write` calls for new files and `edit` calls for existing
 ones; `node --test` after the step that writes the tests; a closing message). Timing is modelled on a streaming
 model: 700 ms before the first token, 12 characters per 40 ms, tool arguments over `min(4000, 400 + characters)` ms.
 The scripted stories hold only the Correct code; the Flawed variant is a patch in the trial (§6).
 
-`npm test` checks that every `captures/US*` is exactly what `synthesize` makes from `capture/synthetic/` (apart from
+`npm test` checks that every `captures/US*` is exactly what `synthesize` makes from `capture-tool/synthetic/` (apart from
 commit ids), so the two cannot drift apart. The trials no longer use them (§6.1); they stay as a fallback and as test
 fixtures for the format.
 
 ## 5. The replay
 
-`ReplayEndpoint` (`harness/server/src/replay.ts`) serves `POST /v1/chat/completions` on `127.0.0.1:REPLAY_PORT`.
+`ReplayEndpoint` (`study-harness/server/src/replay.ts`) serves `POST /v1/chat/completions` on `127.0.0.1:REPLAY_PORT`.
 opencode is configured with a provider "Study agent" pointing at it. For each request:
 
 1. **Match.** Thread key and position (§3) select the recorded call.
@@ -189,7 +189,7 @@ Every served response is logged as `replay_call`, every checkpoint as `replay_ch
 
 ## 6. Trials
 
-A trial (`harness/trials/<id>/trial.json`, schema `TrialDef` in `trial.ts`) turns a capture into a study task:
+A trial (`study-harness/trials/<id>/trial.json`, schema `TrialDef` in `trial.ts`) turns a capture into a study task:
 
 | Field | Meaning |
 |---|---|
@@ -214,9 +214,9 @@ this is checked at every step boundary when the trial loads. All patches must li
 ### 6.1 The study's trials
 
 `US0`–`US6` play recorded captures, `captures/<id>-deepseek` (DeepSeek V4.1 Flash on OpenCode Go). Each was recorded
-with `capture/turns/<id>.json` (the story's request in Plan mode, then "The plan looks good. Go ahead.") and two
-briefs: `capture/briefs/study.md` (four announced steps, one per response, tests in step 4) and the story's step
-outline `capture/briefs/outlines/<id>.md`, which fixes what each step does and so where the milestone falls:
+with `capture-tool/turns/<id>.json` (the story's request in Plan mode, then "The plan looks good. Go ahead.") and two
+briefs: `capture-tool/briefs/study.md` (four announced steps, one per response, tests in step 4) and the story's step
+outline `capture-tool/briefs/outlines/<id>.md`, which fixes what each step does and so where the milestone falls:
 
 | Story | Milestone | Flaw | Flaw (Flawed variant unless noted) |
 |---|---|---|---|
@@ -231,7 +231,7 @@ outline `capture/briefs/outlines/<id>.md`, which fixes what each step does and s
 Each flaw passes the agent's own step-4 tests (recorded after the flaw step, so they cannot be patched with it).
 `trials.test.ts` also checks that steps 1–3 of every measured story are within a factor of 3 in changed lines, so a
 pause after one step does not review far more code than a pause after another. Re-recording: the command in
-`capture/README.md` with the story's turns and outline; then re-derive the step starts (`inspect`), the patch and the
+`capture-tool/README.md` with the story's turns and outline; then re-derive the step starts (`inspect`), the patch and the
 probe and understanding scripts, as the recorded code changes.
 
 **Grading** never uses the participant's copy: `runProbe` writes the trial's finished project (in the trial's
@@ -308,7 +308,7 @@ commands (if the capture has any) run as recorded.
 
 ### 9.1 Host
 
-`OpencodeHost` (`harness/server/src/agent.ts`) writes opencode's global config into `AGENT_HOME` (the replay provider),
+`OpencodeHost` (`study-harness/server/src/agent.ts`) writes opencode's global config into `AGENT_HOME` (the replay provider),
 starts `opencode serve` on loopback as the sandbox uid (through `setpriv`, cleared groups, `no_new_privs`), reads its
 password, and uses the v2 API: create session (title, agent, model, directory), switch agent, prompt, and
 `POST /api/experimental/session/{id}/wait`. It copies opencode's event stream into the study log as `agent_<type>`
@@ -327,7 +327,7 @@ generating, archiving and sharing.
 
 ## 10. The agent UI
 
-`harness/agent-ui/build.sh` clones opencode at `OPENCODE_VERSION` (default `v2.1.3`) into `agent-ui/.cache` (or uses
+`study-harness/agent-ui/build.sh` clones opencode at `OPENCODE_VERSION` (default `v2.1.3`) into `agent-ui/.cache` (or uses
 `OPENCODE_SRC`), copies `study/` into `packages/app/src/study`, applies `opencode.patch` (two hooks: `<StudyGate>`
 around the app, `<StudyDock>` in place of the composer), installs with bun 1.4.4 and builds `packages/app` into
 `agent-ui/dist`.
@@ -349,7 +349,7 @@ opencode's completion sound plays as usual; the browser's notification popup is 
 - `/app` (code, trials, captures) and `/exports` are `0700`; on the host, `exports/` and `.run/<id>` are `0700`.
 - At startup the server checks as the sandbox uid that exports, trials, captures, its code and the socket directory
   are unreadable, and refuses to start otherwise (`ALLOW_READABLE_PATHS=1` skips this in development).
-- The server listens on a unix socket in `/run/study`; `harness/scripts/forward.mjs` bridges it to `localhost:5185`.
+- The server listens on a unix socket in `/run/study`; `study-harness/scripts/forward.mjs` bridges it to `localhost:5185`.
   opencode and the replay endpoint listen on container loopback only.
 - `run-session.sh` drops capabilities except those needed to switch users and manage files, sets
   `no-new-privileges`, and limits processes (512) and memory (3 GB). After Finish the sandbox user's processes are
@@ -363,10 +363,10 @@ opencode's completion sound plays as usual; the browser's notification popup is 
 |---|---|---|
 | `PARTICIPANT_ID`, `STUDY_SEED` | required | Identity (1–32 letters/digits) and seed |
 | `STUDY_GROUP` | drawn from seed | Counterbalancing group 0–5 |
-| `TRIALS_DIR` | `harness/trials` | Trial definitions |
+| `TRIALS_DIR` | `study-harness/trials` | Trial definitions |
 | `CAPTURES_DIR` | `captures` | Captures |
 | `EXPORT_DIR` | `/exports` | Exports |
-| `STATIC_DIR` | `harness/agent-ui/dist` | The built agent UI |
+| `STATIC_DIR` | `study-harness/agent-ui/dist` | The built agent UI |
 | `LISTEN_SOCKET` / `LISTEN_HOST`, `PORT` | image: `/run/study/app.sock` / `127.0.0.1`, `5185` | Where the server listens |
 | `SANDBOX_UID`, `SANDBOX_GID` | unset (image: 61234) | User opencode runs as |
 | `ALLOW_READABLE_PATHS` | unset | `1` skips the isolation check |
@@ -379,10 +379,10 @@ opencode's completion sound plays as usual; the browser's notification popup is 
 | `EXIT_ON_FINISH` | on | `0` keeps the server running after Finish |
 | `DEMO`, `SHOW_CONDITION` | off | Demo restarts; condition tag in the UI (never for participants) |
 
-### 12.2 `harness/scripts/run-session.sh`
+### 12.2 `study-harness/scripts/run-session.sh`
 
 `--participant ID`, `--seed N`, `--group 0-5` (generated when omitted), `--show-condition`, `--demo` (exports go to
-`exports-demo/`), `--no-window`, `--no-recording`, `--dry-run`. Builds the image (`docker build -f harness/Dockerfile
+`exports-demo/`), `--no-window`, `--no-recording`, `--dry-run`. Builds the image (`docker build -f study-harness/Dockerfile
 .`), starts the container, the forwarder, and a browser app window.
 
 ### 12.3 Capture tool
@@ -398,11 +398,11 @@ opencode's completion sound plays as usual; the browser's notification popup is 
   git changes at every checkpoint), exports, demo mode, telemetry. Capture: format helpers, synthetic captures up to
   date.
 - `OPENCODE_IT=1` runs the tests with the real opencode binary:
-  - `capture/src/capture.test.ts`: records a session with a scripted model through the proxy (calls, timing,
+  - `capture-tool/src/capture.test.ts`: records a session with a scripted model through the proxy (calls, timing,
     snapshots, turns).
-  - `harness/server/src/roundtrip.test.ts`: records a session with the capture tool, then replays it through real
+  - `study-harness/server/src/roundtrip.test.ts`: records a session with the capture tool, then replays it through real
     opencode in a new folder; same files, same responses, recorded timing.
-  - `harness/server/src/opencode.test.ts`: the practice trial through real opencode (plan, checkpoint, finish).
+  - `study-harness/server/src/opencode.test.ts`: the practice trial through real opencode (plan, checkpoint, finish).
 - `npm run typecheck`. The study module is type-checked as part of opencode's app (`bun x tsc -b` in `packages/app`
   of the build checkout).
 
@@ -411,12 +411,12 @@ network.
 
 ## 14. Maintenance notes
 
-- **New capture for the study**: record it (capture/README.md), inspect it, write `harness/trials/<id>/trial.json`
+- **New capture for the study**: record it (capture-tool/README.md), inspect it, write `study-harness/trials/<id>/trial.json`
   with step starts, a variant patch, probes and questions, add its id to `RECORDED` in `trials.test.ts`, and run
-  `npm test`. Example: `harness/trials/lowstock` on `captures/deepseek-lowstock-steps`. To play it in sessions, give it
+  `npm test`. Example: `study-harness/trials/lowstock` on `captures/deepseek-lowstock-steps`. To play it in sessions, give it
   a `US1`–`US6` id (replacing that story) or extend `StoryId`/`STORIES` in `shared`.
-- **Upgrading opencode**: change the tag in `harness/agent-ui/build.sh` and `harness/Dockerfile`, and `@opencode/cli`
-  in `harness/server` and `capture`. Re-apply `opencode.patch`. Captures record what one opencode version asked; after
+- **Upgrading opencode**: change the tag in `study-harness/agent-ui/build.sh` and `study-harness/Dockerfile`, and `@opencode/cli`
+  in `study-harness/server` and `capture`. Re-apply `opencode.patch`. Captures record what one opencode version asked; after
   an upgrade, re-run `OPENCODE_IT=1 npm test` and re-record captures if positions or thread keys no longer match.
   Also re-check the v2 API calls (`agent.ts`, `record.ts`), the blocked-request list, the selectors `study.css`
   hides, and the DOM selectors in `telemetry.ts` (telemetry.md §6).

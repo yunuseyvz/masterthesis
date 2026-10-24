@@ -19,7 +19,7 @@ export interface ServerConfig {
   studySeed: string;
   group?: number;
   exportDir: string;
-  /** Trial definitions (harness/trials): which capture, its steps and variants, and the questions. */
+  /** Trial definitions (study-harness/trials): which capture, its steps and variants, and the questions. */
   trialsDir: string;
   /** Captures made by the capture tool (captures/). */
   capturesDir: string;
@@ -138,7 +138,7 @@ export async function buildApp(cfg: ServerConfig) {
     // The participant's terminal and anything they started in it run as the sandbox user.
     if (cfg.sandbox.uid !== undefined && !cfg.demo) killUserProcesses(cfg.sandbox.uid);
     if (cfg.demo) {
-      // Same ID format as harness/scripts/run-session.sh; the next group keeps a run of demos balanced too.
+      // Same ID format as study-harness/scripts/run-session.sh; the next group keeps a run of demos balanced too.
       const id = Array.from({ length: 6 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[randomInt(32)]).join("");
       group = start(id, String(randomInt(2 ** 32)), (group + 1) % 6).group;
     }

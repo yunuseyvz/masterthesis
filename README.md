@@ -6,9 +6,9 @@ a captured session, so every participant sees the same work, and stops for revie
 
 | Folder | What |
 |---|---|
-| `capture/` | The capture tool: records real opencode sessions with a real model ([capture/README.md](capture/README.md)) |
+| `capture-tool/` | The capture tool: records real opencode sessions with a real model ([capture-tool/README.md](capture-tool/README.md)) |
 | `captures/` | Captures (recorded or synthetic) |
-| `harness/` | The study harness: study server, the study build of opencode's web app, trials, the Docker image |
+| `study-harness/` | The study harness: study server, the study build of opencode's web app, trials, the Docker image |
 | `shared/` | Types both use: the capture format, the study's data |
 | `docs/` | [technical.md](docs/technical.md), [telemetry.md](docs/telemetry.md), thesis material |
 | `scripts/` | Research scripts (benchmarks, rater sheets) |
@@ -16,23 +16,23 @@ a captured session, so every participant sees the same work, and stops for revie
 ## Run locally (dev, no isolation)
 
 ```bash
-npm install && npm run build         # build = harness/agent-ui/build.sh (clones opencode once, ~3 GB install)
+npm install && npm run build         # build = study-harness/agent-ui/build.sh (clones opencode once, ~3 GB install)
 PARTICIPANT_ID=P1 STUDY_SEED=1 STUDY_GROUP=1 EXPORT_DIR=./exports ALLOW_READABLE_PATHS=1 EXIT_ON_FINISH=0 \
   WORK_ROOT=/tmp/beacon-work AGENT_HOME=/tmp/beacon-agent \
-  npx -w harness/server tsx src/main.ts      # http://localhost:5185
+  npx -w study-harness/server tsx src/main.ts      # http://localhost:5185
 ```
 
 `AGENT=fake` plays the captures without opencode (no agent UI), for working on the study flow. `REPLAY_PACE` scales
 the recorded timing: `1` (default) as recorded, `2` twice as slow, `0` instant.
 
-## The agent UI (`harness/agent-ui/`)
+## The agent UI (`study-harness/agent-ui/`)
 
 opencode's web app (`packages/app` of [anomalyco/opencode](https://github.com/anomalyco/opencode), MIT) at a pinned version, plus:
 
 - `study/`: the study module (state from `/_study/state`, the prompt that replaces the composer, the full-screen pages).
 - `opencode.patch`: two hooks into upstream, at the app root (`StudyGate`) and in the composer region (`StudyDock`).
 
-`harness/agent-ui/build.sh` clones the pinned version, copies `study/`, applies the patch and builds into `harness/agent-ui/dist` (not in git; the Docker image builds it too). The study server hosts that build and forwards `/api` and `/auth` (including the terminal's websocket) to opencode on loopback, adding opencode's password itself. Study and agent share one origin, and the browser never talks to opencode directly.
+`study-harness/agent-ui/build.sh` clones the pinned version, copies `study/`, applies the patch and builds into `study-harness/agent-ui/dist` (not in git; the Docker image builds it too). The study server hosts that build and forwards `/api` and `/auth` (including the terminal's websocket) to opencode on loopback, adding opencode's password itself. Study and agent share one origin, and the browser never talks to opencode directly.
 
 Flow: welcome → questionnaire (consent, demographics, NCS-6 + attention check, S-TIAS) → practice story (US0, unmeasured) → six measured stories → preference ranking → debrief.
 
@@ -44,7 +44,7 @@ Flow: welcome → questionnaire (consent, demographics, NCS-6 + attention check,
 4. Accept or reject, then the behaviour question, then optionally reverse the decision. After a pause the reviewed step is committed and the agent finishes the rest.
 5. **I've finished reviewing** hides the code; four understanding questions with confidence, then mental effort.
 
-The model behind opencode is the harness's replay endpoint (`harness/server/src/replay.ts`, OpenAI-compatible). It answers each request with the recorded response for the same conversation and position, chunk by chunk with the recorded timing, with the capture's project path changed to the trial's and the trial's variant patch applied. Each trial (`harness/trials/<id>/trial.json`) names its capture, where its four steps start, the variant patch and the questions. The server arms the replay for one turn at a time; outside a turn the agent only points to the study panel.
+The model behind opencode is the harness's replay endpoint (`study-harness/server/src/replay.ts`, OpenAI-compatible). It answers each request with the recorded response for the same conversation and position, chunk by chunk with the recorded timing, with the capture's project path changed to the trial's and the trial's variant patch applied. Each trial (`study-harness/trials/<id>/trial.json`) names its capture, where its four steps start, the variant patch and the questions. The server arms the replay for one turn at a time; outside a turn the agent only points to the study panel.
 
 ## Design
 
@@ -63,14 +63,14 @@ At the scored review the participant accepts or rejects, then answers one behavi
 ## Run a real session (Docker)
 
 ```bash
-harness/scripts/run-session.sh   # opens http://localhost:5185 in an app window (--no-window: URL only)
+study-harness/scripts/run-session.sh   # opens http://localhost:5185 in an app window (--no-window: URL only)
 ```
 
 With no options the script generates a random alphanumeric participant ID and a random seed, and picks the counterbalancing group from the number of completed sessions in `exports/` (modulo 6). Override with `--participant ID`, `--seed N`, `--group 0-5`; `--no-recording` turns the screen recording off; `--dry-run` prints the resolved values without starting anything.
 
 ## Isolation model
 
-- The study server serves on a unix socket; `harness/scripts/forward.mjs` bridges it to `localhost:5185` on the host. opencode listens on loopback inside the container and is reached only through the study server.
+- The study server serves on a unix socket; `study-harness/scripts/forward.mjs` bridges it to `localhost:5185` on the host. opencode listens on loopback inside the container and is reached only through the study server.
 - The server runs as root only to start opencode as uid 61234. opencode's tools and the participant's terminal in opencode therefore run as that user, which owns only the trial repositories (`/work`) and opencode's home (`/agent-home`). `/app` (code, trials and captures, with ground truth) is `0700`, and `exports/` and `.run/<id>` are `0700` on the host.
 - At startup the server checks (as the sandbox uid, `test -r`) that none of those paths are readable and refuses to start otherwise.
 - Without `SANDBOX_UID` (dev) opencode runs as the server user and is NOT isolated.
@@ -89,5 +89,5 @@ Every column, event and how each measure is computed: [docs/telemetry.md](docs/t
 ## Documentation
 
 - [docs/technical.md](docs/technical.md): architecture, the capture format and tool, the replay, trials, study flow, opencode integration, agent UI build, isolation, configuration, tests.
-- [capture/README.md](capture/README.md): recording sessions.
+- [capture-tool/README.md](capture-tool/README.md): recording sessions.
 - [docs/telemetry.md](docs/telemetry.md): what is recorded and how.

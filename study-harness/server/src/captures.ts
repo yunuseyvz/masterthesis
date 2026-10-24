@@ -5,7 +5,7 @@ import path from "node:path";
 import { Capture, type Call } from "@beacon/shared";
 
 /**
- * A capture made by the capture tool (capture/): `capture.json` and the workspace snapshots in `history.bundle`.
+ * A capture made by the capture tool (capture-tool/): `capture.json` and the workspace snapshots in `history.bundle`.
  * The harness only reads captures; it never changes them.
  */
 export interface LoadedCapture {
