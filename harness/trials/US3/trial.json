@@ -1,0 +1,153 @@
+{
+  "id": "US3",
+  "capture": "US3-deepseek",
+  "title": "Multi-Tenant Feature Flags & Quotas",
+  "project": "shopfront",
+  "approveTurn": 1,
+  "steps": [
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add the tenant feature-flag and limit types plus the organization defaults",
+      "start": 5
+    },
+    {
+      "n": 2,
+      "kind": "milestone",
+      "summary": "Merge the organization defaults with each tenant's overrides",
+      "start": 6
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add the 429 quota error and the usage checks that wrap an operation",
+      "start": 7
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add tests for config merging and quota checks, document the model",
+      "start": 8
+    }
+  ],
+  "variants": {
+    "Correct": [],
+    "Flawed": [
+      {
+        "position": 7,
+        "tool": 1,
+        "find": "  assertWithinQuota(limitFor(tenant, name, defaults), used, amount, name);",
+        "replace": "  assertWithinQuota(limitFor(tenant, name, defaults), used, 1, name);"
+      }
+    ]
+  },
+  "testFile": "test/config.test.ts",
+  "probes": [
+    {
+      "step": 1,
+      "question": "What is the organization default for maxUsers?",
+      "options": [
+        "5",
+        "100",
+        "1000",
+        "There is no default"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "5",
+        "Flawed": "5"
+      }
+    },
+    {
+      "step": 2,
+      "question": "A tenant overrides only { features: { refunds: false } }. Is analytics enabled for it?",
+      "options": [
+        "No",
+        "Yes",
+        "Only if refunds are on",
+        "It is undefined"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "No",
+        "Flawed": "No"
+      }
+    },
+    {
+      "step": 3,
+      "question": "A tenant with maxUsers 5 already has 4 users. withQuota is called to add 3 users at once (amount 3). What happens?",
+      "options": [
+        "It fails with a 429 QuotaExceededError",
+        "The operation runs",
+        "Only 1 user is added",
+        "It fails with 400"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "It fails with a 429 QuotaExceededError",
+        "Flawed": "The operation runs"
+      }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "Which feature is switched off by default?",
+        "options": [
+          "analytics",
+          "checkout",
+          "refunds",
+          "None"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "A tenant overrides { limits: { maxProducts: 10 } }. What is its monthlyOrders limit?",
+        "options": [
+          "1000",
+          "10",
+          "0",
+          "undefined"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 3,
+        "question": "A tenant with maxProducts 100 has 98 products and imports 5 at once through withQuota. What happens?",
+        "options": [
+          "The import is rejected: quota exceeded (429)",
+          "The import runs",
+          "Only 2 products are imported",
+          "The import is rejected as invalid (400)"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
+        "options": [
+          "An operation over quota does not run",
+          "Adding several units at once through withQuota",
+          "Two tenants changing the defaults at the same time",
+          "Negative usage"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  }
+}

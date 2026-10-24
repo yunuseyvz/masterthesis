@@ -1,0 +1,153 @@
+{
+  "id": "US2",
+  "capture": "US2-deepseek",
+  "title": "Webhook Payment Idempotency & Retry",
+  "project": "shopfront",
+  "approveTurn": 1,
+  "steps": [
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add the webhook types and the event-log contract",
+      "start": 5
+    },
+    {
+      "n": 2,
+      "kind": "scaffold",
+      "summary": "Parse the provider's event and credit the account in integer cents",
+      "start": 6
+    },
+    {
+      "n": 3,
+      "kind": "milestone",
+      "summary": "Deduplicate deliveries and retry only temporary failures",
+      "start": 7
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Wire the event log and endpoint, add tests and docs",
+      "start": 8
+    }
+  ],
+  "variants": {
+    "Correct": [],
+    "Flawed": [
+      {
+        "position": 6,
+        "tool": 0,
+        "find": "  return adjustBalance(deps.accounts, event.accountId, dollarsToCents(event.amount));",
+        "replace": "  return adjustBalance(deps.accounts, event.accountId, Math.floor(Number(event.amount) * 100));"
+      }
+    ]
+  },
+  "testFile": "test/webhook.test.ts",
+  "probes": [
+    {
+      "step": 1,
+      "question": "Which statuses can an entry in the event log have?",
+      "options": [
+        "processing, processed or failed",
+        "processed or failed",
+        "pending, done or error",
+        "Any text"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "processing, processed or failed",
+        "Flawed": "processing, processed or failed"
+      }
+    },
+    {
+      "step": 2,
+      "question": "A payment event with the amount \"19.99\" is applied to an account with a balance of 0. What is the balance afterwards, in cents?",
+      "options": [
+        "1999",
+        "1998",
+        "2000",
+        "19"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "1999",
+        "Flawed": "1998"
+      }
+    },
+    {
+      "step": 3,
+      "question": "The same payment event is delivered twice and both deliveries are processed. How many times is the account credited?",
+      "options": [
+        "Once",
+        "Twice",
+        "Never",
+        "Three times"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "Once",
+        "Flawed": "Once"
+      }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "In which form does the provider send the payment amount?",
+        "options": [
+          "Dollars, as a decimal string such as \"15.00\"",
+          "Integer cents",
+          "Dollars, as a number",
+          "Cents, as a string"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "Three payments of \"0.29\", \"4.35\" and \"1.15\" are applied to an account with a balance of 0. What is its balance in cents?",
+        "options": [
+          "579",
+          "576",
+          "580",
+          "6"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "step": 3,
+        "question": "Processing an event fails temporarily every time. How many times is it tried before the webhook gives up (default settings)?",
+        "options": [
+          "3",
+          "1",
+          "5",
+          "Until it succeeds"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
+        "options": [
+          "Retrying a temporary failure",
+          "Verifying the provider's signature",
+          "Refund events",
+          "Two deliveries arriving at the same moment"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  }
+}

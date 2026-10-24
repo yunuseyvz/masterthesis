@@ -1,0 +1,153 @@
+{
+  "id": "US4",
+  "capture": "US4-deepseek",
+  "title": "SLA Duration & Billing Window Calculator",
+  "project": "shopfront",
+  "approveTurn": 1,
+  "steps": [
+    {
+      "n": 1,
+      "kind": "milestone",
+      "summary": "Add the duration parser and the small time helpers it measures with",
+      "start": 4
+    },
+    {
+      "n": 2,
+      "kind": "scaffold",
+      "summary": "Add the SLA types: billing tiers, policy, outages and the invoice",
+      "start": 5
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add the invoice generator that measures outages and credits the invoice",
+      "start": 7
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add the tests and README section",
+      "start": 8
+    }
+  ],
+  "variants": {
+    "Correct": [
+      {
+        "position": 7,
+        "tool": 0,
+        "find": "    if (outage.startedAt < periodStartMs || outage.endedAt > periodEndMs) {\n      continue;\n    }\n    const credit = creditForOutage(outageMinutes(outage), subtotalCents, policy);",
+        "replace": "    const startedAt = Math.max(outage.startedAt, periodStartMs);\n    const endedAt = Math.min(outage.endedAt, periodEndMs);\n    if (endedAt <= startedAt) {\n      continue;\n    }\n    const credit = creditForOutage(minutesBetween(startedAt, endedAt), subtotalCents, policy);"
+      }
+    ],
+    "Flawed": []
+  },
+  "testFile": "test/sla.test.ts",
+  "probes": [
+    {
+      "step": 1,
+      "question": "What does parseDurationMinutes(\"2h 15m\") return?",
+      "options": [
+        "135",
+        "2.25",
+        "215",
+        "It throws"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "135",
+        "Flawed": "135"
+      }
+    },
+    {
+      "step": 2,
+      "question": "Under the default policy, from how many outage minutes on does an outage earn a credit?",
+      "options": [
+        "More than 30",
+        "60 or more",
+        "Any outage",
+        "More than 240"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "More than 30",
+        "Flawed": "More than 30"
+      }
+    },
+    {
+      "step": 3,
+      "question": "An outage starts 60 minutes before the end of the billing period and lasts 2 hours. The subtotal is 10000 cents. What credit does generateInvoice give?",
+      "options": [
+        "500",
+        "0",
+        "1000",
+        "2500"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "500",
+        "Flawed": "0"
+      }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "What happens when parseDurationMinutes gets \"90\" (no unit)?",
+        "options": [
+          "It is rejected",
+          "It returns 90 minutes",
+          "It returns 1.5 (seconds)",
+          "It returns 5400 (hours)"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "Under the default tiers, how much credit does a 5-hour outage earn?",
+        "options": [
+          "10% of the subtotal",
+          "5% of the subtotal",
+          "25% of the subtotal",
+          "Nothing"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 3,
+        "question": "An outage started 3 days before the billing period and ended 1 hour into it. What does the invoice credit for it?",
+        "options": [
+          "5% of the subtotal (for the hour inside the period)",
+          "Nothing: the outage is skipped",
+          "25% of the subtotal (for the whole outage)",
+          "10% of the subtotal"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
+        "options": [
+          "Rounding the credit down to whole cents",
+          "Credits larger than the subtotal",
+          "Overlapping outages",
+          "Durations given in weeks"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  }
+}

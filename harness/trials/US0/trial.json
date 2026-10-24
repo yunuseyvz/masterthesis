@@ -1,0 +1,146 @@
+{
+  "id": "US0",
+  "capture": "US0-deepseek",
+  "title": "Practice: Greeting Formatter",
+  "project": "shopfront",
+  "approveTurn": 1,
+  "steps": [
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add the greeting types",
+      "start": 5
+    },
+    {
+      "n": 2,
+      "kind": "milestone",
+      "summary": "Implement the greeting formatter",
+      "start": 6
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add a helper that greets several users",
+      "start": 8
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add unit tests and a README section",
+      "start": 9
+    }
+  ],
+  "variants": {
+    "Correct": [],
+    "Flawed": []
+  },
+  "testFile": "test/greeting.test.ts",
+  "probes": [
+    {
+      "step": 1,
+      "question": "Which tones can a greeting have?",
+      "options": [
+        "friendly or formal",
+        "friendly, formal or casual",
+        "Any text",
+        "Only formal"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "friendly or formal",
+        "Flawed": "friendly or formal"
+      }
+    },
+    {
+      "step": 2,
+      "question": "formatGreeting is called with { name: \"Grace Hopper\", preferredName: \"Amazing Grace\" }. What does it return?",
+      "options": [
+        "Hello, Amazing Grace!",
+        "Hello, Grace!",
+        "Good day, Grace Hopper.",
+        "Hello, Grace Hopper!"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "Hello, Amazing Grace!",
+        "Flawed": "Hello, Amazing Grace!"
+      }
+    },
+    {
+      "step": 3,
+      "question": "What does greetAll return for an empty list of users?",
+      "options": [
+        "An empty list",
+        "An error",
+        "undefined",
+        "A list with one empty greeting"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "An empty list",
+        "Flawed": "An empty list"
+      }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "Which field of a greeting user is required?",
+        "options": [
+          "name",
+          "preferredName",
+          "tone",
+          "All three"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "What is the formal greeting for { name: \"Ada Lovelace\", preferredName: \"Ada\", tone: \"formal\" }?",
+        "options": [
+          "Good day, Ada Lovelace.",
+          "Good day, Ada.",
+          "Hello, Ada!",
+          "Hello, Ada Lovelace!"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 3,
+        "question": "In which order does greetAll return the greetings?",
+        "options": [
+          "In the order the users are given",
+          "Alphabetically by name",
+          "Formal greetings first",
+          "In random order"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
+        "options": [
+          "Rejecting a blank name",
+          "Greeting users in alphabetical order",
+          "A preferred name combined with a formal tone",
+          "Names in non-Latin scripts"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "id": "US5",
+  "capture": "US5-deepseek",
+  "title": "Sliding-Window API Rate Limiter",
+  "project": "shopfront",
+  "approveTurn": 1,
+  "steps": [
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add the rate limit types and defaults",
+      "start": 4
+    },
+    {
+      "n": 2,
+      "kind": "scaffold",
+      "summary": "Add the 429 helper and client identification",
+      "start": 5
+    },
+    {
+      "n": 3,
+      "kind": "milestone",
+      "summary": "Add the sliding-window check",
+      "start": 6
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add the gateway filter, unit tests and README docs",
+      "start": 7
+    }
+  ],
+  "variants": {
+    "Correct": [],
+    "Flawed": [
+      {
+        "position": 6,
+        "tool": 0,
+        "find": "      if (history.timestamps.length >= limit) {\n        clients.set(clientId, history);",
+        "replace": "      if (history.timestamps.length >= limit) {\n        history.timestamps.push(now);\n        clients.set(clientId, history);"
+      }
+    ]
+  },
+  "testFile": "test/limiter.test.ts",
+  "probes": [
+    {
+      "step": 1,
+      "question": "How many requests per minute does a client get by default?",
+      "options": [
+        "60",
+        "100",
+        "10",
+        "1000"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "60",
+        "Flawed": "60"
+      }
+    },
+    {
+      "step": 2,
+      "question": "A request has the headers x-forwarded-for: \"10.0.0.1, 10.0.0.2\" and x-real-ip: \"10.0.0.9\". Which client id does it get?",
+      "options": [
+        "10.0.0.1",
+        "10.0.0.2",
+        "10.0.0.9",
+        "unknown"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "10.0.0.1",
+        "Flawed": "10.0.0.1"
+      }
+    },
+    {
+      "step": 3,
+      "question": "A limiter allows 2 requests per 1000 ms. A client sends 2 requests at 0 ms, 2 more at 100 ms and 200 ms (both rejected), then one at 1000 ms. Is the last one allowed?",
+      "options": [
+        "Allowed",
+        "Rejected",
+        "Allowed only after a reset",
+        "It throws"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "Allowed",
+        "Flawed": "Rejected"
+      }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "How long is the sliding window by default?",
+        "options": [
+          "60 seconds",
+          "1 second",
+          "1 hour",
+          "10 seconds"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "A request carries no proxy headers. Which client id is used for it?",
+        "options": [
+          "unknown",
+          "The request URL",
+          "An empty string",
+          "A random id"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 3,
+        "question": "A client is over its limit and keeps retrying every 100 ms. When does it get through again?",
+        "options": [
+          "Once its oldest accepted request has left the window",
+          "Only after it stops retrying for a full window",
+          "On its very next request",
+          "Never, until the server restarts"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
+        "options": [
+          "Clients are counted separately",
+          "A client that keeps retrying while it is blocked",
+          "The limit resetting at the start of each minute",
+          "Limits shared across several servers"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  }
+}

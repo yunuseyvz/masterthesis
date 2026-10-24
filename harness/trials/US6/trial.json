@@ -1,0 +1,153 @@
+{
+  "id": "US6",
+  "capture": "US6-deepseek",
+  "title": "Discount Tiers & Percentage Clamping",
+  "project": "shopfront",
+  "approveTurn": 1,
+  "steps": [
+    {
+      "n": 1,
+      "kind": "milestone",
+      "summary": "Add the coupon discount calculation",
+      "start": 6
+    },
+    {
+      "n": 2,
+      "kind": "scaffold",
+      "summary": "Define the coupon and order-summary types",
+      "start": 7
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add the order summary calculator",
+      "start": 10
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Add the pricing tests and document coupons",
+      "start": 11
+    }
+  ],
+  "variants": {
+    "Correct": [],
+    "Flawed": [
+      {
+        "position": 6,
+        "tool": 0,
+        "find": "    if (coupon.value > 100) {",
+        "replace": "    if (coupon.value >= 100) {"
+      }
+    ]
+  },
+  "testFile": "test/pricing.test.ts",
+  "probes": [
+    {
+      "step": 1,
+      "question": "A shopper applies a 100% coupon to a mug that costs 1200 cents. What discount does discountFor give?",
+      "options": [
+        "1200",
+        "It throws: the coupon cannot exceed 100",
+        "0",
+        "1188"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "1200",
+        "Flawed": "It throws: the coupon cannot exceed 100"
+      }
+    },
+    {
+      "step": 2,
+      "question": "Which coupon kinds exist?",
+      "options": [
+        "percentage and fixed",
+        "percentage only",
+        "percentage, fixed and free shipping",
+        "Any text"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "percentage and fixed",
+        "Flawed": "percentage and fixed"
+      }
+    },
+    {
+      "step": 3,
+      "question": "An order has 2 mugs at 1200 cents and a fixed coupon of 3000 cents. What is the total?",
+      "options": [
+        "0",
+        "-600",
+        "2400",
+        "It throws"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "0",
+        "Flawed": "0"
+      }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "Can a shopper use a coupon that makes an item free (100% off)?",
+        "options": [
+          "Yes: the discount is the full price",
+          "No: a 100% coupon is rejected",
+          "Yes, but the total goes negative",
+          "Only with a fixed coupon"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "step": 2,
+        "question": "What does an order summary contain besides the items?",
+        "options": [
+          "Subtotal, discount, total and the coupon",
+          "Only the total",
+          "The total and a list of taxes",
+          "The shopper's account"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 3,
+        "question": "An order has 3 pens at 300 cents each and a 10% coupon. What is the total?",
+        "options": [
+          "810",
+          "900",
+          "90",
+          "870"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
+        "options": [
+          "A fixed coupon larger than the subtotal",
+          "A 100% coupon",
+          "An expired coupon",
+          "An order with an unknown product"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  }
+}

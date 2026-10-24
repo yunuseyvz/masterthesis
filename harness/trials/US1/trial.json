@@ -1,0 +1,153 @@
+{
+  "id": "US1",
+  "capture": "US1-deepseek",
+  "title": "Flash-Sale Inventory Reservation",
+  "project": "shopfront",
+  "approveTurn": 1,
+  "steps": [
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add the inventory types and the 409 out-of-stock error",
+      "start": 5
+    },
+    {
+      "n": 2,
+      "kind": "milestone",
+      "summary": "Implement stock reservation and stock lookup",
+      "start": 6
+    },
+    {
+      "n": 3,
+      "kind": "scaffold",
+      "summary": "Add the checkout handler that validates and reserves",
+      "start": 7
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Wire the store and route, add tests and README docs",
+      "start": 8
+    }
+  ],
+  "variants": {
+    "Correct": [],
+    "Flawed": [
+      {
+        "position": 6,
+        "tool": 0,
+        "find": "  if (available < quantity) {",
+        "replace": "  if (available && available < quantity) {"
+      }
+    ]
+  },
+  "testFile": "test/inventory.test.ts",
+  "probes": [
+    {
+      "step": 1,
+      "question": "Which HTTP status does an OutOfStockError carry?",
+      "options": [
+        "409",
+        "400",
+        "404",
+        "422"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "409",
+        "Flawed": "409"
+      }
+    },
+    {
+      "step": 2,
+      "question": "The notebook is sold out (stock 0). reserveStock is called for 1 notebook. What happens?",
+      "options": [
+        "Rejected with OutOfStockError (409)",
+        "Reserved; the stock becomes -1",
+        "Rejected: the notebook is not found (404)",
+        "Reserved; the stock stays 0"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "Rejected with OutOfStockError (409)",
+        "Flawed": "Reserved; the stock becomes -1"
+      }
+    },
+    {
+      "step": 3,
+      "question": "checkout receives the body {\"sku\": \"mug\", \"quantity\": \"2\"} (the quantity as text). What happens?",
+      "options": [
+        "Rejected with 400",
+        "2 mugs are reserved",
+        "1 mug is reserved",
+        "Rejected with 409"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "Rejected with 400",
+        "Flawed": "Rejected with 400"
+      }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "A store is created with createStockStore([{ sku: \"mug\", stock: 3 }]). What does it hold for \"pen\"?",
+        "options": [
+          "No entry",
+          "Stock 0",
+          "Stock -1",
+          "An error is thrown"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "A shop has 2 pens. One customer reserves 2, then another customer reserves 1. What happens to the second reservation?",
+        "options": [
+          "It is rejected as out of stock",
+          "It succeeds and the stock goes to -1",
+          "It succeeds and the stock stays at 0",
+          "The first reservation is undone"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "step": 3,
+        "question": "What does checkout return when the reservation succeeds?",
+        "options": [
+          "The SKU, the quantity and the remaining stock",
+          "Only ok: true",
+          "The whole stock store",
+          "The order total"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
+        "options": [
+          "Reserving more than is in stock",
+          "Reserving a sold-out product",
+          "Two customers reserving at the same time",
+          "The checkout API route"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  }
+}
