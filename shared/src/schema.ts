@@ -60,6 +60,8 @@ export const TrialResult = z.object({
   variant: Variant,
   /** Step (1-3) that meets the criteria in this story. */
   milestoneStep: z.number().int().min(1).max(4),
+  /** The step whose code differs between the variants (null: the practice story, which has no flaw). */
+  flawStep: z.number().int().min(1).max(4).nullable(),
   /** Step after which the scored review happened (BATCH: 4, the end). */
   pauseStep: z.number().int().min(1).max(4),
   /** Step whose code the stage-2 question asks about (the paused step; BATCH: the flaw step). */
@@ -67,9 +69,39 @@ export const TrialResult = z.object({
   initialDecision: Decision,
   finalDecision: Decision,
   decisionReversed: z.boolean(),
+  /** Lines of code in the scored review (the diff the participant decided on). */
+  reviewedLines: z.number().int().nonnegative(),
+  /** Time from the plan being shown to "Approve plan". */
+  planMs: z.number().nonnegative(),
+  /** Time from the pause to the accept/reject decision. */
   stage1DwellMs: z.number().nonnegative(),
-  diffScrollCoverage: z.number().min(0).max(1),
+  /** Before the decision: time the changes view was open, furthest point scrolled in its diff (0-1; 0 = never opened). */
+  changesViewMsStage1: z.number().nonnegative(),
+  diffCoverageStage1: z.number().min(0).max(1),
+  /** Before the decision: distinct files opened in the changes view, terminal commands, and test runs among them. */
+  filesOpenedStage1: z.number().int().nonnegative(),
+  terminalCommandsStage1: z.number().int().nonnegative(),
   testRunsStage1: z.number().int().nonnegative(),
+  /** Before the decision: test runs that reported at least one failing test. */
+  testFailRunsStage1: z.number().int().nonnegative(),
+  /**
+   * Before the decision: hunks (changed regions) in the reviewed diff, and how many were on screen for at least 1 s.
+   * The flaw region is the lines that differ between the Correct and Flawed variant (in both variants, so the Correct
+   * trials give the baseline); its time on screen and whether it was on screen for at least 1 s. 0/false when the
+   * region does not exist yet at this point (the flaw step comes later) or the story has none.
+   */
+  hunksStage1: z.number().int().nonnegative(),
+  hunksViewedStage1: z.number().int().nonnegative(),
+  flawRegionMsStage1: z.number().nonnegative(),
+  flawRegionSeenStage1: z.boolean(),
+  /** Before the decision: time the study window was not focused, and time without any input for 30 s or more. */
+  unfocusedMsStage1: z.number().nonnegative(),
+  idleMsStage1: z.number().nonnegative(),
+  /** Before the decision: times the chat was scrolled back, and tool calls expanded in it (reading the agent's account). */
+  chatScrollBacksStage1: z.number().int().nonnegative(),
+  toolExpandsStage1: z.number().int().nonnegative(),
+  /** While answering the behaviour question: terminal commands (running the code to check). */
+  terminalCommandsProbe: z.number().int().nonnegative(),
   stage2ProbeLatencyMs: z.number().nonnegative(),
   probeAnswer: z.number().int().min(-1).max(3), // -1 = "I don't know"
   probeCorrect: z.boolean(),
@@ -80,6 +112,19 @@ export const TrialResult = z.object({
   understandingConfidences: z.array(Confidence).length(UNDERSTANDING_ITEMS),
   /** Number of correct understanding items, 0..UNDERSTANDING_ITEMS. */
   understandingScore: z.number().int().min(0).max(UNDERSTANDING_ITEMS),
+  /** Time from the finished feature being shown to "I've reviewed", and how long the changes view was open in it. */
+  finalReviewMs: z.number().nonnegative(),
+  changesViewMsFinal: z.number().nonnegative(),
+  /** The same measures for the final review (the changes view then shows the steps after the pause; BATCH: all). */
+  hunksFinal: z.number().int().nonnegative(),
+  hunksViewedFinal: z.number().int().nonnegative(),
+  flawRegionMsFinal: z.number().nonnegative(),
+  flawRegionSeenFinal: z.boolean(),
+  unfocusedMsFinal: z.number().nonnegative(),
+  idleMsFinal: z.number().nonnegative(),
+  /** Time on each understanding question's screen (ms) and how often its answer was changed. */
+  understandingItemMs: z.array(z.number().nonnegative()).length(UNDERSTANDING_ITEMS),
+  understandingAnswerChanges: z.array(z.number().int().nonnegative()).length(UNDERSTANDING_ITEMS),
   /** Paas mental effort for this feature, 1-9. */
   paas: z.number().int().min(1).max(9),
 });

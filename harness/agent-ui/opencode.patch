@@ -1,0 +1,53 @@
+diff --git a/packages/app/src/app.tsx b/packages/app/src/app.tsx
+index 78d1117..6ff8854 100644
+--- a/packages/app/src/app.tsx
++++ b/packages/app/src/app.tsx
+@@ -18,6 +18,7 @@ import { TabsProvider } from "@/shell/tabs/tabs"
+ import { ErrorPage } from "@/shell/errors/error"
+ import { AppRoutes, File, preloadRoute } from "@/shell/routes/routes"
+ import { ExtensionRoot } from "@/runtime/extension/root"
++import { StudyGate } from "@/study/gate"
+ 
+ export { preloadRoute }
+ 
+@@ -99,8 +100,11 @@ export function AppInterface(props: {
+         <BodyTypography />
+         <CommandProvider>
+           <DesktopCommands />
+-          {props.children}
+-          {rootProps.children}
++          {/* Study mode (beacon): the study server decides what is on screen. */}
++          <StudyGate>
++            {props.children}
++            {rootProps.children}
++          </StudyGate>
+         </CommandProvider>
+       </GlobalProvider>
+     </TabsProvider>
+diff --git a/packages/app/src/session/composer/session-composer-region.tsx b/packages/app/src/session/composer/session-composer-region.tsx
+index d4632fc..15ffbb4 100644
+--- a/packages/app/src/session/composer/session-composer-region.tsx
++++ b/packages/app/src/session/composer/session-composer-region.tsx
+@@ -4,6 +4,8 @@ import { SessionPermissionDock } from "@/session/requests/session-permission-doc
+ import { SessionQuestionDock } from "@/session/requests/session-question-dock"
+ import { SessionWebSearchDock } from "@/session/requests/session-websearch-dock"
+ import type { SessionComposerRegionController } from "./session-composer-region-controller"
++import { StudyDock } from "@/study/dock"
++import { active as studyActive } from "@/study/store"
+ 
+ type SessionComposerRegionState = Pick<
+   SessionComposerRegionController["state"],
+@@ -60,7 +62,12 @@ export function SessionComposerRegion(props: {
+           )}
+         </Show>
+ 
+-        <Show when={controller.showComposer()}>
++        {/* Study mode (beacon): the study prompt replaces the composer; the participant never types to the agent. */}
++        <Show when={studyActive()}>
++          <StudyDock />
++        </Show>
++
++        <Show when={controller.showComposer() && !studyActive()}>
+           <div
+             classList={{
+               "relative z-[70]": true,

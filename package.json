@@ -2,10 +2,15 @@
   "name": "beacon-study-harness",
   "private": true,
   "type": "module",
-  "workspaces": ["shared", "server", "client"],
+  "workspaces": [
+    "shared",
+    "harness/server",
+    "capture"
+  ],
   "scripts": {
-    "test": "npm test -w shared -w server",
-    "typecheck": "npm run typecheck -w shared -w server -w client",
-    "build": "npm run build -w client"
+    "test": "npm test -w shared -w harness/server -w capture",
+    "typecheck": "npm run typecheck -w shared -w harness/server -w capture",
+    "build": "harness/agent-ui/build.sh",
+    "capture": "npm run capture -w capture --"
   }
 }

@@ -8,3 +8,6 @@ docs
 **/.run
 **/*.log
 .env*
+**/.cache
+capture/synthetic
+scripts
