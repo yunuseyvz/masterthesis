@@ -12,3 +12,4 @@ exports-demo
 .env.*
 .DS_Store
 *.log
+.openchamber/
