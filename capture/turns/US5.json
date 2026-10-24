@@ -1,0 +1,10 @@
+[
+  {
+    "text": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.",
+    "agent": "plan"
+  },
+  {
+    "text": "The plan looks good. Go ahead.",
+    "agent": "build"
+  }
+]

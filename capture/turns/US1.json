@@ -1,0 +1,10 @@
+[
+  {
+    "text": "As a customer during a flash sale, I want to reserve stock for the items in my cart so that I don't lose them while I check out. If the shop can't fulfil my order, I should be told.",
+    "agent": "plan"
+  },
+  {
+    "text": "The plan looks good. Go ahead.",
+    "agent": "build"
+  }
+]

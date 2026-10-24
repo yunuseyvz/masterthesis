@@ -1,0 +1,4 @@
+[
+  { "text": "As a shop owner, I want a low-stock report for the catalog, so that I know which products to reorder. Products with fewer than a configurable number of units in stock should be listed, most urgent first. Add unit tests.", "agent": "plan" },
+  { "text": "The plan looks good. Go ahead.", "agent": "build" }
+]

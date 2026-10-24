@@ -1,0 +1,10 @@
+[
+  {
+    "text": "As a user, I want the app to greet me by name, so that it feels friendly. This is a practice story: take your time to explore the interface.",
+    "agent": "plan"
+  },
+  {
+    "text": "The plan looks good. Go ahead.",
+    "agent": "build"
+  }
+]

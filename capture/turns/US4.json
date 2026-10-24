@@ -1,0 +1,10 @@
+[
+  {
+    "text": "As a billing owner, I want outages measured against our SLA threshold and credited on the invoice, so that customers are compensated when we miss the SLA.",
+    "agent": "plan"
+  },
+  {
+    "text": "The plan looks good. Go ahead.",
+    "agent": "build"
+  }
+]

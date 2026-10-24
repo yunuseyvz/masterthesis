@@ -1,0 +1,10 @@
+[
+  {
+    "text": "As a shopper, I want to apply a coupon to my order, so that I pay the discounted price.",
+    "agent": "plan"
+  },
+  {
+    "text": "The plan looks good. Go ahead.",
+    "agent": "build"
+  }
+]

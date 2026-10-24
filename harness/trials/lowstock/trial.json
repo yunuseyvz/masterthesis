@@ -1,0 +1,77 @@
+{
+  "id": "lowstock",
+  "capture": "deepseek-lowstock-steps",
+  "title": "Low-Stock Report",
+  "project": "shopfront",
+  "approveTurn": 1,
+  "steps": [
+    { "n": 1, "kind": "scaffold", "summary": "Add a per-product stock count to the catalog model and seed data", "start": 5 },
+    { "n": 2, "kind": "milestone", "summary": "Add the low-stock report logic in a new module", "start": 7 },
+    { "n": 3, "kind": "scaffold", "summary": "Expose the report through an API route and page, link it, document it", "start": 8 },
+    { "n": 4, "kind": "completion", "summary": "Add unit tests for the report logic and run the suite", "start": 11 }
+  ],
+  "variants": {
+    "Correct": [],
+    "Flawed": [
+      {
+        "position": 7,
+        "tool": 0,
+        "find": "    .sort((a, b) => a.stock - b.stock || a.sku.localeCompare(b.sku))",
+        "replace": "    .sort((a, b) => `${a.stock}:${a.sku}`.localeCompare(`${b.stock}:${b.sku}`))"
+      }
+    ]
+  },
+  "testFile": "test/lowStock.test.ts",
+  "probes": [
+    {
+      "step": 1,
+      "question": "How many units of the Fountain pen does the shop's seeded catalog have in stock?",
+      "options": ["12", "3", "1", "0"],
+      "script": "probe1.ts",
+      "expected": { "Correct": "12", "Flawed": "12" }
+    },
+    {
+      "step": 2,
+      "question": "The owner requests GET /api/products/low-stock?threshold=20. In which order are the products listed?",
+      "options": ["notebook, mug, pen", "notebook, pen, mug", "pen, mug, notebook", "mug, notebook, pen"],
+      "script": "probe2.ts",
+      "expected": { "Correct": "notebook, mug, pen", "Flawed": "notebook, pen, mug" }
+    },
+    {
+      "step": 3,
+      "question": "A request arrives for GET /api/products/low-stock?threshold=abc. Which status does it get?",
+      "options": ["400", "200", "500", "404"],
+      "script": "probe3.ts",
+      "expected": { "Correct": "400", "Flawed": "400" }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "Which product of the seeded catalog has the least stock?",
+        "options": ["Dot-grid notebook", "Enamel mug", "Fountain pen", "All have the same stock"],
+        "correct": { "Correct": 0, "Flawed": 0 }
+      },
+      {
+        "step": 2,
+        "question": "A catalog has a product with 2 units and one with 15 units. The report runs with a threshold of 20. Which product comes first?",
+        "options": ["The one with 2 units", "The one with 15 units", "Neither: only the one with 2 units is listed", "Neither: the report is empty"],
+        "correct": { "Correct": 0, "Flawed": 1 }
+      },
+      {
+        "step": 3,
+        "question": "Where does the new navigation link in the header lead?",
+        "options": ["/products/low-stock", "/reports/low-stock", "/api/products/low-stock", "No link was added"],
+        "correct": { "Correct": 0, "Flawed": 0 }
+      },
+      {
+        "step": 4,
+        "question": "Which case do the unit tests cover?",
+        "options": ["A product with exactly the threshold in stock", "A threshold given as text in the URL", "The API route's response", "A product missing from the catalog"],
+        "correct": { "Correct": 0, "Flawed": 0 }
+      }
+    ]
+  }
+}

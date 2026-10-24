@@ -1,0 +1,10 @@
+[
+  {
+    "text": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.",
+    "agent": "plan"
+  },
+  {
+    "text": "The plan looks good. Go ahead.",
+    "agent": "build"
+  }
+]
