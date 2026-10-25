@@ -91,3 +91,4 @@ Every column, event and how each measure is computed: [docs/telemetry.md](docs/t
 - [docs/technical.md](docs/technical.md): architecture, the capture format and tool, the replay, trials, study flow, opencode integration, agent UI build, isolation, configuration, tests.
 - [capture-tool/README.md](capture-tool/README.md): recording sessions.
 - [docs/telemetry.md](docs/telemetry.md): what is recorded and how.
+- [docs/recording-protocol.md](docs/recording-protocol.md): how the agent sessions were recorded, with every prompt the model received.

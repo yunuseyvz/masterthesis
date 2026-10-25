@@ -213,6 +213,8 @@ this is checked at every step boundary when the trial loads. All patches must li
 
 ### 6.1 The study's trials
 
+The full recording protocol, with every prompt: [recording-protocol.md](recording-protocol.md).
+
 `US0`–`US6` play recorded captures, `captures/<id>-deepseek` (DeepSeek V4.1 Flash on OpenCode Go). Each was recorded
 with `capture-tool/turns/<id>.json` (the story's request in Plan mode, then "The plan looks good. Go ahead.") and two
 briefs: `capture-tool/briefs/study.md` (four announced steps, one per response, tests in step 4) and the story's step
