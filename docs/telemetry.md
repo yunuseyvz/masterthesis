@@ -1,7 +1,7 @@
 # Beacon study harness: telemetry
 
 Everything the harness records, where it comes from, and how the per-trial measures are computed. For the
-architecture see [technical.md](technical.md).
+architecture see [technical.md](technical.md). A German overview by direct vs. indirect data: [data-collected.md](data-collected.md).
 
 ## 1. Sources and files
 
@@ -88,7 +88,7 @@ and logs each as `ui_<type>`, adding `phase` and `trial` (position; 0 = practice
 
 | Event | Data | Sent when | How it is detected |
 |---|---|---|---|
-| `click` | `label`, `area?` (`review`, `terminal`) | Any click inside opencode, except on the study prompt (its decisions are logged by the server; its Files and Terminal buttons show up as the explorer or terminal opening) | Capture-phase listener; label is the `aria-label` or text of the closest button, link, tab, tree item, option or menu item |
+| `click` | `label`, `area?` (`review`, `terminal`) | Any click in opencode's interface, except the study prompt and the study's own pages (its decisions are logged by the server; its Files and Terminal buttons show up as the explorer or terminal opening) | Capture-phase listener; label is the `aria-label` or text of the closest button, link, tab, tree item, option or menu item |
 | `review` | `open` | The changes view opens or closes | Visibility of `[data-component="session-review-v2"]`, checked every 500 ms |
 | `diff_scroll` | `coverage` (0–1) | The furthest point scrolled in the changes view grows by ≥ 5 %, or reaches the end | Longest scroll area inside the review; `(scrollTop + clientHeight) / scrollHeight`. Reset when a review starts |
 | `diff_view` | `views: [{file, from, to}]` | The code lines on screen change; `[]` when none | Every 500 ms: each visible `diffs-container` (opencode's code renderer); visible `[data-line]` rows in its shadow root, clipped by every scrolling ancestor; deletions skipped. File: the review's file header, otherwise the file last picked in a file tree |
@@ -119,8 +119,9 @@ One row per measured trial. The practice trial has the same fields in `bundle.pr
 | `milestoneStep` | Step (1–3) that meets the milestone criteria in this story |
 | `flawStep` | Step whose code differs between the variants (null for the practice story, in `bundle.practice`) |
 | `pauseStep` | Step after which the scored review happened (BATCH: 4) |
+| `flawStepReviewed` | The scored review includes the flaw step (BATCH: always; a pause: `pauseStep = flawStep`), so a Flawed trial's flaw was visible before the decision; set for Correct trials too |
 | `probeStep` | Step the behaviour question asked about (the paused step; BATCH: the flaw step) |
-| `reviewedLines` | Lines of code in the scored review (BATCH: the whole feature; a pause: the paused step) |
+| `reviewedLines` | Changed lines in the scored review (added or changed lines in the diff; BATCH: the whole feature; a pause: the paused step) |
 
 ### Decision and behaviour question
 

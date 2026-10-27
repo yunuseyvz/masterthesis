@@ -73,6 +73,11 @@ export function StudyGate(props: ParentProps) {
             {view()!.participantId} {view()!.debugTag}
           </div>
         </Show>
+        <Show when={view()!.story}>
+          <div data-study-ticket>
+            {view()!.practice ? "Practice feature · take your time" : `Ticket · ${view()!.story!.title} · release today`}
+          </div>
+        </Show>
         {props.children}
       </Match>
     </Switch>

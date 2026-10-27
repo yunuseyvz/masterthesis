@@ -45,4 +45,16 @@ describe("generateSessionPlan", () => {
     const b = generateSessionPlan({ participantId: "P", studySeed: "5", group: 2 });
     expect(a.trials.map((t) => t.probeOptionOrder)).toEqual(b.trials.map((t) => t.probeOptionOrder));
   });
+
+  it("with rounds, splits each story's NON_MILESTONE pause steps 5:5 over N = 30, without changing shuffles", () => {
+    const draws = new Map<string, number[]>();
+    for (let n = 0; n < 30; n++) {
+      const plan = generateSessionPlan({ participantId: "P", studySeed: String(n), group: n % 6, round: Math.floor(n / 6) });
+      const coin = generateSessionPlan({ participantId: "P", studySeed: String(n), group: n % 6 });
+      expect(plan.trials.map((t) => t.understandingOptionOrders)).toEqual(coin.trials.map((t) => t.understandingOptionOrders));
+      for (const t of plan.trials.filter((t) => t.regime === "NON_MILESTONE")) draws.set(t.story, [...(draws.get(t.story) ?? []), t.pauseDraw]);
+    }
+    expect(draws.size).toBe(6);
+    for (const d of draws.values()) expect([d.length, d.filter((x) => x === 1).length]).toEqual([10, 5]);
+  });
 });

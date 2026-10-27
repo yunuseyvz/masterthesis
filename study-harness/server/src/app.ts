@@ -18,6 +18,8 @@ export interface ServerConfig {
   participantId: string;
   studySeed: string;
   group?: number;
+  /** Earlier sessions of this group; balances the NON_MILESTONE pause step (see generateSessionPlan). */
+  round?: number;
   exportDir: string;
   /** Trial definitions (study-harness/trials): which capture, its steps and variants, and the questions. */
   trialsDir: string;
@@ -82,14 +84,14 @@ export async function buildApp(cfg: ServerConfig) {
     agent = new FakeAgentHost(replay);
   }
 
-  const start = (participantId: string, studySeed: string, group?: number) => {
-    const plan = generateSessionPlan({ participantId, studySeed, group });
+  const start = (participantId: string, studySeed: string, group?: number, round?: number) => {
+    const plan = generateSessionPlan({ participantId, studySeed, group, round });
     const sink = makeEventSink(cfg.exportDir, participantId, studySeed);
     session = new StudySession(plan, loadStory, { agent, replay, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox }, sink, Date.now, cfg.showCondition ?? false);
     recordingFile = path.join(cfg.exportDir, `${participantId}_${studySeed}.recording.jsonl`);
     return plan;
   };
-  let group = start(cfg.participantId, cfg.studySeed, cfg.group).group;
+  let group = start(cfg.participantId, cfg.studySeed, cfg.group, cfg.round).group;
 
   const app = Fastify({ logger: false });
   app.addHook("onClose", async () => {

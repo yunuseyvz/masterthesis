@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # One participant session in a fresh container.
 #
-# Usage: study-harness/scripts/run-session.sh [--participant ID] [--seed N] [--group 0-5] [--show-condition] [--demo] [--no-window] [--no-recording] [--dry-run]
+# Usage: study-harness/scripts/run-session.sh [--participant ID] [--seed N] [--group 0-5] [--round N] [--show-condition] [--demo] [--no-window] [--no-recording] [--dry-run]
 #
 # With no options everything is generated:
 #   participant  random 6-character ID (letters/digits, no look-alikes), e.g. K7QX2M
 #   seed         random 32-bit integer; drives option shuffles and is part of the export file names
 #   group        number of completed sessions in exports/ modulo 6, so groups stay balanced as
 #                you run participants one after another, and a dropout's slot is re-run
+#   round        completed sessions of that group in exports/; alternates the NON_MILESTONE pause step
 # Any of them can be set explicitly. --dry-run prints the resolved values and exits.
 # --show-condition (experimenter aid, never for real participants) shows "<regime>·<variant>" next to the
 # participant ID in the sidebar: regime B = batch (review at the end), M = milestone pause, N = non-milestone pause;
@@ -19,18 +20,19 @@
 # session with a new ID starts, and the last screen offers "Start again". Demo exports go to exports-demo/.
 set -euo pipefail
 
-usage() { sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; }
 
-PARTICIPANT="" SEED="" GROUP="" DRY=0 SHOW=0 DEMO=0 WINDOW=1 RECORD=1
+PARTICIPANT="" SEED="" GROUP="" ROUND="" DRY=0 SHOW=0 DEMO=0 WINDOW=1 RECORD=1
 while [ $# -gt 0 ]; do
   case "$1" in
-    --participant|--seed|--group)
+    --participant|--seed|--group|--round)
       [ $# -ge 2 ] || { echo "$1 needs a value" >&2; exit 2; }
-      case "$1" in --participant) PARTICIPANT=$2;; --seed) SEED=$2;; --group) GROUP=$2;; esac
+      case "$1" in --participant) PARTICIPANT=$2;; --seed) SEED=$2;; --group) GROUP=$2;; --round) ROUND=$2;; esac
       shift 2 ;;
     --participant=*) PARTICIPANT=${1#*=}; shift ;;
     --seed=*)        SEED=${1#*=}; shift ;;
     --group=*)       GROUP=${1#*=}; shift ;;
+    --round=*)       ROUND=${1#*=}; shift ;;
     --dry-run)       DRY=1; shift ;;
     --show-condition) SHOW=1; shift ;;
     --demo)          DEMO=1; shift ;;
@@ -56,13 +58,22 @@ if [ -z "$GROUP" ]; then
   DONE=$({ find "$EXPORTS" -maxdepth 1 -name '*.json' 2>/dev/null || true; } | wc -l)
   GROUP=$((DONE % 6))
 fi
+if [ -z "$ROUND" ]; then
+  # completed sessions (bundles) of this group so far
+  ROUND=$(node -e '
+    const fs = require("fs"), path = require("path"), [dir, g] = process.argv.slice(1);
+    const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".json")) : [];
+    console.log(files.filter((f) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")).plan?.group === Number(g)).length);
+  ' "$EXPORTS" "$GROUP")
+fi
 
 # The ID ends up in file and container names, so keep it strictly alphanumeric.
 [[ "$PARTICIPANT" =~ ^[A-Za-z0-9]{1,32}$ ]] || { echo "participant ID must be 1-32 letters/digits, got '$PARTICIPANT'" >&2; exit 2; }
 [[ "$SEED" =~ ^[0-9]{1,10}$ ]]              || { echo "seed must be a non-negative integer, got '$SEED'" >&2; exit 2; }
 [[ "$GROUP" =~ ^[0-5]$ ]]                   || { echo "group must be 0-5, got '$GROUP'" >&2; exit 2; }
+[[ "$ROUND" =~ ^[0-9]{1,4}$ ]]              || { echo "round must be a non-negative integer, got '$ROUND'" >&2; exit 2; }
 
-echo "Participant $PARTICIPANT  seed $SEED  group $GROUP$([ "$DEMO" = 1 ] && echo "  (demo)")"
+echo "Participant $PARTICIPANT  seed $SEED  group $GROUP  round $ROUND$([ "$DEMO" = 1 ] && echo "  (demo)")"
 [ "$DRY" = 1 ] && exit 0
 
 RUN="$ROOT/.run/$PARTICIPANT"
@@ -81,7 +92,7 @@ docker build -q -f "$ROOT/study-harness/Dockerfile" -t beacon-study-harness "$RO
 docker run --rm --name "beacon-$PARTICIPANT" \
   --cap-drop ALL --cap-add SETUID --cap-add SETGID --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add KILL \
   --security-opt no-new-privileges --pids-limit 512 --memory 3g \
-  -e PARTICIPANT_ID="$PARTICIPANT" -e STUDY_SEED="$SEED" -e STUDY_GROUP="$GROUP" -e SHOW_CONDITION="$SHOW" -e DEMO="$DEMO" -e SESSION_RECORDING="$RECORD" \
+  -e PARTICIPANT_ID="$PARTICIPANT" -e STUDY_SEED="$SEED" -e STUDY_GROUP="$GROUP" -e STUDY_ROUND="$ROUND" -e SHOW_CONDITION="$SHOW" -e DEMO="$DEMO" -e SESSION_RECORDING="$RECORD" \
   -v "$EXPORTS:/exports" -v "$RUN:/run/study" \
   beacon-study-harness &
 DOCKER_PID=$!

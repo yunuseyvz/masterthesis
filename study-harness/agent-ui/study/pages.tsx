@@ -120,10 +120,30 @@ function Options(props: { options: string[]; value?: number; onChange: (i: numbe
 
 function Intro() {
   return (
-    <Card title={`Welcome, ${view()!.participantId}`}>
+    <Card title={`Welcome to Shopfront, ${view()!.participantId}`}>
       <p>
-        You will work with an AI coding agent in opencode. It implements a series of small features in one project. For each
-        feature you approve its plan, review its work when it stops, and then answer a few questions.
+        You have just joined <b>Shopfront</b>, a small online shop, as a developer. The team works with an AI coding
+        agent: the product owner writes a user story, the agent plans and implements it, and a developer reviews the
+        agent's work before it ships. This week, that developer is you.
+      </p>
+      <div data-study-field>
+        <div data-study-label>Your job for each feature</div>
+        <ol data-study-list>
+          <li>Read the user story and the agent's plan, and approve the plan.</li>
+          <li>When the agent stops, review its code. Read the changes, open any file, run the code and the tests.</li>
+          <li>
+            Decide. <b>Accept</b> ships the code with today's release. <b>Reject</b> sends it back and holds the
+            feature for a day.
+          </li>
+        </ol>
+      </div>
+      <p>
+        Afterwards you are on call for these features: a colleague on the support desk asks you a few questions about
+        how the new code behaves, without showing it to you. Answer from what you understood during the review.
+      </p>
+      <p>
+        Treat it as real: the shop has customers and money at stake. Accepting broken code costs the shop; rejecting
+        good code delays a feature. Take the time you would take at work.
       </p>
       <p>First a short questionnaire, then a practice feature to get to know the interface.</p>
       <div data-study-actions>
@@ -266,6 +286,7 @@ function Quiz() {
           when={!onEffort()}
           fallback={<Scale label="How much mental effort did you invest in reviewing this feature?" values={[1, 2, 3, 4, 5, 6, 7, 8, 9]} ends={["Very, very low", "Very, very high"]} value={paas()} onChange={setPaas} />}
         >
+          <p data-study-lead>A colleague on the support desk asks you about the feature you just reviewed.</p>
           <p data-study-question>{items()[k()]!.question}</p>
           <Options options={items()[k()]!.options} value={answers[k()]} onChange={pick} />
           <Scale label="How sure are you about your answer?" values={CONFIDENCE} format={(c) => `${c}%`} ends={["Guessing", "Certain"]} value={confs[k()]} onChange={(c) => setConfs(k(), c)} />

@@ -145,7 +145,8 @@ capture config denies opencode's `question` tool unless `--allow-questions` (a r
 answer from the participant). `--brief FILE` is written as opencode's global `AGENTS.md` in the capture's private
 home, so it is part of every request's system prompt (not a user message: thread keys are unaffected) and stored in
 `capture.json`; the harness's opencode has no such file, and the replay serves responses without looking at the
-system prompt. `capture-tool/briefs/study.md` makes the agent work in four announced steps, one per response, which
+system prompt. The few recorded sentences that name the file are scrubbed in the replay (§5).
+`capture-tool/briefs/study.md` makes the agent work in four announced steps, one per response, which
 `inspect` turns into proposed step starts. Before forwarding it snapshots the project and
 records the call's thread and position; while streaming it records each event with its arrival time. Other requests
 (model lists) pass through unrecorded.
@@ -181,9 +182,11 @@ opencode is configured with a provider "Study agent" pointing at it. For each re
 5. **Other threads** (subagents, titles) play their recordings; without one, side requests get "Study session".
 
 **Rewriting.** The capture's project path is replaced by the trial's in everything the agent says and does, and
-variant patches are applied to their tool calls. Text and tool arguments arrive split over many chunks, so each is
-reassembled, changed, and spread back over the same chunks: the number of chunks and their times stay as recorded.
-Unchanged chunks are sent byte for byte.
+variant patches are applied to their tool calls. Two recorded plans and some reasoning name the recording brief's
+file, `AGENTS.md`, which the trial's project does not have; `scrubBriefRefs` drops those references from the agent's
+text and reasoning. Text and tool arguments arrive split over many chunks, so each is reassembled, changed, and
+spread back over the same chunks: the number of chunks and their times stay as recorded. Unchanged chunks are sent
+byte for byte.
 
 Every served response is logged as `replay_call`, every checkpoint as `replay_checkpoint`.
 
@@ -289,7 +292,10 @@ waits until opencode reports the session idle.
 - Story `s` in group `g` gets cell `(s + g) mod 6`; cell `% 3` picks the regime (BATCH, MILESTONE, NON_MILESTONE),
   cells 0–2 are Correct and 3–5 Flawed. Every participant meets each regime × variant cell once; across six groups
   every story appears in every cell. N should be a multiple of 6.
-- NON_MILESTONE draws which of the two non-milestone steps among 1–3 the agent pauses after (`pauseDraw`).
+- NON_MILESTONE pauses after one of the two non-milestone steps among 1–3 (`pauseDraw`). With `round` (`STUDY_ROUND`,
+  completed sessions / 6) it alternates by `(round + group) mod 2`: a story is NON_MILESTONE in groups `g` and `g + 3`,
+  of opposite parity, so at N = 30 each candidate step gets 5 of a story's 10 NON_MILESTONE trials. Without `round`,
+  a coin flip per trial.
 - Option orders of the behaviour question and of every understanding item are shuffled per trial.
 - The practice trial (`US0`, MILESTONE, Correct) comes first and is not measured.
 
@@ -365,6 +371,7 @@ opencode's completion sound plays as usual; the browser's notification popup is 
 |---|---|---|
 | `PARTICIPANT_ID`, `STUDY_SEED` | required | Identity (1–32 letters/digits) and seed |
 | `STUDY_GROUP` | drawn from seed | Counterbalancing group 0–5 |
+| `STUDY_ROUND` | unset (coin flip) | Earlier sessions of the group; balances the NON_MILESTONE pause step |
 | `TRIALS_DIR` | `study-harness/trials` | Trial definitions |
 | `CAPTURES_DIR` | `captures` | Captures |
 | `EXPORT_DIR` | `/exports` | Exports |

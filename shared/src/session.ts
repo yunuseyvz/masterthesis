@@ -30,6 +30,11 @@ export interface PlanInput {
   studySeed: string;
   /** Explicit group 0..5. Preferred: derive from participant number so groups stay balanced. */
   group?: number;
+  /**
+   * How many sessions of this group ran before (completed sessions / 6). With it, the NON_MILESTONE pause alternates
+   * between the two candidate steps over a group's rounds instead of a coin flip; see `pauseDraw`.
+   */
+  round?: number;
 }
 
 /**
@@ -41,10 +46,13 @@ export function generateSessionPlan(input: PlanInput): SessionPlan {
   const drawnGroup = Math.floor(rng() * GROUPS); // always drawn so later draws don't depend on override
   const group = input.group ?? drawnGroup;
   if (!Number.isInteger(group) || group < 0 || group >= GROUPS) throw new Error(`group must be 0..${GROUPS - 1}, got ${group}`);
+  const { round } = input;
+  if (round !== undefined && (!Number.isInteger(round) || round < 0)) throw new Error(`round must be a non-negative integer, got ${round}`);
 
   const order = WILLIAMS_6[group]!;
   const trials: TrialPlan[] = order.map((storyIdx, i) => {
     const { regime, variant } = cellToCondition((storyIdx + group) % 6);
+    const coin = rng() < 0.5 ? 0 : 1; // always drawn so the round does not shift later shuffles
     return {
       position: i + 1,
       story: STORIES[storyIdx]!,
@@ -52,7 +60,9 @@ export function generateSessionPlan(input: PlanInput): SessionPlan {
       variant,
       probeOptionOrder: shuffle([0, 1, 2, 3], rng),
       understandingOptionOrders: understandingOrders(rng),
-      pauseDraw: rng() < 0.5 ? 0 : 1,
+      // A story is NON_MILESTONE in two groups, g (Correct) and g + 3 (Flawed), of opposite parity. Alternating by
+      // round + group gives each candidate step 5 of a story's 10 NON_MILESTONE trials at N = 30 (3:2 per variant).
+      pauseDraw: round === undefined ? coin : (round + group) % 2,
     };
   });
 
@@ -69,5 +79,5 @@ export function generateSessionPlan(input: PlanInput): SessionPlan {
     pauseDraw: 0,
   };
 
-  return { participantId: input.participantId, studySeed: input.studySeed, group, practice, trials };
+  return { participantId: input.participantId, studySeed: input.studySeed, group, round, practice, trials };
 }

@@ -186,7 +186,8 @@ export function startTelemetry() {
     "click",
     (e) => {
       const el = e.target instanceof Element ? e.target : null
-      if (!el || el.closest("[data-study-dock]")) return // the study's own prompts are logged by the server
+      // The study's own prompts and pages are logged by the server; their clicks are not participant activity in opencode.
+      if (!el || el.closest("[data-study-dock], [data-study-page]")) return
       const review = el.closest(REVIEW)
       send({ type: "click", data: { label: labelOf(el), area: review ? "review" : el.closest(TERMINAL) ? "terminal" : undefined } })
       // A file picked in a file tree (the changes view or the file browser); folders have no extension.

@@ -14,7 +14,7 @@ export function makeEventSink(exportDir: string, participantId: string, studySee
 }
 
 const CSV_COLUMNS: (keyof TrialResult)[] = [
-  "position", "story", "regime", "variant", "milestoneStep", "flawStep", "pauseStep", "probeStep", "initialDecision", "finalDecision",
+  "position", "story", "regime", "variant", "milestoneStep", "flawStep", "pauseStep", "flawStepReviewed", "probeStep", "initialDecision", "finalDecision",
   "decisionReversed", "reviewedLines", "planMs", "stage1DwellMs", "changesViewMsStage1", "diffCoverageStage1",
   "filesOpenedStage1", "terminalCommandsStage1", "testRunsStage1", "testFailRunsStage1", "hunksStage1", "hunksViewedStage1",
   "flawRegionMsStage1", "flawRegionSeenStage1", "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1",

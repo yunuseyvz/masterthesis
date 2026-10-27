@@ -1,317 +1,249 @@
-# Master's Thesis Exposé
+Master's thesis · Yunus Yavuz · LMU Munich
 
-**Author:** Yunus Emre Yavuz ([yunus.yavuz@campus.lmu.de](mailto:yunus.yavuz@campus.lmu.de))  
-**Advisors:** Thomas Weber and Prof. Dr. Albrecht Schmidt  
-**Chair:** Human-Centered Ubiquitous Media, LMU Munich  
-**Date:** 16 October 2026 (Revised following Supervisor Meeting on 15 October 2026; revised again 18 October 2026 after a literature check and a Jev benchmark)
+# Interventions in Agentic Coding
 
-> **Revision note (18 October 2026).** What changed since the 16 October version:
-> 1. **Title and RQ3.** Jev is no longer presented as a live "parallel reviewer". The pauses in the study are scripted, and Jev is an exploratory *offline* evaluation. A benchmark (`docs/jev-benchmark/`) found that Jev separates the scripted milestone subtasks almost perfectly, but does not beat a simple positional rule on unscripted agent traces (§7.1).
-> 2. **C1–C3.** They are now presented as the author's synthesis with operational decision tests (§2.2), not as findings of the cited pair-programming studies.
-> 3. **Citation corrections.** Bryant et al. (2008) argue *against* the "navigator as continuous reviewer" model; the DOI of Mozannar et al. was wrong; the Sovrano et al. claim is removed pending verification (the correct record is a paper on prompt-induced biases in AI); the titles of Gullstrand Heander et al. and Ye et al. and the Hart & Staveland version were corrected.
-> 4. **Jev claims.** "Deterministic" and "70–500 ms" are no longer asserted: TypeSafe's documentation says "calibrated", and we measured about 0.4 s per request including network.
-> 5. **Full-text check (18 October).** Bryant et al., Plonka et al., Zieris & Prechelt, Adamczyk & Bailey, Iqbal & Bailey, Dhanorkar et al., ClarifyGPT and Orchid (Yang et al.) were checked against the PDFs. Corrections: Bryant's finding concerns both partners, not the navigator alone; Zieris & Prechelt is an ICSE '16 *Companion* paper based on a qualitative analysis illustrated with one session; Adamczyk & Bailey found effects on affect and effort but not on task performance (N = 16); Orchid has a DOI (ASE '26). Six further papers were read for the criteria's grounding (Tao et al., Rigby & Bird, Inozemtseva & Holmes, Jia & Harman, Fucci et al., Herzig & Zeller); the last one concerns noise in mined version histories and does **not** support claims about review, so it is not cited. Fagan (1976) and Parnas & Weiss are not yet read. Not yet checked against full texts: Chong & Hurlbutt, Bacchelli & Bird, Sadowski et al., Gullstrand Heander et al., di Biase et al., Baum et al., Ghosh et al., Ye et al., Yu et al., Buçinca et al., Li et al., Danry et al.
-> 6. **Derivation method.** A written procedure for how C1–C3 were derived and will be validated (`criteria-derivation.md`), including what was informal and what is still planned.
-> 7. **Reframing (18 October, later).** The core problem is stated as: agents generate lots of code and the developer ends up barely understanding it. Understanding is now the main outcome (RQ1); spotting flaws is secondary (RQ2). The "8,000-line" wording was dropped. Equal exposure (an unscored wrap-up after the decision) and three understanding items per feature are implemented in the harness, with the answers verified by running the code; the pilot of the items and the literature grounding of the instrument are still to do (§3).
-> 8. **Regimes and scale.** ARBITRARY is redefined as one scored pause after the wiring subtask, so that it reviews a similar amount of code as CHECKPOINT but misses the milestone (implemented in the harness, with a regression test). The old version (an extra "Continue" pause plus a larger diff) mostly manipulated diff size. Corpus sizes are now the measured ones (batch about 92 lines, milestone about 17), not the earlier ~180 and ~25. **Not yet done:** all six understanding questions concern wiring-subtask behaviour that CHECKPOINT participants never see, so RQ2 is confounded by exposure until all regimes show the remaining subtasks before that question.
-> 9. **Two regimes (19 October 2026).** ARBITRARY is dropped. The study now compares two regimes: `BATCH` (control: one review at the end, the usual way of working) and `CHECKPOINT` (intervention: one pause at the subtask the criteria select). ARBITRARY mostly manipulated which subtask was reviewed (it never contained the seeded flaw, so its RQ2 result was built in) and its diff was 1.1× to 2.7× the milestone's size. Cost: the study can no longer separate "any pause" from "the right pause", and the intervention changes timing and review size together. Both go into the limitations; ARBITRARY is the natural follow-up. Counterbalancing is now 12 groups (36 = 3 × 12).
-> 10. **Back to the human study (19 October 2026).** A technical main question (automatic pause-point detection) was considered and dropped: the detector result is mixed, and the problem the thesis is about is a human one. Understanding stays the main outcome (RQ1). The detector is kept as an exploratory side result (§7.1) and as future work. The agent in the study now narrates each subtask and shows a plan with progress, to make the interface look more like a real agent (ecological validity).
-> 11. **Shared Next.js codebase (19 October 2026).** All stories are now features of one existing project, `shopfront`, a small shop built with Next.js (App Router) and TypeScript: pages, components, API route handlers and a `src/lib/` layer, about 30 files and 17 unit tests. It exists before the agent starts, appears in the file tree and the terminal, and is never part of a diff. Each feature lives in `src/lib/<feature>/`, and two of them (checkout, payment webhook) also add a real route handler under `src/app/api/`. Route handlers are plain functions on the standard `Request` and `Response`, so they are tested without installing Next.js (the dev server is not available in the study container). The participant learns the project once in the practice story. The subtask sizes are unchanged (batched 54 to 119 lines, milestone 10 to 26), so the review size ratio is the same as before.
-> 12. **Full dev experience (19 October 2026).** The container now has network access (the experimenter observes each session; `--offline` restores the old behaviour). The shared project's dependencies are installed in the image, so `npm run dev`, `npm run build` and `npx tsc` work in the participant's terminal. The UI has a toolbar to toggle the sidebar, Changes, Files, Terminal and a new Preview pane (a small browser on the participant's dev server, published on `127.0.0.1:3000`). Verified end to end in Docker: the shell runs as the unprivileged uid, the dev server starts and answers on the published port, and it is killed when the checkpoint changes. The toolbar and the Preview pane themselves were not looked at in a browser yet.
-> 13. **Title, wording and scope (19 October 2026).** The title is now deliberately general ("Interventions in Agentic Coding"), and "pair-programming-derived" became "criteria-derived" or just "checkpoint", because the literature behind the criteria is pair programming, interruption research and code review, not pair programming alone. The supervisor had said that three research questions may be too ambitious: there are now two (understanding as the main question, flaw detection as the secondary one). Workload and habituation are reported as descriptive additional measures. The detector stays exploratory and future work.
-> 14. **Semantic milestones (19 October 2026).** The pause points are now called *semantic milestones* (defined by meaning, not by position, size or time), with C1 to C3 as their three kinds. The contrast is a *positional pause*. The study condition keeps the name `CHECKPOINT`: the checkpoint is the pause, the semantic milestone is where it is placed.
-> 15. **Subtask defined (19 October 2026).** Added a definition of a subtask in §1 (a unit of work with one sub-goal that ends in a reviewable state), and a limitation that the cut into subtasks is a design choice.
-> 16. **The milestone moves between stories (19 October 2026).** The milestone subtask was always subtask 2, which let participants learn "the flaw is in the second file" and made the Jev benchmark trivial (the subtask number solved it). It is now subtask 1 in US4 and US6, subtask 2 in US1 and US3, and subtask 3 in US2 and US5, so the position is no cue. The checkpoint regime pauses after each story's own milestone subtask. Mean sizes: batched about 102 lines, milestone subtask about 18 lines. The rater sheet was regenerated (`scripts/make-rater-sheet.py`). The Jev results in §7.1 refer to the earlier layout.
-> 17. **Terminology: "subtask" instead of "step" (19 October 2026).** "Step" meant too many things (a tool call, a turn, a commit, a step of the procedure). A feature (the task handed to the agent) now consists of four **subtasks**, listed as the agent's plan. A **semantic milestone** is the subtask where C1, C2 or C3 applies; the **checkpoint** is the pause and the **review** is the human check. The code keeps the field name `steps` so that exports and tests stay unchanged; `Step` and `step` in older result files and in the code comments mean subtask.
+Timing human review of agent-written code.
 
----
+[Problem](#problem)[Question](#rqs)[Subtasks](#unit)[Criteria](#milestones)[Study](#study)[Harness](#harness)[Measures](#measures)[Contributions](#contrib)[Future](#future)[Limits](#limits)[Discussion](#discuss)
 
-# Interventions in Agentic Coding: Timing Human Review of Agent-Written Code
+## Problem
 
-## 1. Motivation: Agents Write More Code Than Developers Can Understand
+Coding agents now write whole features. Developers review the result but barely understand it.
 
-**The core problem.** AI coding agents now generate large amounts of code, and in the end the developer barely understands it. The thesis asks whether *when* the agent hands control back to the human can help keep that understanding. Understanding is therefore the main outcome of the study; spotting flaws is a second, related outcome.
+**A review at the end** shows a large diff next to green tests, which developers treat as proof (Dhanorkar et al. 2026, [10.1145/3805689.3812402](https://doi.org/10.1145/3805689.3812402)). **Interrupting at every edit** shows half-written code and trains people to click through.
 
-AI-assisted software engineering has shifted from single-line autocomplete to autonomous agents that implement entire **User Stories, Features, and Tickets** across multiple files (e.g., Claude Code `acceptEdits`, Cursor Agent, OpenCode). While code generation speed has increased, human verification and code understanding have not kept pace. In the 2025 Stack Overflow Developer Survey ($n > 49{,}000$), 66% of developers cite *"AI solutions that are almost right, but not quite"* as their top frustration. In the 2026 Sonar State of Code Survey ($n = 1{,}149$), 96% of developers do not fully trust AI-generated code to be functionally correct, yet only 48% always verify it before committing—a divide Sonar terms the *verification gap* [vendor report; source link to be added]. At the organizational level, the 2026 Faros AI Engineering Report ($n = 22{,}000$ developers, $4{,}000$ teams) reports a severe review bottleneck alongside a 28% rise in bugs per pull request [vendor report; source link to be added]. Longitudinal telemetry across 11,429 AI pull-request reviews by 400 repeat reviewers over seven months shows human approval rising from 30.1% to 36.8% while inline comments fall by 22% (**Yu et al., 2026**, `https://arxiv.org/abs/2606.22721`). In a five-hour study of autonomous coding agents, 94% (83/88) of developers failed to detect subtle agent sabotage; crucially, even when a real-time LLM monitor correctly flagged suspicious actions, sabotage still succeeded in 56% of alerted sessions because developers ignored passive, flag-only warnings (**Ye et al., 2026**, arXiv:2606.05647).
+**Idea.** Pause at **semantic milestones**: moments where the agent has fixed something that matters for the feature.
 
-When designing human oversight for an autonomous agent implementing a User Story or Feature, current workflows fall into **two broken extremes**:
+## Research question
 
-1. **End-of-Feature Batch Review:**
-   In standard agentic workflows, the agent executes dozens of edits autonomously and presents a finished multi-file diff at the very end (`git commit` / PR merge), accompanied by passing happy-path unit tests ("Green CI"). As shown by **Dhanorkar, Passi, and Vorvoreanu (FAccT 2026**, DOI: `https://doi.org/10.1145/3805689.3812402`, arXiv: `https://arxiv.org/abs/2606.05391`), developers overseeing agents rely on the heuristic that *"passing test results guarantee the correctness of agent-generated code"* (Heuristic 2, §4.2). Placing a verification gate at the end of a large batch effectively tells the developer: *"Here is a finished multi-file change—now inspect and understand it."* At that point, understanding the whole change is hard, low-level implementation details (*Implementierungsdetails*) that silently violate the User Story are buried inside a massive diff, and if an early assumption was flawed, the entire downstream implementation is wasted (**Perry et al., CCS 2023**, DOI: `https://doi.org/10.1145/3576915.3623157`; **Becker et al., 2025**, `https://arxiv.org/abs/2507.09089`; **Shen & Tamkin, 2026**, `https://arxiv.org/abs/2601.20245`). *Caveat:* in the same interview study (17 developers), participants decomposed tasks into small chunks so that agent output stayed reviewable, and often skipped real-time monitoring. Very large unreviewed batches may therefore be rarer in practice than this motivation suggests; the thesis tests small versus large reviews and does not claim how common large batches are.
-2. **Arbitrary (Positional) Intermediate Interruptions (*Scaffolding subtask*):**
-   The opposite extreme—forcing the developer to approve or answer a check after every micro-edit, file write, or fixed line threshold—interrupts the workflow at an **scaffolding state (*scaffolding subtask*)**. Because an agent builds a feature in stages (creating type definitions, scaffolding imports, writing core logic, wiring routes), pausing at an arbitrary subtask catches the code in an incomplete state or forces the human to verify trivial boilerplate, rapidly inducing annoyance and click-through habituation.
+#### **RQ**Does where a coding agent pauses for review affect how well developers understand and judge the code it writes?
 
-This thesis argues that **knowing *when* and *why* to pause an agent matters for keeping the developer's understanding, just as much as *what* to ask when pausing**. Rather than gating at the end of a large change or interrupting at scaffolding edits, we propose **When & Why Intervention Criteria (*Kriterien: Wann und Warum*)**, synthesised from **pair programming and peer code review research**, give them operational decision tests, and test in a controlled study whether pausing at the resulting points keeps developers' understanding higher and helps them catch flaws. As a secondary, exploratory question we ask whether a fast System-1 decision model could locate such points automatically.
+Compare
 
-*Term.* Instead of positional or arbitrary pauses (after every N lines or files, or at an arbitrary subtask), we pause at **semantic checkpoints**, also called **semantic milestones**: subtasks where the agent has fixed something that carries meaning for the feature (a case the story leaves open, a foundation that later code builds on, behaviour the visible tests do not check). They are defined by what the code means, not by position, size or time. We define three criteria, C1 to C3 below, that would cause such a pause, synthesised from existing literature.
+Milestone pause vs. a pause of similar size elsewhere; review at the end as reference.
 
-*Subtask.* A real agent works in a loop of reasoning, tool calls and observations, so it has no natural unit called a subtask. We define a **subtask** as a coherent unit of agent work that serves one sub-goal and ends in a state a developer could review, for example one item of the agent's plan, or the changes between two commits or test runs. Developers already decompose agent work into small chunks that can be tested independently and draft plans with the agent (Dhanorkar et al., 2026, §4.1.2), and subtask boundaries are the unit in interruption research (Iqbal & Bailey, 2006). In the study the subtasks are scripted (four per feature: types, core logic, wiring, tests); in the real agent traces of §7.1 a subtask is one commit.
+Primary
 
-*Terminology.* A **user story** is a short natural-language requirement with implicit acceptance criteria (Cohn, 2004); the unit of work handed to the agent is a **work item** (ticket). An **implementation detail** (*Implementierungsdetail*) is the low-level code that realises a design decision. The criteria connect these levels: requirement → design decision → implementation detail.
+Understanding of the finished feature.
 
----
+Secondary
 
-## 2. Theoretical Grounding: Pair Programming, Code Review, and Cognitive Forcing
+Fault detection, confidence vs. correctness, reversals.
 
-### 2.1 From Human–Human to Human–AI Pair Programming (*Wann andere intervenieren*)
-Before autonomous coding agents, software engineering already had an established paradigm in which one actor writes code while a second actor observes, maintains understanding, and intervenes: **Pair Programming (Driver + Navigator)** and **Peer Code Review**.
+## Subtasks
 
-In early inline autocomplete (e.g., Copilot tab-completion), the human remained the Driver (**Barke, James, & Polikarpova, OOPSLA 2023**, DOI: `https://doi.org/10.1145/3586030`; **Imai, ICSE 2022**, DOI: `https://doi.org/10.1145/3510454.3522684`). In 2026 agentic coding, the roles have inverted: **the AI Agent is the Driver** implementing the User Story, while **the Human is pushed into the Navigator/Reviewer role**—but without the continuous cognitive engagement that keeps a human Navigator's mental model synchronized (for how developers spend their time on AI suggestions in the autocomplete setting, see **Mozannar et al., CHI 2024**, DOI: `https://doi.org/10.1145/3613904.3641936`).
+A coding agent works in a loop: reason, call a tool, observe, repeat. There is no natural "step". A subtask is a unit of work that serves one sub-goal and ends in a reviewable state: a plan item if the agent keeps a plan, otherwise a commit, a test run or the end of a turn. A milestone is a review gate at such a boundary.
 
-Empirical work on pair programming and code review shows what a good second pair of eyes contributes. It does **not** state when to stop an agent; the transfer to agents is this thesis's own step. What the literature offers:
-- **Intermediate-level talk, not constant review.** **Bryant, Romero, and du Boulay (IJHCS 2008**, DOI: `https://doi.org/10.1016/j.ijhcs.2007.03.005`) analysed verbalisations from commercial pairs and **dispute** two common claims: that the navigator constantly reviews what is typed, and that the navigator works at a different level of abstraction as a "foreman". They found no significant difference in the level of abstraction of driver and navigator utterances: *both* partners spoke most about blocks of the program ("abstract chunks of code"). They propose a "tag team" model with more equal roles and suggest that a key factor in pairing's success may be the increase in talk at this **intermediate level of abstraction**; the authors state that further work is needed to test this explanation. Limits: an opportunistic sample of XP pairs, analysed from transcripts of what they said.
-- **Active knowledge transfer and shared understanding.** **Plonka et al. (IJHCS 2015**, DOI: `https://doi.org/10.1016/j.ijhcs.2014.09.001`) identify, in a study centred on expert–novice knowledge transfer, six teaching strategies that partners use, from direct instruction to subtle hints. **Zieris & Prechelt (ICSE '16 Companion**, DOI: `https://doi.org/10.1145/2889160.2889249`) analysed recorded sessions of professional pairs qualitatively and illustrate their findings with one session; they report that even expert pairs need to transfer knowledge, and describe patterns such as RESYNC and PARALLEL: equally quick grasp does not guarantee common understanding, so a pair needs extra synchronisation or risks working on "parallel tracks". **Chong & Hurlbutt (ICSE 2007**, DOI: `https://doi.org/10.1109/ICSE.2007.87`) is a further source on the social dynamics of the driver and navigator roles. These studies show that partners work to keep understanding aligned; none of them gives triggers for intervening, and none studies reviewing an agent.
-- **Interruption timing.** Interrupting at subtask boundaries gives a lower cost of interruption, measured as resumption lag, than interrupting between boundaries, and boundaries with lower workload cost less than those with higher workload (**Iqbal & Bailey, CHI 2006**, DOI: `https://doi.org/10.1145/1124772.1124882`). In a study with 16 participants, moments between coarse breakpoints were rated less annoying, less frustrating and less effortful and more respectful of the task, but showed no significant effect on task time or resumption lag (**Adamczyk & Bailey, CHI 2004**, DOI: `https://doi.org/10.1145/985692.985727`). Both used office-style tasks (e.g. editing, media, web search), not code review or agents; applying them to subtasks is an argument made here, not a finding.
-- **Understanding is the review bottleneck, and change size matters.** **Bacchelli and Bird (ICSE 2013**, DOI: `https://doi.org/10.1109/ICSE.2013.6606617`) and **Sadowski et al. (ICSE-SEIP 2018**, DOI: `https://doi.org/10.1145/3183519.3183525`) establish that building **code understanding**, not merely hunting defects, is a primary motivation and challenge of peer code review. **Gullstrand Heander, Söderberg, and Rydenfält (EMSE 2026**, DOI: `https://doi.org/10.1007/s10664-025-10791-2`) build a cognitive model of reviewer decision making from the questions reviewers ask. Controlled experiments on change size are mixed: decomposing a change into smaller parts reduced wrongly reported issues and increased context-seeking, but did not change the number of defects found (**di Biase et al., PeerJ CS 2019**, DOI: `https://doi.org/10.7717/peerj-cs.193`), and review performance relates to working memory and the order of changes (**Baum et al., EMSE 2019**, DOI: `https://doi.org/10.1007/s10664-018-9676-8`). The argument against late review of large changes should therefore be read as a claim about understanding, not about defect counts. For scale: in the contemporary review practice that Rigby & Bird (2013) studied, the median reviewed change is 25 to 44 lines in Apache, Linux, Android and AMD (Apache 25, Linux 32, Android and AMD 44) and 78 lines in 5 files in Chrome, with larger but unspecified medians in Bing, Office and SQL, against 263 non-comment lines in a traditional Lucent inspection, so the lab batch of about 92 lines is on the order of a real per-commit review, though agent output can be much larger.
+In the study, each feature is scripted as four subtasks.
 
-### 2.2 Taxonomy of "When & Why" Intervention Criteria (*Kriterien: Wann und Warum*)
-The criteria below define three kinds of **semantic milestone** (see §1). They are the author's **synthesis**, not an established taxonomy. The cited work motivates them but does not state them. Each criterion therefore has an **operational decision test** on observable artifacts (the user story, the subtask's diff, the visible tests), so that two raters can label the same subtask the same way.
+## Semantic milestones (C1 to C3)
 
-| Criterion | Decision test (all conditions must hold) | Motivation from the literature | Example |
-|---|---|---|---|
-| **C1. Unspecified-case decision** | (a) The new code treats a failure, empty or boundary input differently from normal input. (b) The user story does not say what should happen for that input. (c) More than one outcome is reasonable. | Developers report that agents left hands-off fail to fill decision gaps consistently and so plan with them first (**Dhanorkar et al., 2026**, §4.1.2). LLMs often generate code from ambiguous requirements without asking, and implementations diverge (**Mu et al., 2024**, DOI: `https://doi.org/10.1145/3660810`; **Yang et al., ASE 2026**, DOI: `https://doi.org/10.1145/3832783.3834403`). Engineers rate the *rationale* of a change as the most important information for understanding it (**Tao et al., FSE 2012**, DOI: `https://doi.org/10.1145/2393596.2393656`); an agent's silent decision about an unspecified case is a change whose rationale the reviewer does not get (the author's argument). Pairs must actively re-synchronise their understanding (patterns RESYNC and PARALLEL, **Zieris & Prechelt, 2016**); in one of their sessions the ticket stated no requirements and the pair discussed the intended behaviour. The LLM evidence comes from function-level benchmarks, not tickets. | Story: *"Customers can reserve stock."* The code decides what happens to the stock count when a reservation fails. |
-| **C2. Foundational lock-in** | (a) The subtask defines a unit that owns state or enforces a rule. (b) At least two files still to be written must call it. (c) No downstream code exists yet. | Reviewers want composite changes decomposed into sub-changes that each address one development issue (**Tao et al., 2012**); contemporary review works on small independent changes (median 25 to 44 lines in Apache, Linux, Android and AMD, 78 in Chrome, larger but unspecified in Bing, Office and SQL, all much smaller than the 263 non-comment lines in a traditional Lucent inspection; **Rigby & Bird, FSE 2013**, DOI: `https://doi.org/10.1145/2491411.2491444`, descriptive, not an effectiveness result); in TDD, shorter and more uniform cycles went with higher quality and productivity (**Fucci et al., TSE 2017**, DOI: `https://doi.org/10.1109/tse.2016.2616877`, 39 professionals); pair talk concentrates on blocks of the program (**Bryant et al., 2008**); interruptions at subtask boundaries are cheaper (**Adamczyk & Bailey, 2004**; **Iqbal & Bailey, 2006**). That a finished core unit that later code will call is the right boundary to check *before* others build on it is the author's argument. | The deduplication and retry core is written *before* the webhook middleware that will call it. |
-| **C3. Test blind spot (green CI)** | (a) The code distinguishes at least three kinds of input with different results. (b) The visible tests exercise fewer of them. | Developers treat passing tests as proof of correctness (*"passing test results guarantee the correctness of agent-generated code"*, **Dhanorkar et al., 2026**, Heuristic 2). Coverage is only weakly to moderately correlated with a suite's ability to detect faults once suite size is controlled, and is better used to find under-tested parts than as a quality target (**Inozemtseva & Holmes, ICSE 2014**, DOI: `https://doi.org/10.1145/2568225.2568271`); mutation testing is the established way to measure test adequacy (**Jia & Harman, TSE 2011**, DOI: `https://doi.org/10.1109/tse.2010.62`). | Tests for `"2h"` and `"45m"` pass; no test covers a combined input such as `"1h30m"`. |
-| **Non-trigger** | The diff adds no conditional, arithmetic or state change on domain data (types, imports, forwarding), or adds only tests. | Intervening here costs attention without informing a decision. | `types.ts`, interface declarations, a test-only commit. |
+Synthesised from research on requirements ambiguity, developer oversight, pair programming, modularity and testing. Each has a decision test.
 
-**Derivation method.** The criteria were built with an adapted taxonomy-development procedure (**Nickerson, Varshney & Muntermann, 2013**, DOI: `https://doi.org/10.1057/ejis.2012.26`): design requirements first, then an evidence matrix over eight full-text sources, candidate criteria, decision tests, and an independent-rater study with Cohen's κ (**Cohen, 1960**, DOI: `https://doi.org/10.1177/001316446002000104`; bands after **Landis & Koch, 1977**, DOI: `https://doi.org/10.2307/2529310`). The first formulation was informal; the rater study has not been run yet. Details, evidence matrix and protocol: [`criteria-derivation.md`](criteria-derivation.md).
+C1
 
-**Tie-break and design rule.** A subtask is tagged with the first criterion that applies, in the order C1, C2, C3. Each corpus story is intended to have exactly one such subtask (the milestone subtask, at position 1, 2 or 3 depending on the story); whether independent raters agree with that intention is what the rater study checks, since a wiring subtask may also satisfy C1 (see the boundary case below). The C1/C2/C3 tags in §5 currently name the *seeded defect type*; they are not subtask labels. **Planned:** two raters label all 24 corpus subtasks independently against the decision tests, we report Cohen's κ, and revise the definitions where they disagree. Mutation testing can serve as an optional check for C3.
+## Unspecified case
 
-*Boundary case.* The corpus's wiring subtask (controller or route wiring) contains real branching, such as error mapping, so under these tests it is a non-milestone subtask but not pure boilerplate.
+The agent has to do something on a failure, an empty input or a boundary input. The story does not say what. It picks an answer and does not mention it.
 
-### 2.3 An Exploratory System-1 Ranker + Active Boundary Verification as "System Two"
-We combine two mechanisms, grounded in the System 1 / System 2 dual-process framework (**Evans & Stanovich, 2013**, DOI: `https://doi.org/10.1177/1745691612460685`; **Kahneman, 2011**):
+### Rules
 
-1. **A System-1 model as an exploratory intervention-point ranker (not part of the participant sessions).**
-   System One models such as TypeSafe's **Jev** return calibrated yes/no probabilities (`noul`), choices and rubric scores for atomic, typed questions about a structured state (**TypeSafe documentation, 2026**; **Almeida / TypeSafe AI, 2026**, `https://typesafe.ai/blog/introducing-system-one-models-and-jev`). A pause decision is one such question about the latest subtask, for example: *"Does this subtask complete one self-contained piece of behaviour that later subtasks will build on?"* Whether a model like this can locate pause points automatically is an open question. We test it as a side evaluation after the sessions, on the logged scripted subtasks and on unscripted agent traces, and we do **not** use it to trigger pauses for participants (§4.3, §7.1). Related work on fast monitors for agents is emerging (e.g. Liu et al., 2026, arXiv:2608.06701); a position paper argues that agents lack principled control points for users (**Wang et al., 2026**, arXiv:2608.12355).
-2. **Active Boundary-Behavior Probe as Human System 2 (Restoring Understanding & Verification):**
-   Cognitive Forcing Function (CFF) research proves that passive explanations rarely reduce over-reliance (**Buçinca, Malaya, & Gajos, CSCW 2021**, DOI: `https://doi.org/10.1145/3449287`) and generic prompts can backfire: **Ghosh et al. (2026**, `https://arxiv.org/abs/2601.18033`) found a generic *"What-If"* prompt worsened over-reliance to **80.7%**, whereas checking concrete assumptions reduced it (70.6% $\to$ 63.0%) (see also **Li et al., CHI 2026**, DOI: `https://doi.org/10.1145/3772318.3790632`; **Danry et al., CHI 2023**, DOI: `https://doi.org/10.1145/3544548.3580672`; **Chen & Schmidt, HCII/DUXU 2024**, DOI: `https://doi.org/10.1007/978-3-031-61353-1_1`; **Zhu et al., AI and Ethics 2026**, DOI: `https://doi.org/10.1007/s43681-026-01147-7`).
-   Therefore, when the harness pauses at the milestone, the gate presents a **Two-Stage Checkpoint** that asks one concrete, sandbox-executed question bridging the **User Story** and the **Implementation Detail**: *"For User Story scenario X (e.g., reserving 5 items when 2 are in stock), what does this 20-line implementation actually produce?"*
+1. The code handles a failure, empty or boundary case differently from the normal case.
+2. The story is silent on it.
+3. More than one outcome would be reasonable.
 
----
+### Example: a webhook that credits payments
 
-## 3. Research Questions
+Story: "The provider may deliver the same event more than once, and processing can fail temporarily."
 
-- **RQ1 (main outcome: Developer Understanding of the Finished Feature):**
-  Does a pause at a subtask that meets the criteria (about 18 lines, 10–26, contextualized by the user story) lead to higher **understanding** of the finished feature than the **End-of-Feature Batch Review** (control, the usual way of working)? The pause changes when the review happens and how much code it covers; the study does not separate the two. Understanding is the accuracy in answering questions about how the completed feature behaves, asked after the diff is closed.
-- **RQ2 (secondary outcome: Verification Quality — Discrimination $d'$, Criterion $c$, and Decision Reversals):**
-  Does pausing at the critical subtask improve developers' sensitivity ($d'$) in discriminating between flawed and correct implementations compared to the same two alternatives, without merely inducing blanket rejection ($c$)? How frequently does answering the boundary-behavior probe trigger a corrective within-checkpoint **decision reversal** (`Accept → Reject` on flawed logic)?
-  *(Grounded in Signal Detection Theory for human-AI reliance: **Schoeffer et al., JAIR 2025**, DOI: `https://doi.org/10.1613/jair.1.15873`; **Guo et al., FAccT 2024**, DOI: `https://doi.org/10.1145/3630106.3658901`; **Bo, Wan, & Anderson, CHI 2025**, DOI: `https://doi.org/10.1145/3706598.3714097`; **Langer, Schlicker, & Baum, 2024**, DOI: `https://doi.org/10.1007/s11023-024-09701-0`.)*
-*(Additional measures, descriptive and without a hypothesis: decision time, dwell time, mental demand, frustration, NASA-TLX and Paas effort, to show what the pause costs.)*
-
-*(Exploratory, outside the research questions: whether a fast System-1 model (TypeSafe Jev) can rank subtasks as pause points; preliminary results in §7.1, further work in §8.1.)*
-
-**Measuring understanding (state of the harness, 18 October 2026).**
-1. *Equal exposure: done.* After the scored pause, every regime shows the subtasks it has not shown yet in an unscored wrap-up (no decision, same replay as at a pause), so each participant has seen every one of the four subtasks exactly once before the understanding questions. BATCH needs no wrap-up; the checkpoint regime shows all subtasks except the milestone subtask. A test checks this for all regimes.
-2. *Three items per feature: done.* Each feature has three questions about how the finished feature behaves. Item 1 depends on the seeded defect (the correct answer differs between the Correct and the Flawed variant); items 2 and 3 do not, so they measure understanding irrespective of the defect. The true answer of every item is computed by running the feature's code in both variants, and a test compares it with the stored answer.
-3. *No overlap with the stage-2 question: partly.* No item repeats the stage-2 question (checked by a test). Item 1 still concerns a consequence of the same hidden behaviour, which is intended, because it tests whether the participant followed that behaviour through the finished code; its answer is not given away by the stage-2 question.
-4. *Still to do:* pilot the items on a few people to remove questions that are too easy, too hard or ambiguous, and ground the instrument in the program-comprehension measurement literature.
-
----
-
-## 4. System Architecture and Ephemeral Container Study Runner
-
-### 4.1 User Story Workspace & Two-Stage Checkpoint Flow
-The study harness models an agentic IDE workspace where an agent implements a **User Story / Feature** across **4 sequential subtasks** (54–126 lines, 102 on average, across 4 files when finished; measured on `server/corpus/`):
-- **Scaffolding subtasks (*Boilerplate*):** Data types, interfaces, small helpers (10–29 lines, mean 19).
-- **The milestone subtask (*Critical C1-C3 Milestone*):** Core domain and boundary logic (10–26 lines, mean 18) where an implementation detail determines User Story edge-case behavior. It is **subtask 1 in two stories, subtask 2 in two and subtask 3 in two**, so its position is no cue.
-- **Wiring (*non-milestone*):** Controller/route plumbing and service wiring (14–46 lines). It contains real branching (such as error mapping), so it is a non-milestone subtask, not pure boilerplate. In two stories the wiring shares the last subtask with the tests.
-- **Completion:** Happy-path unit tests (`3/3 PASS` in both `Correct` and `Flawed` variants, 15–35 lines, mean 22).
-
-*Scale.* The lab batch is about 102 lines, a scaled-down model of large agent changes: a participant can read it in a few minutes, so BATCH may understate the overload of real agent output. This is a stated limitation. Growing the stories (a few hundred lines per batch) would make the batch more realistic at the cost of session time.
-
-At any checkpoint where a behavior probe fires, the harness uses a **server-authoritative Two-Stage Flow** so initial review behavior is never contaminated by the question:
-1. **Stage 1 (Natural Review $\to$ Initial Click):** The participant inspects the User Story brief, test runner, and diff, and clicks **`[Accept / Continue]`** or **`[Reject / Flag Defect]`**. The server logs `initial_decision`, `stage1_dwell_ms`, `diff_scroll_coverage`, and `test_runs_stage1`.
-2. **Stage 2 (Boundary-Behavior Probe $\to$ Confirm or Reverse):** Before proceeding, the gate intercepts the click and asks: *"Before finalizing: for boundary scenario X, what does this code return / set state Y to?"* (4 seeded options + *"I don't know"*; no correctness feedback shown). Once answered, the participant clicks **`[Confirm Initial Decision]`** or **`[Reverse Decision]`**, logging `final_decision`, `decision_reversed`, and `stage2_probe_latency_ms`.
-
-### 4.2 Reproducible Ephemeral Docker Container Infrastructure (Systems Contribution)
-To eliminate cross-participant state bleed and environment drift while contributing a reusable empirical software engineering runner, **every participant session runs inside an isolated, ephemeral Docker container initialized from a single random seed**:
-
-```bash
-docker run --rm \
-  -p 127.0.0.1:3000:3000 \   # the participant's dev server, for the Preview pane
-  -e PARTICIPANT_ID="P14" \
-  -e STUDY_SEED="91827364" \
-  -v "$(pwd)/exports:/exports:rw" \
-  beacon-study-harness:latest
+```
+export async function processWebhook(log, event, handler) {
+  if (log.processed.has(event.id)) return "duplicate";
+  await handler(event);
+  log.processed.add(event.id);   // only AFTER the handler
+  return "processed";
+}
 ```
 
-1. **Deterministic Session Generation from `STUDY_SEED`:** Inside the container, `STUDY_SEED` drives a cryptographic PRNG that deterministically assigns the participant to one of 12 counterbalanced groups (6 Williams story orders × 2 complementary sets of flawed stories), sets the User Story sequence, assigns the oversight regime (`BATCH`, `CHECKPOINT`) and patch variant (`Correct`, `Flawed`), and shuffles multiple-choice option order. Any session can be replayed identically from its seed.
-2. **Real Execution Sandbox:** The participant works in a real shell (as an unprivileged user) in a copy of the shared Next.js project with its dependencies installed, so `npm test`, `npm run dev` and the Preview pane work against actual code. The container has network access by default because the experimenter observes every session; `--offline` removes it (and the Preview). Ground-truth grading tables remain strictly server-side and are never sent to the browser.
-3. **Automated Telemetry Extraction & Immediate Self-Destruction:** When the participant completes the debrief screen (`POST /api/study/finish`), the server validates the session schema, writes the complete JSON bundle (`/exports/P14_91827364.json`), appends 6 trial rows to `/exports/trials.csv`, flushes disk (`fsyncSync`), and calls `process.exit(0)`. Because of `--rm`, Docker immediately destroys the container and wipes its temporary workspace.
+A crash between the two lines credits the customer twice. "Never twice, sometimes not at all" would also be reasonable; the story does not say.
 
-### 4.3 What is Scripted vs. Real AI in the Study
+Literature (4)
 
-| System Component | Scripted or Real Execution? | Rationale |
-|---|---|---|
-| **Agent Code Subtasks (Subtasks 1–4 per User Story)** | **Scripted (Frozen in Container)** | Guarantees every participant inspects identical diffs and identical seeded defects so `STUDY_SEED` is 100% reproducible and $d'$ has exact ground truth. |
-| **Workspace Test Runner & Boundary Evaluator** | **Real Runtime Execution** | Actually executes TypeScript modules and unit tests inside the container's Node.js sandbox (`server/runner.ts`). |
-| **System-1 ranker (TypeSafe Jev), exploratory** | **Real Jev API, offline after the sessions** | Jev is not called during a session. We run it outside the container on the logged scripted subtasks and on unscripted agent traces, with a pinned model version and cached raw responses, and compare it with positional and token-count baselines (RQ3.2). It does not influence what participants see. |
+- Mu et al. 2024, ClarifyGPT, FSE. LLMs generate code directly from unclear requirements instead of asking. [10.1145/3660810](https://doi.org/10.1145/3660810)
+- Yang et al. 2026, ASE. 1,304 tasks: ambiguity degrades all evaluated models; they flag ambiguity with high recall but low precision, and fail to localise or resolve it. [10.1145/3832783.3834403](https://doi.org/10.1145/3832783.3834403)
+- Dhanorkar et al. 2026, FAccT. Developers report that agents left alone fail to fill decision gaps consistently, so they plan with the agent first. [10.1145/3805689.3812402](https://doi.org/10.1145/3805689.3812402)
+- Zieris & Prechelt 2016, ICSE Companion. Pairs have to actively re-synchronise their understanding; equal grasp does not guarantee common understanding. [10.1145/2889160.2889249](https://doi.org/10.1145/2889160.2889249)
 
----
+C2
 
-## 5. User Story Corpus
+## Foundation fixed
 
-All stories are features of one shared Next.js project, `shopfront` (`server/corpus/_base/shopfront/`), which exists before the agent starts. The agent only adds the files listed in the subtasks below; the base files are visible in the file tree but never shown as changes.
+The subtask defines state or a rule, and code that is still to be written calls it. If it is only checked later, several files have to be corrected at once.
 
-Each of the 6 User Stories (`US1`–`US6`) follows the 4-subtask structure (54–126 lines, mean 102, when batched, vs. 10–26 lines, mean 18, at the milestone subtask), with 3 passing happy-path unit tests in both variants:
+### Rules
 
-| Story | User Story & 4 Subtasks | Milestone-Subtask C1-C3 Defect (Flawed Variant) | Boundary-Behavior Probe | Post-Story Understanding Item 1 of 3 (RQ1; the item that depends on the defect) |
-|---|---|---|---|---|
-| **US1** | **Flash-Sale Inventory Reservation**<br>*S1:* SKU types & store schema<br>*S2 (C1):* `reserveStock()` state mutation<br>*S3:* Checkout controller & REST route<br>*S4:* Happy-path tests (`3/3 PASS`) | **C1 (Implicit Story Ambiguity):** Decrements `stock -= qty` *before* checking `if (stock < 0) throw`, leaving negative stock on failed orders. | Starting with `stock = 2`, after a failed reservation of `5` units throws an error, what is `stock`? (`2` / `0` / `-3` / `undefined`) | How does the checkout endpoint behave on subsequent valid orders after a single oversized reservation fails? |
-| **US2** | **Webhook Payment Idempotency & Retry**<br>*S1:* Event log schema & interfaces<br>*S2:* Event parsing & credit handler<br>*S3 (C2):* Deduplication state & `withRetry` loop<br>*S4:* Webhook route & happy-path tests (`3/3 PASS`) | **C2 (Foundational Lock-In):** Marks `eventId` as `"processed"` *before* handler runs; if attempt 1 throws a transient error, retries are skipped as duplicates. | If the handler throws on attempt 1 for `evt_9`, what does the retry call for `evt_9` do? (`Re-runs handler` / `Skips as already processed` / `Throws duplicate error` / `null`) | Under what failure sequence can a customer payment webhook return `200 OK` without crediting the account? |
-| **US3** | **Multi-Tenant Feature-Flag & Quota Engine**<br>*S1:* Tenant config types<br>*S2 (C3):* Config merge (`override` over `base`)<br>*S3:* Quota middleware decorator<br>*S4:* Happy-path tests (`3/3 PASS`) | **C3 (Expectation Divergence):** Uses `override[k] \|\| base[k]` instead of `??`, ignoring explicit tenant `false` or `0` overrides when global default is truthy. | Given global `allowExport = true` and tenant override `allowExport = false`, what does `getEffectiveConfig()` return for `allowExport`? (`false` / `true` / `undefined` / `null`) | Why does setting a tenant's rate limit quota to `0` fail to block requests when the organization default is `100`? |
-| **US4** | **SLA Duration & Billing Window Calculator**<br>*S1 (C3):* `parseDurationMs()` parser<br>*S2:* Billing tiers & invoice type<br>*S3:* SLA credit invoice generator<br>*S4:* Happy-path tests (`3/3 PASS`) | **C3 (Green-CI Divergence):** Happy-path tests check `"2h"` and `"45m"` (pass), but regex drops hours when minutes follow (`"1h30m"` parsed as `"30m"`). | What does `parseDurationMs("1h30m")` return in ms? (`5,400,000` / `1,800,000` / `5,400` / `null`) | If an outage lasts `1h30m` against a `1h` SLA threshold, why does the invoice generator compute zero credit in the flawed patch? |
-| **US5** | **Sliding-Window API Rate Limiter**<br>*S1:* Client bucket interfaces<br>*S2:* Client id & 429 response<br>*S3 (C1):* `checkAndRecord()` timestamp eviction<br>*S4:* Rate-limit filter & happy-path tests (`3/3 PASS`) | **C1 (Implicit Story Ambiguity):** Appends current request timestamp to window *even when* the request is rejected for exceeding the limit, permanently locking out retrying clients. | With limit `2/min` and 2 calls at `t=0`, after a rejected call at `t=10s`, how many timestamps are stored? (`2` / `3` / `0` / `1`) | What happens to a client that sends one request every 40 seconds under a `2 requests per 60s` limit if rejected calls are recorded? |
-| **US6** | **Discount Tier & Percentage Clamping**<br>*S1 (C2):* `applyDiscount()` & `clampPercent()`<br>*S2:* Coupon & summary types<br>*S3:* Order summary calculator<br>*S4:* Happy-path tests (`3/3 PASS`) | **C2 (Foundational Lock-In):** Upper bound clamped via `Math.min(100, pct)` without lower bound `Math.max(0, ...)`, allowing negative coupon adjustments to increase total price. | What does `clampPercent(-15)` return in this implementation? (`0` / `-15` / `100` / `NaN`) | How does a negative discount adjustment affect the final invoice total in the order summary calculator? |
+1. The subtask owns state or a rule.
+2. At least one file still to be written calls it (tests do not count).
+3. No downstream code exists yet.
 
-*Note.* The C1/C2/C3 tags in the defect column name the seeded defect type. By the decision tests in §2.2 all six milestone subtasks are core stateful or branching logic, so the tags do not describe separable properties of the subtask. The code in `server/corpus/` is the authoritative version of these stories; the code shown in earlier drafts of this table was reconstructed from descriptions.
+### Example: account balance
 
----
+```
+export function createLedger() {
+  return { balances: new Map<string, number>() };   // amounts in cents
+}
+export function credit(ledger, accountId, cents) {
+  const old = ledger.balances.get(accountId) ?? 0;
+  ledger.balances.set(accountId, old + cents);
+}
+```
 
-## 6. Experimental Design, Counterbalanced Groups, and Procedure
+Handler, API and tests will all build on `credit` and cents. A wrong choice spreads to all of them.
 
-### 6.1 $2 \times 2$ Within-Participants Design
-Every participant completes **1 practice story (`US0`)** followed by **6 measured User Stories (`US1`–`US6`)** in a $2 \times 2$ within-participants factorial design (3 stories per regime; 3 Flawed and 3 Correct per participant, split 2/1 between the regimes, alternating across groups):
-- **Factor 1 — Oversight Regime (2 levels):**
-  1. `BATCH` (*control*): Agent runs Subtasks 1–4 uninterrupted; checkpoint occurs once on the full multi-file diff (mean 102 lines) at the end. No wrap-up is needed.
-  2. `CHECKPOINT` (*intervention: pause at the criteria-selected milestone*): The scripted harness pauses after the story's **milestone subtask** (subtask 1, 2 or 3 depending on the story, mean 18 lines); the other subtasks follow in the wrap-up. No model decides the pause during the study.
-  After the decision, the checkpoint regime shows the subtasks it has not shown yet in an unscored wrap-up, so that every participant has seen every subtask once (the wrap-up is unscored) before the understanding questions.
-- **Factor 2 — Implementation Correctness (2 levels):** `Flawed` (contains the milestone-subtask C1-C3 defect; happy-path tests pass) vs. `Correct` (both happy-path and boundary behavior correct).
+Literature (2)
 
-Participants ($N = 30\text{–}36$, a multiple of 12) are assigned by `STUDY_SEED` to one of **12 groups** (6 Williams Latin-Square story orders, each with one of two complementary sets of flawed stories) so that every User Story appears equally often in every Regime $\times$ Correctness cell.
+- Kravchuk-Kirilyuk et al. 2025, LMPL workshop. LLM code often looks modular but creates hidden dependencies between modules and struggles to stay consistent across files. [10.1145/3759425.3763392](https://doi.org/10.1145/3759425.3763392)
+- Zhu et al. 2026, preprint. As models get more capable, the code they and agents generate becomes more bloated and coupled; correct code and detailed prompts do not prevent this. [arXiv:2605.02741](https://arxiv.org/abs/2605.02741)
 
-### 6.2 Session Procedure (~30 Minutes in Lab)
-1. **Onboarding & Pre-Survey (4.5 min):** Consent, demographics, **NCS-6** (**Coelho et al., 2018**, DOI: `https://doi.org/10.1177/1073191118793208`), **S-TIAS** (**McGrath et al., 2025**, DOI: `https://doi.org/10.3389/frai.2025.1582880`), attention check.
-2. **Practice Tutorial (`US0`, 2 min):** Demonstrates the plan with progress, Monaco diff, sandbox test runner, and Two-Stage Checkpoint.
-3. **Measured User Stories (`US1`–`US6`, 18 min, ~3 min per story):**
-   - Participant oversees the agent under the assigned regime (`BATCH` or `CHECKPOINT`).
-   - At the checkpoint: **Stage 1** (initial decision + natural dwell/scroll telemetry) $\to$ **Stage 2** (boundary probe + confirm/reverse decision).
-   - **Post-Story Understanding Question (Diff Closed):** 3 multiple-choice questions about how the finished feature behaves (RQ1, main outcome) + Confidence (1–7), Mental Demand (1–5), Frustration (1–5).
-4. **Post-Survey & Exit Interview (4 min):** Raw **NASA-TLX** (**Hart & Staveland, 1988**, DOI: `https://doi.org/10.1016/s0166-4115(08)62386-9`), **Paas** effort scale (**Paas, 1992**, DOI: `https://doi.org/10.1037/0022-0663.84.4.429`), direct preference ranking of the 2 regimes, and debrief.
-5. **Automated Extraction & Container Teardown (<1 sec):** Container validates `/exports` JSON + `trials.csv` and self-destructs (`docker rm -f`).
+C3
 
----
+## Test blind spot
 
-## 7. Measures and Statistical Analysis Plan
+The code distinguishes more kinds of input than the visible tests exercise. Green tests then give false confidence.
 
-- **RQ1 — Post-Feature Code Understanding (main outcome):**
-  Mixed-effects logistic regression on the correctness (0/1) of each understanding item, with the regime as the fixed effect and random effects for participant, feature and item, testing whether pausing at the 17-line critical subtask yields higher understanding than reviewing the finished batch (about 96 lines). All regimes see every subtask once before the questions (wrap-up, §3). Items that depend on the defect and items that do not can be analysed separately.
-- **RQ2 — Discrimination ($d'$), Criterion ($c$), and Decision Reversals (secondary):**
-  Analyzed via a hierarchical **probit-link Generalized Linear Mixed Model (GLMM)** (**DeCarlo, 1998**, DOI: `https://doi.org/10.1037/1082-989X.3.2.186`):
-  $$\Phi^{-1}\big(P(\text{Reject}_{ij})\big) = \beta_0 + \sum_{r} \beta_{1r}\text{Regime}_{ij} + \beta_2\text{Flawed}_{ij} + \sum_{r} \beta_{3r}(\text{Regime}_{ij} \times \text{Flawed}_{ij}) + u_{0i} + v_{0j}$$
-  where $\beta_{3r}$ estimates the change in discrimination ($\Delta d'$) and $\beta_{1r}$ estimates criterion shift ($\Delta c$) for `CHECKPOINT` vs. `BATCH`. Within-checkpoint **decision reversals** (`Stage-1 Accept` $\to$ `Stage-2 Reject` on flawed implementations) are analyzed via paired mixed-effects logistic regression, leveraging each checkpoint as its own baseline (**Sommet et al., 2023**, DOI: `https://doi.org/10.1177/25152459231178728`).
-- **Additional measures (descriptive, no hypothesis) — Workload and Habituation:**
-  Linear mixed models on decision latency, mental demand, frustration, and dwell-time slope across trial order.
-- **Exploratory — Jev as a Pause-Point Ranker (offline):**
-  Questions are atomic yes/no checks with criteria, composed in code; the composite and the primary metric are fixed before looking at results. Reported: AUROC for the pause subtask against all other subtasks with a bootstrap over stories (the independent unit), within-story top-1 rate, invariance to the Correct/Flawed variant, repeat consistency, latency and cost, always next to the baselines "subtask number", "token count of control flow and arithmetic" and "dwell-time model". Model versions are pinned and logged (`jev-1.13-20260917`, `jev-1.14-20261014`); decision thresholds are fixed in advance. For unscripted traces, subtasks are labelled blind to Jev's scores by two raters. Signal detection measures are computed as in **Stanislaw & Todorov (1999)**.
+### Rules
 
-### 7.1 Preliminary Jev Results (18 October 2026, exploratory)
+1. The code distinguishes at least three kinds of input.
+2. The visible tests exercise fewer.
 
-*These results were obtained on the earlier corpus layout, where the milestone was always Subtask 2 (see revision note 16). The scores and labels below refer to that layout.*
+### Example: discount code
 
-Setup: `jev-1.13` and `jev-1.14` (dated versions served by OpenRouter's System One API; later runs with `jev-latest`, served as `jev-1.14-20261014`) answered 15 atomic questions about each subtask, given as a structured state (user story, the subtask's files, the visible tests). No question asks whether the code is correct. Full method, question wording and results: `docs/jev-benchmark/README.md`.
+```
+export function applyDiscount(code, subtotal) {
+  if (code === "NONE") return subtotal;                       // kind 1
+  if (code.endsWith("%")) return subtotal * (1 - parseInt(code) / 100);  // kind 2
+  return Math.max(0, subtotal - Number(code));                // kind 3: fixed amount
 
-| | Scripted corpus | Unscripted traces |
-|---|---|---|
-| Data | 6 stories × 4 subtasks × 2 variants, 384 requests | 12 Claude Haiku runs (2 per story), 22 subtasks, 88 requests |
-| Label | Subtask 2 (author-defined milestone) | Mechanical: a core unit that a later commit imports (5 positives) |
-| Best single question (`pause_point`) | AUROC 1.00 with tests visible; Subtask 2 top subtask in 12/12 story-variants | AUROC 0.79–0.80, 95% CI about [0.6, 0.95] |
-| Baselines | Subtask number = 2 gives 1.00 by construction; control-flow token count 0.82 | "First subtask of a trace" 0.88; subtask number 0.79 |
-| Invariance Flawed vs. Correct | about 0 (−0.03 to +0.00) | not applicable |
-| Latency / cost | about 0.4 s mean, about $0.00008 per request | about 0.44 s, about $0.00013 per request |
+// test: applyDiscount("10%", 200) === 180     <- covers only kind 2
+```
 
-*Reading.* On the scripted corpus Jev ranks the milestone first, and ignores whether the code is correct. On unscripted traces it does not beat a positional rule: it mainly separates subtasks that add logic from subtasks that only add tests. Distinguishing C1, C2 and C3 was not possible. *Limits:* a fixed layout lets position solve the scripted benchmark; the trace set is small (22 subtasks, 5 positives); the trace label is mechanical and has no human second rater; the best metrics were chosen after seeing several. *Planned:* second-rater labels, longer traces from a stronger agent, new stories, thresholds fixed in advance.
+Tests are green, but two of three branches never ran.
 
----
+Literature (2)
 
-### 7.2 Limitations
+- Dhanorkar et al. 2026, FAccT. Developers treat passing tests as a guarantee. [10.1145/3805689.3812402](https://doi.org/10.1145/3805689.3812402)
+- Inozemtseva & Holmes 2014, ICSE. Coverage is only weakly to moderately correlated with how well a test suite finds faults once its size is controlled. [10.1145/2568225.2568271](https://doi.org/10.1145/2568225.2568271)
 
-1. **Timing and review size are changed together.** The intervention pauses earlier and reviews about 18 lines instead of about 102. The study cannot say which part helps. A third regime that pauses at a non-milestone subtask with a matched size (the dropped ARBITRARY) would separate them and is the natural follow-up.
-2. **Any pause versus the right pause.** Both regimes include a review. The study does not test whether a pause at an arbitrary place would also help.
-3. **The criteria are not applied blind.** The pause is placed by the author at the milestone subtask (position 1, 2 or 3 depending on the story, so the position is no cue), so the study tests a review at that point, not the criteria's ability to find it. Whether independent raters and a detector find the same points is checked separately (rater study, Jev, §7.1).
-4. **The seeded flaw is always in the milestone subtask.** The subtask moves between stories, but flaw and pause still coincide by design. Flaw detection (RQ2) is therefore the secondary outcome.
-5. **A scripted agent.** The agent output is fixed, so the study says nothing about how real agents behave or how often their subtasks meet C1 to C3.
-6. **Small tasks in a small project.** Six features of about 100 lines each in a shared Next.js project of about 500 lines, within a 30-minute session. Transfer to large changes in large codebases is an assumption.
-7. **Instrument still being validated.** The three understanding questions per feature have not been piloted, and the criteria have not been rated by a second person.
-8. **Subtasks are a design choice.** Where the work is cut into subtasks decides what counts as a milestone: two commits merged or one commit split can change the result. The study uses four authored subtasks per feature, and the trace benchmark uses commits. A real deployment needs a rule that makes the cut (plan items, commits or test runs).
-9. **Participants.** Lab sample of 30 to 36, probably students, who may review differently from professionals.
+## Study design
 
-## 8. Expected Contributions
+Within-participants lab study, 30 people, \~60 minutes. Six features, two per condition: one correct, one with a seeded flaw. Six counterbalancing groups of five people (Williams design): across the groups every feature appears in every condition, and the order is balanced for carry-over.
 
-1. **A Proposed "When & Why" Criteria Set for Agentic Oversight, with Operational Tests:**
-   Intervention criteria (C1: Unspecified-case decision, C2: Foundational lock-in, C3: Test blind spot) synthesised from pair programming, interruption and code review research (**Bryant et al., 2008**; **Zieris & Prechelt, 2016**; **Iqbal & Bailey, 2006**; **Bacchelli & Bird, 2013**; **Dhanorkar et al., 2026**), each with a decision test two raters can apply, aimed at the problems of late review of large changes and of arbitrary interruptions. The criteria are a proposal; the study tests whether pausing at the resulting points helps.
-2. **A Controlled Study: Checkpoint vs. Batch Review:**
-   Controlled lab evidence ($N = 30\text{–}36$) quantifying how checkpoint timing and execution-scored boundary probes affect **post-feature code understanding (RQ1, main outcome)**, **defect discrimination ($d'$, $c$)** and **within-checkpoint decision reversals** (RQ2).
-3. **An Exploratory Evaluation of a System-1 Model as a Pause-Point Ranker (TypeSafe Jev):**
-   A transparent, reproducible benchmark (code, data and analysis in `docs/jev-benchmark/`) showing where a fast decision model works (ranking scripted milestones, invariance to correctness, latency about 0.4 s) and where it does not yet (no advantage over positional rules on unscripted traces; milestone types not separable). A mixed or negative result is reported as such.
-4. **Ephemeral, Seeded Docker Container Study Runner:**
-   An open-source, reproducible experimental harness where each participant session spawns an isolated Docker container from a single PRNG seed, runs a real Node.js test sandbox without cross-participant state bleed, and automatically extracts validated JSON/CSV telemetry before destroying the container on completion.
-5. **Multi-Subtask "User Story $\to$ Implementation Detail" Corpus:**
-   A corpus of 6 multi-subtask user-story implementations (passing happy-path unit tests, matched seeded defects, execution-scored probes and post-story comprehension items), plus operational labels for the intervention subtask in each (two-rater agreement planned).
+### BATCH
 
----
+Review once at the end, the whole feature (160–390 changed lines).
 
-### 8.1 Future Work
+**review**
 
-1. **Automatic pause-point detection.** This also needs a rule for cutting an agent run into subtasks (plan items, commits or test runs). A fast System-1 model (TypeSafe Jev) with the criteria as typed questions can rank scripted milestones, but did not beat positional rules on unscripted traces (§7.1). A larger set of real agent traces, labelled by independent raters, would show whether detection is feasible, and whether a pause at the detected points helps.
-2. **Separating timing from review size.** A third regime with a pause at a randomly placed subtask and a matched amount of code.
-3. **Field study.** A few developers working for several days with a real agent and a hook that pauses at the criteria.
+### MILESTONE
 
-## 9. Key References
+Pause after the subtask chosen as the milestone (29–63 changed lines).
 
-- Adamczyk, P. D., & Bailey, B. P. (2004). If not now, when? *Proc. ACM CHI 2004*. DOI: `https://doi.org/10.1145/985692.985727`.
-- Almeida, D. / TypeSafe AI. (2026). Introducing System One Models & Jev: Reinforcement Learning for Calibrated Decisions (RLCD). *TypeSafe AI Technical Blog*, Sep/Oct 2026. `https://typesafe.ai/blog/introducing-system-one-models-and-jev`.
-- Bacchelli, A., & Bird, C. (2013). Expectations, outcomes, and challenges of modern code review. *Proc. IEEE/ACM ICSE 2013*, 712–721. DOI: `https://doi.org/10.1109/ICSE.2013.6606617`.
-- Barke, S., James, M. B., & Polikarpova, N. (2023). Grounded Copilot: How programmers interact with code-generating models. *PACMPL (OOPSLA1)*, 7, Art. 78. DOI: `https://doi.org/10.1145/3586030`.
-- Baum, T., Schneider, K., & Bacchelli, A. (2019). Associating working memory capacity and code change ordering with code review performance. *Empirical Software Engineering*. DOI: `https://doi.org/10.1007/s10664-018-9676-8`.
-- Becker, J., Rush, N., Barnes, E., & Rein, D. (2025). Measuring the impact of early-2025 AI on experienced open-source developer productivity. *arXiv:2507.09089* (`https://arxiv.org/abs/2507.09089`).
-- Bo, J. Y., Wan, S., & Anderson, A. (2025). To rely or not to rely? Evaluating interventions for appropriate reliance on large language models. *Proc. ACM CHI 2025*. DOI: `https://doi.org/10.1145/3706598.3714097`.
-- Bryant, S., Romero, P., & du Boulay, B. (2008). Pair programming and the mysterious role of the navigator. *International Journal of Human-Computer Studies (IJHCS)*, 66(7), 519–529. DOI: `https://doi.org/10.1016/j.ijhcs.2007.03.005`.
-- Buçinca, Z., Malaya, M. B., & Gajos, K. Z. (2021). To trust or to think: Cognitive forcing functions can reduce overreliance on AI in AI-assisted decision-making. *PACM HCI (CSCW1)*, 5, Art. 188. DOI: `https://doi.org/10.1145/3449287`.
-- Chen, Z., & Schmidt, R. (2024). Exploring a behavioral model of "positive friction" in human-AI interaction. *HCII/DUXU 2024*, LNCS 14713, 3–22. DOI: `https://doi.org/10.1007/978-3-031-61353-1_1`.
-- Chong, J., & Hurlbutt, T. (2007). The social dynamics of pair programming. *Proc. IEEE/ACM ICSE 2007*, 354–363. DOI: `https://doi.org/10.1109/ICSE.2007.87`.
-- Coelho, G. L. H., Hanel, P. H. P., & Wolf, L. J. (2018). The Very Efficient Assessment of Need for Cognition: Developing a Six-Item Version. *Assessment*, 27(8), 1870–1885. DOI: `https://doi.org/10.1177/1073191118793208`.
-- Cohen, J. (1960). A coefficient of agreement for nominal scales. *Educational and Psychological Measurement*, 20(1). DOI: `https://doi.org/10.1177/001316446002000104`.
-- Cohn, M. (2004). *User Stories Applied: For Agile Software Development*. Addison-Wesley. [verify edition details]
-- Danry, V., Pataranutaporn, P., Mao, Y., & Maes, P. (2023). Don't just tell me, ask me: AI systems that intelligently frame explanations as questions improve human logical discernment. *Proc. ACM CHI 2023*, Art. 352. DOI: `https://doi.org/10.1145/3544548.3580672`.
-- DeCarlo, L. T. (1998). Signal detection theory and generalized linear models. *Psychological Methods*, 3(2), 186–205. DOI: `https://doi.org/10.1037/1082-989X.3.2.186`.
-- Dhanorkar, S., Passi, S., & Vorvoreanu, M. (2026). Human oversight of agentic systems in practice. *Proc. ACM FAccT 2026*, 6438–6465. DOI: `https://doi.org/10.1145/3805689.3812402` (arXiv: `https://arxiv.org/abs/2606.05391`).
-- di Biase, M., Bruntink, M., van Deursen, A., & Bacchelli, A. (2019). The effects of change decomposition on code review: a controlled experiment. *PeerJ Computer Science*. DOI: `https://doi.org/10.7717/peerj-cs.193`.
-- Evans, J. S. B. T., & Stanovich, K. E. (2013). Dual-process theories of higher cognition. *Perspectives on Psychological Science*. DOI: `https://doi.org/10.1177/1745691612460685`.
-- Fucci, D., Erdogmus, H., Turhan, B., Oivo, M., & Juristo, N. (2017). A dissection of the test-driven development process: Does it really matter to test-first or to test-last? *IEEE Transactions on Software Engineering*. DOI: `https://doi.org/10.1109/tse.2016.2616877`.
-- Ghosh, A., Sarkar, A., Lindley, S., & Poelitz, C. (2026). An experimental comparison of cognitive forcing functions for execution plans in AI-assisted writing. *arXiv:2601.18033* (`https://arxiv.org/abs/2601.18033`).
-- Gullstrand Heander, L., Söderberg, E., & Rydenfält, C. (2026). Code review as decision-making: building a cognitive model from the questions asked during code review. *Empirical Software Engineering (EMSE)*. DOI: `https://doi.org/10.1007/s10664-025-10791-2`.
-- Guo, Z., Wu, Y., Hartline, J. D., & Hullman, J. (2024). A decision theoretic framework for measuring AI reliance. *Proc. ACM FAccT 2024*. DOI: `https://doi.org/10.1145/3630106.3658901`.
-- Hart, S. G., & Staveland, L. E. (1988). Development of NASA-TLX (Task Load Index): Results of empirical and theoretical research. *Advances in Psychology*, 52, 139–183. DOI: `https://doi.org/10.1016/s0166-4115(08)62386-9`.
-- Imai, S. (2022). Is GitHub Copilot a substitute for human pair-programming? An empirical study. *Proc. ACM/IEEE ICSE Companion 2022*, 319–321. DOI: `https://doi.org/10.1145/3510454.3522684`.
-- Inozemtseva, L., & Holmes, R. (2014). Coverage is not strongly correlated with test suite effectiveness. *Proc. ICSE 2014*. DOI: `https://doi.org/10.1145/2568225.2568271`.
-- Iqbal, S. T., & Bailey, B. P. (2006). Leveraging characteristics of task structure to predict the cost of interruption. *Proc. ACM CHI 2006*. DOI: `https://doi.org/10.1145/1124772.1124882`.
-- Jia, Y., & Harman, M. (2011). An analysis and survey of the development of mutation testing. *IEEE Transactions on Software Engineering*. DOI: `https://doi.org/10.1109/tse.2010.62`.
-- Kahneman, D. (2011). *Thinking, Fast and Slow*. Farrar, Straus and Giroux.
-- Landis, J. R., & Koch, G. G. (1977). The measurement of observer agreement for categorical data. *Biometrics*, 33(1). DOI: `https://doi.org/10.2307/2529310`.
-- Langer, M., Schlicker, N., & Baum, K. (2024). Effective human oversight of AI systems: A signal detection perspective. *Minds and Machines*, 34. DOI: `https://doi.org/10.1007/s11023-024-09701-0`.
-- Li, X., Li, Y., Li, Z., Zhu, H., & Li, M. (2026). Guided reflection as a cognitive forcing function in XAI-assisted decision making. *Proc. ACM CHI 2026*. DOI: `https://doi.org/10.1145/3772318.3790632`.
-- Liu, S., et al. (2026). Online monitoring and corrective steering of programming agents. *arXiv:2608.06701* (`https://arxiv.org/abs/2608.06701`).
-- McGrath, M., et al. (2025). Short Trust in Automated Systems Scale (S-TIAS). *Frontiers in Artificial Intelligence*. DOI: `https://doi.org/10.3389/frai.2025.1582880`.
-- Mozannar, H., Bansal, G., Fourney, A., & Horvitz, E. (2024). Reading between the lines: Modeling user behavior and costs in AI-assisted programming. *Proc. ACM CHI 2024*. DOI: `https://doi.org/10.1145/3613904.3641936`.
-- Mu, F., et al. (2024). ClarifyGPT: A framework for enhancing LLM-based code generation via requirements clarification. *Proc. ACM on Software Engineering (FSE 2024)*. DOI: `https://doi.org/10.1145/3660810`.
-- Nickerson, R. C., Varshney, U., & Muntermann, J. (2013). A method for taxonomy development and its application in information systems. *European Journal of Information Systems*, 22(3). DOI: `https://doi.org/10.1057/ejis.2012.26`.
-- Paas, F. G. W. C. (1992). Training strategies for attaining transfer of problem-solving skill in statistics: A cognitive-load approach. *Journal of Educational Psychology*, 84(4), 429–434. DOI: `https://doi.org/10.1037/0022-0663.84.4.429`.
-- Perry, N., Srivastava, M., Kumar, D., & Boneh, D. (2023). Do users write more insecure code with AI assistants? *Proc. ACM CCS 2023*, 2785–2799. DOI: `https://doi.org/10.1145/3576915.3623157`.
-- Plonka, L., Sharp, H., van der Linden, J., & Dittrich, Y. (2015). Knowledge transfer in pair programming: An in-depth analysis. *International Journal of Human-Computer Studies (IJHCS)*, 73, 66–78. DOI: `https://doi.org/10.1016/j.ijhcs.2014.09.001`.
-- Rigby, P. C., & Bird, C. (2013). Convergent contemporary software peer review practices. *Proc. ESEC/FSE 2013*. DOI: `https://doi.org/10.1145/2491411.2491444`.
-- Sadowski, C., Söderberg, E., Church, L., Sipko, M., & Bacchelli, A. (2018). Modern code review: A case study at Google. *Proc. ACM/IEEE ICSE-SEIP 2018*, 181–190. DOI: `https://doi.org/10.1145/3183519.3183525`.
-- Schoeffer, J., Jakubik, J., Vössing, M., Kühl, N., & Satzger, G. (2025). AI reliance and decision quality: Fundamentals, interdependence, and the effects of interventions. *Journal of Artificial Intelligence Research (JAIR)*, 82, 471–501. DOI: `https://doi.org/10.1613/jair.1.15873`.
-- Shen, J. H., & Tamkin, A. (2026). How AI impacts skill formation. *arXiv:2601.20245* (`https://arxiv.org/abs/2601.20245`).
-- Sommet, N., Weissman, D. L., Cheutin, N., & Elliot, A. J. (2023). How many participants do I need to test an interaction? *Advances in Methods and Practices in Psychological Science (AMPPS)*. DOI: `https://doi.org/10.1177/25152459231178728`.
-- Stanislaw, H., & Todorov, N. (1999). Calculation of signal detection theory measures. *Behavior Research Methods, Instruments, & Computers*. DOI: `https://doi.org/10.3758/bf03207704`.
-- Tao, Y., Dang, Y., Xie, T., Zhang, D., & Kim, S. (2012). How do software engineers understand code changes? An exploratory study in industry. *Proc. ACM SIGSOFT FSE 2012*. DOI: `https://doi.org/10.1145/2393596.2393656`.
-- TypeSafe AI. (2026). *TypeSafe documentation* (Introduction, State, Primitives, Noul, Models, Jev 1.13 jaggedness). `https://docs.typesafe.ai/introduction` (read 18 Oct 2026).
-- Wang, Z. Z., et al. (2026). Humans are missing from AI coding agent research. *arXiv:2608.12355* (`https://arxiv.org/abs/2608.12355`).
-- Yang, D., et al. (2026). Clarity is not assumed: Understanding LLM-based code generation under ambiguous requirements. *Proc. IEEE/ACM ASE 2026*. DOI: `https://doi.org/10.1145/3832783.3834403`.
-- Ye, J., et al. (2026). Coding with "Enemy": Can human developers detect AI agent sabotage? *arXiv:2606.05647* (`https://arxiv.org/abs/2606.05647`).
-- Yu, H., et al. (2026). Habituation at the gate: Longitudinal analysis of human review on AI agent pull requests. *arXiv:2606.22721* (`https://arxiv.org/abs/2606.22721`).
-- Zhu, H., Lu, Y., Ding, X., Lee, J., Wang, D., & Chen, Y. (2026). Designing meaningful human oversight in AI: The solve–verify asymmetry. *AI and Ethics*. DOI: `https://doi.org/10.1007/s43681-026-01147-7`.
-- Zieris, F., & Prechelt, L. (2016). Observations on knowledge transfer of professional software developers during pair programming. *Proc. ACM/IEEE ICSE 2016 Companion*. DOI: `https://doi.org/10.1145/2889160.2889249`.
+**review**
+
+### NON-MILESTONE
+
+Pause after one of the two other subtasks among 1–3 (18–86 changed lines). Each is used equally often per feature.
+
+**review**
+
+### Procedure
+
+**Onboarding**Consent, demographics, practice feature.
+
+**Review**Accept or reject, then one behaviour question answered by running the code. Same in all conditions.
+
+**After**One understanding question per subtask, each with a confidence rating, then one mental-effort item (Paas, 1–9).
+
+**End**Preference, debrief.
+
+### Materials
+
+- **Corpus:** six features in a Next.js shop, four subtasks each.
+- **Flaws:** invisible to the tests; half in the milestone subtask, half elsewhere.
+- **Milestones:** one per feature, two each at subtask 1, 2 and 3, so position is no cue. In the author's reading, every milestone meets C2, five also meet C1, none meets C3. The criteria justify the choice and are reported descriptively, they are not a factor of the study.
+
+| Feature | Milestone | Criteria | Flaw in |
+| --- | --- | --- | --- |
+| US1 Flash-sale reservation | 2 Stock reservation | C2, C1 (failed reservation) | 2 |
+| US2 Payment webhook | 3 Deduplication and retry | C2, C1 (failure between credit and log) | 2 |
+| US3 Tenant configuration | 2 Defaults merged with overrides | C2 | 3 |
+| US4 SLA credits | 1 Duration parsing, time helpers | C2, C1 (malformed durations) | 3 |
+| US5 Rate limiter | 3 Sliding-window check | C2, C1 (whether rejected requests count) | 3 |
+| US6 Coupons | 1 Discount calculation | C2, C1 (discount above the amount) | 1 |
+- **Questions:** decision-awareness items, coded as milestone or not, checked by running the code.
+- **Agent:** scripted, but looks like a real agent session.
+
+## The study harness
+
+**Live demo:** [lh5r2nttxqpkpw7comjsvftk.yuemya.de](https://lh5r2nttxqpkpw7comjsvftk.yuemya.de/), a demo deployment for clicking through.
+
+Screenshots from a test session.
+
+Review at the end (BATCH). The agent has written all four subtasks. The plan shows its progress, the Changes pane shows every file, and the participant decides below.
+
+Pause at the milestone (MILESTONE), here after subtask 3. Only the core logic is up for review. The plan shows that one subtask is still open.
+
+Behaviour question at the review: answered by running the code, before the decision is confirmed or reversed.
+
+Preview: a small browser on the running app. The Terminal tab is a real shell where `npm test` and `npm run dev` work.
+
+After each feature: one understanding question per subtask, each with a confidence rating. The code panes are closed.
+
+## Measures and analysis
+
+| Role | Measure | What is compared |
+| --- | --- | --- |
+| Primary | Understanding of the finished feature | Share of correct answers per condition, milestone questions vs. the rest |
+| Secondary | Fault detection | How well people tell flawed from correct code, separate from how often they reject in general; also only for reviews that contained the flaw subtask |
+| Secondary | Confidence vs. correctness | How far confidence exceeds actual correctness, per condition |
+| Secondary | Reversals | How often people change their decision after the behaviour question |
+| Descriptive | Time, mental effort | Compared by condition, no hypothesis |
+
+Expected: a milestone pause closes the understanding gap on milestone decisions; a pause elsewhere does not, and may raise confidence without raising understanding.
+
+Analysis: mixed-effects regressions with participant and feature as random effects, planned contrasts MILESTONE vs. BATCH and MILESTONE vs. NON-MILESTONE, Holm-corrected. Details and a simulated run with fictitious data: `docs/analysis-plan.md`, `docs/scenario.md`.
+
+## Contributions
+
+- Pause criteria with decision tests.
+- A controlled comparison of where to pause.
+- A reproducible study harness.
+
+## Future work: finding milestones automatically
+
+A **parallel reviewer** runs next to the agent and decides when to stop for a human.
+
+- **System One model** (e.g. TypeSafe Jev): answers the C1–C3 yes/no tests fast and cheap; its probability sets how often to interrupt.
+- **LLM as judge:** slower, but can name the silent decision and turn it into the review prompt.
+- **Combined:** System One screens everything, the judge checks what it flags.
+
+### Invisible pauses
+
+The agent pauses every few tool calls; the reviewer checks the diff since the last checkpoint and either stops the agent or lets it continue.
+
+Evaluation needs ground truth beyond the author's labels: multiple raters, real user interventions, or study outcomes. Risk: developers may trust a quiet reviewer like they trust green tests.
+
+## Limits
+
+- Participants may not perceive a difference between a milestone and a non-milestone pause.
+- The author places the milestones; no second person has checked them.
+- Scripted agent, small project, lab participants.
+- A pause shows a fifth to a sixth of the code a review at the end shows, so timing and amount of code are confounded for BATCH. MILESTONE and NON-MILESTONE are of similar size.
+- With six features, each milestone criterion is tied to one or two features; the study cannot compare criteria.
+
+## Open points for discussion
+
+- **Conditions**
+- **Measuring understanding:** which instrument, grounded in which literature?
+- **Automatic detection:** how much of it belongs in the thesis?
+- **Sample size:** 30 people; is that enough (see the simulation in `docs/scenario.md`)?

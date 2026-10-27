@@ -10,8 +10,9 @@ a captured session, so every participant sees the same work, and stops for revie
 | `captures/` | Captures (recorded or synthetic) |
 | `study-harness/` | The study harness: study server, the study build of opencode's web app, trials, the Docker image |
 | `shared/` | Types both use: the capture format, the study's data |
-| `docs/` | [technical.md](docs/technical.md), [telemetry.md](docs/telemetry.md), thesis material |
-| `scripts/` | Research scripts (benchmarks, rater sheets) |
+| `docs/` | [technical.md](docs/technical.md), [telemetry.md](docs/telemetry.md), [analysis-plan.md](docs/analysis-plan.md), [scenario.md](docs/scenario.md), thesis material |
+| `analysis/` | The planned analysis in R (`analyze.R`), fictitious data for it (`design.ts`, `simulate.R`) and the power simulation (`power.R`) |
+| `scripts/` | Research scripts (benchmarks) |
 
 ## Run locally (dev, no isolation)
 
@@ -92,3 +93,7 @@ Every column, event and how each measure is computed: [docs/telemetry.md](docs/t
 - [capture-tool/README.md](capture-tool/README.md): recording sessions.
 - [docs/telemetry.md](docs/telemetry.md): what is recorded and how.
 - [docs/recording-protocol.md](docs/recording-protocol.md): how the agent sessions were recorded, with every prompt the model received.
+- [docs/data-collected.md](docs/data-collected.md): German overview of the data, direct and telemetry.
+- [docs/analysis-plan.md](docs/analysis-plan.md): hypotheses, models, exclusions.
+- [docs/briefing.md](docs/briefing.md): what the experimenter says before and after a session.
+- [docs/scenario.md](docs/scenario.md): a fictitious study run end to end, and the power simulation.

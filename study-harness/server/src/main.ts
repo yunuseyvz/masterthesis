@@ -34,6 +34,7 @@ const app = await buildApp({
   participantId: env.PARTICIPANT_ID,
   studySeed: env.STUDY_SEED,
   group: env.STUDY_GROUP !== undefined ? Number(env.STUDY_GROUP) : undefined,
+  round: env.STUDY_ROUND !== undefined ? Number(env.STUDY_ROUND) : undefined,
   exportDir,
   trialsDir,
   capturesDir,

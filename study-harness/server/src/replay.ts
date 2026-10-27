@@ -53,6 +53,20 @@ function redistribute(pieces: string[], next: string): string[] {
   });
 }
 
+/**
+ * The captures were recorded with a hidden study brief (capture-tool/briefs/study.md), which participants never
+ * see. Two plans name its file, `AGENTS.md`, and so does some reasoning text, but the trial's project has no such
+ * file. Drop the references; the stream keeps its pieces and timing.
+ */
+export function scrubBriefRefs(s: string): string {
+  return s
+    .replace(/,\s+(?:following|matching) the four-step outline(?: for this story| in `AGENTS\.md`)/g, "")
+    .replace(/\bAGENTS\.md (rules|step|outline|instructions)\b/g, "the brief's $1")
+    .replace(/\bAGENTS\.md\b/g, "the brief")
+    .replace(/\b(the|The) the brief\b/g, "$1 brief")
+    .replace(/(^|[.!?]\s+)the brief\b/g, "$1The brief");
+}
+
 /** The recorded chunks with the project path rewritten and the patches applied. */
 export function rewriteChunks(chunks: readonly Chunk[], from: string, to: string, patches: Patch[]): Chunk[] {
   const swap = (s: string) => (from && from !== to ? s.split(from).join(to) : s);
@@ -67,7 +81,8 @@ export function rewriteChunks(chunks: readonly Chunk[], from: string, to: string
   // A non-streamed body: the whole message in one chunk.
   const whole = parsed.length === 1 ? parsed[0]?.choices?.[0]?.message : undefined;
   if (whole) {
-    if (typeof whole.content === "string") whole.content = swap(whole.content);
+    if (typeof whole.content === "string") whole.content = swap(scrubBriefRefs(whole.content));
+    if (typeof whole.reasoning_content === "string") whole.reasoning_content = swap(scrubBriefRefs(whole.reasoning_content));
     (whole.tool_calls ?? []).forEach((tc: { function?: { arguments?: string } }, k: number) => {
       let args = tc.function?.arguments ?? "";
       for (const p of patches.filter((x) => x.tool === k)) args = patchArgs(args, p);
@@ -83,6 +98,7 @@ export function rewriteChunks(chunks: readonly Chunk[], from: string, to: string
     const delta = ev?.choices?.[0]?.delta;
     if (!delta) return;
     if (typeof delta.content === "string") (streams.get("text") ?? streams.set("text", []).get("text")!).push({ chunk: i, value: delta.content, set: (s) => (delta.content = s) });
+    if (typeof delta.reasoning_content === "string") (streams.get("reasoning") ?? streams.set("reasoning", []).get("reasoning")!).push({ chunk: i, value: delta.reasoning_content, set: (s) => (delta.reasoning_content = s) });
     for (const tc of delta.tool_calls ?? []) {
       const fn = tc.function;
       if (typeof fn?.arguments !== "string") continue;
@@ -95,6 +111,7 @@ export function rewriteChunks(chunks: readonly Chunk[], from: string, to: string
     const joined = slots.map((s) => s.value).join("");
     let next = joined;
     if (key.startsWith("tool:")) for (const p of patches.filter((x) => `tool:${x.tool}` === key)) next = patchArgs(next, p);
+    else next = scrubBriefRefs(next); // the agent's words only; tool arguments stay as recorded
     next = swap(next);
     if (next === joined) continue;
     redistribute(slots.map((s) => s.value), next).forEach((piece, i) => {

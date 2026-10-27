@@ -10,7 +10,7 @@ import {
 } from "@beacon/shared";
 import type { AgentHost } from "./agent.js";
 import type { Story } from "./trial.js";
-import { overlaps, type Region } from "./lines.js";
+import { changedLines, overlaps, type Region } from "./lines.js";
 import type { ReplayEndpoint } from "./replay.js";
 import { runProbe } from "./runner.js";
 import type { SandboxOptions } from "./sandbox.js";
@@ -416,7 +416,8 @@ export class StudySession {
         const probeCorrect = canonical !== -1 && executed !== null && probe.options[canonical] === executed;
         const finalDecision: Decision = action.final === "confirm" ? s1.decision : s1.decision === "accept" ? "reject" : "accept";
         const reviewed = this.trial.regime === "BATCH" ? [1, 4] : [c.pauseStep, c.pauseStep];
-        const reviewedLines = story.diff(this.trial.variant, reviewed[0]!, reviewed[1]!).reduce((n, d) => n + d.after.split("\n").length, 0);
+        // Lines the review changes (added or changed in the diff), not the size of the files it touches.
+        const reviewedLines = story.diff(this.trial.variant, reviewed[0]!, reviewed[1]!).reduce((n, d) => n + changedLines(d.before, d.after).length, 0);
         this.pending = {
           position: this.trial.position,
           story: this.trial.story,
@@ -425,6 +426,7 @@ export class StudySession {
           milestoneStep: story.milestoneStep,
           flawStep: story.flawStep,
           pauseStep: c.pauseStep,
+          flawStepReviewed: story.flawStep !== null && story.flawStep >= reviewed[0]! && story.flawStep <= reviewed[1]!,
           probeStep: probe.step,
           initialDecision: s1.decision,
           finalDecision,

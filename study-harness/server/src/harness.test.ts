@@ -9,6 +9,7 @@ import { FakeAgentHost } from "./agent.js";
 import { StudySession } from "./machine.js";
 import { ReplayEndpoint } from "./replay.js";
 import { capturesDir, trialsDir } from "./test-paths.js";
+import { changedLines } from "./lines.js";
 import { loadStory, makeStoryLoader } from "./trial.js";
 
 const load = (id: string) => loadStory(trialsDir, capturesDir, id);
@@ -147,6 +148,11 @@ describe("study flow", () => {
       if (t.regime === "BATCH") expect(t.pauseStep).toBe(4);
       if (t.regime === "MILESTONE") expect(t.pauseStep).toBe(t.milestoneStep);
       if (t.regime === "NON_MILESTONE") expect([1, 2, 3].filter((n) => n !== t.milestoneStep)).toContain(t.pauseStep);
+      expect(t.flawStepReviewed).toBe(t.regime === "BATCH" || t.pauseStep === t.flawStep);
+      const story = load(t.story);
+      const [from, to] = t.regime === "BATCH" ? [1, 4] : [t.pauseStep, t.pauseStep];
+      const changed = story.diff(t.variant, from, to).reduce((n, d) => n + changedLines(d.before, d.after).length, 0);
+      expect(t.reviewedLines).toBe(changed);
     }
     const batch = bundle.trials.filter((t: { regime: string }) => t.regime === "BATCH");
     const paused = bundle.trials.filter((t: { regime: string }) => t.regime !== "BATCH");

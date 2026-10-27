@@ -131,6 +131,30 @@ describe("rewriting recorded chunks", () => {
     const chunks: Chunk[] = [{ t: 5, data: ev({ content: "hello" }) }];
     expect(rewriteChunks(chunks, "/tmp/cap", "/work", [])).toEqual(chunks);
   });
+
+  it("drops the hidden brief's AGENTS.md from text and reasoning, even across chunks", () => {
+    const text = "Here's the plan, following the four-step outline in `AGENTS.md`.\n\nStep 1: ...";
+    const reasoning = "I'm in Plan mode. The AGENTS.md gives a 4-step outline. AGENTS.md step 3 names the files.";
+    const chunks: Chunk[] = [
+      { t: 0, data: ev({ content: text.slice(0, 25), reasoning_content: reasoning.slice(0, 40) }) },
+      { t: 10, data: ev({ content: text.slice(25), reasoning_content: reasoning.slice(40) }) },
+    ];
+    const out = rewriteChunks(chunks, "", "", []);
+    const deltas = out.map((c) => JSON.parse(c.data).choices[0].delta);
+    expect(deltas.map((d) => d.content ?? "").join("")).toBe("Here's the plan.\n\nStep 1: ...");
+    expect(deltas.map((d) => d.reasoning_content ?? "").join("")).toBe("I'm in Plan mode. The brief gives a 4-step outline. The brief's step 3 names the files.");
+    expect(out.map((c) => c.t)).toEqual([0, 10]);
+  });
+
+  it("no recorded answer in the corpus names the hidden brief's file", () => {
+    for (const id of ["US0", "US1", "US2", "US3", "US4", "US5", "US6", "lowstock"]) {
+      const s = loadStory(trialsDir, capturesDir, id);
+      const rewritten = s.capture.capture.calls.flatMap((c) => rewriteChunks(c.chunks, s.capture.capture.workspace.dir, "/w", []));
+      const answers = rewritten.map((c) => c.data).join("\n");
+      expect(answers).not.toContain("AGENTS.md");
+      expect(answers).not.toContain("four-step outline");
+    }
+  });
 });
 
 describe("timing", () => {

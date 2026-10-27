@@ -46,6 +46,8 @@ export const SessionPlan = z.object({
   participantId: z.string().min(1),
   studySeed: z.string().regex(/^\d+$/),
   group: z.number().int().min(0).max(5),
+  /** Earlier sessions of this group; balances the NON_MILESTONE pause step (absent: drawn per trial). */
+  round: z.number().int().min(0).optional(),
   /** Unmeasured practice trial shown first. */
   practice: TrialPlan,
   trials: z.array(TrialPlan).length(6),
@@ -64,6 +66,11 @@ export const TrialResult = z.object({
   flawStep: z.number().int().min(1).max(4).nullable(),
   /** Step after which the scored review happened (BATCH: 4, the end). */
   pauseStep: z.number().int().min(1).max(4),
+  /**
+   * The scored review includes the flaw step (BATCH: always; a pause: when it follows the flaw step), so a Flawed
+   * trial's flaw could be seen before the decision. Set for Correct trials too, to compare like with like.
+   */
+  flawStepReviewed: z.boolean(),
   /** Step whose code the stage-2 question asks about (the paused step; BATCH: the flaw step). */
   probeStep: z.number().int().min(1).max(3),
   initialDecision: Decision,
