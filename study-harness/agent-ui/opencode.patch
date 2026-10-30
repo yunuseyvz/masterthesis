@@ -51,3 +51,48 @@ index d4632fc..15ffbb4 100644
            <div
              classList={{
                "relative z-[70]": true,
+diff --git a/packages/gui-extensions/src/file/renderer.tsx b/packages/gui-extensions/src/file/renderer.tsx
+index dd9fc96..412f1d2 100644
+--- a/packages/gui-extensions/src/file/renderer.tsx
++++ b/packages/gui-extensions/src/file/renderer.tsx
+@@ -1,5 +1,6 @@
+ import {
+   batch,
++  createEffect,
+   createMemo,
+   createSignal,
+   lazy,
+@@ -9,6 +10,7 @@ import {
+   Suspense,
+   type ParentProps,
+   type Signal,
++  untrack,
+ } from "solid-js"
+ import { createStore, produce } from "solid-js/store"
+ import { Icon } from "@opencode/ui/icon"
+@@ -383,6 +385,25 @@ const setup: Setup<typeof File> = (ctx) => {
+     },
+   })
+ 
++  // Study mode (beacon): every trial's session has the "Open file" tab (the whole project's file tree) next to the
++  // changes, so the full codebase is one click away; the review tab stays selected.
++  createEffect(
++    on(
++      () => sessions.current()?.key,
++      () => {
++        const session = sessions.current()
++
++        if (!session || document.body.dataset.study !== "1") return
++        untrack(() =>
++          batch(() => {
++            layout.open(`file:${OPEN}`, session, { tab: "append" })
++            layout.open("review:changes", session)
++          }),
++        )
++      },
++    ),
++  )
++
+   const OpenInAppButton = lazy(() => import("./open-in-app"))
+ 
+   // How many "Open in" buttons each screen's panel headers show; the tab strip shows its own only while none do.

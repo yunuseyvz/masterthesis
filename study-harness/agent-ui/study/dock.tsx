@@ -164,7 +164,7 @@ export function StudyDock() {
       <Match when={v().phase === "reviewing"}>
         <Prompt
           title="The feature is finished"
-          text="Look over the finished code for as long as you like. When you continue, the code is hidden and you answer a few questions about how the feature behaves."
+          text="Look over the finished code for as long as you like. When you're done, mark the review finished. Your access to the code ends there."
           footer={
             <>
               <ToolButtons />

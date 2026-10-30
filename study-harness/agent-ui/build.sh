@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Builds opencode's web app in study mode: upstream opencode at a pinned version, plus this folder's `study/`
-# module and `opencode.patch` (two hooks: the app root and the composer region). Output: agent-ui/dist.
+# module and `opencode.patch` (hooks at the app root and the composer region; the file extension opens its file tree
+# in study mode). Output: agent-ui/dist.
 #
 # Usage: agent-ui/build.sh            (clones into agent-ui/.cache on first run; needs git, node, network)
 set -euo pipefail
@@ -13,7 +14,7 @@ if [ ! -d "$SRC/.git" ]; then
   git clone -q --depth 1 --branch "$VERSION" https://github.com/anomalyco/opencode.git "$SRC"
 fi
 # Start from a clean upstream tree every time, then apply the study changes.
-git -C "$SRC" checkout -q -- packages/app/src
+git -C "$SRC" checkout -q -- packages/app/src packages/gui-extensions/src
 rm -rf "$SRC/packages/app/src/study"
 cp -r "$HERE/study" "$SRC/packages/app/src/study"
 git -C "$SRC" apply "$HERE/opencode.patch"

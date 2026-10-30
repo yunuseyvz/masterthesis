@@ -150,7 +150,8 @@ export function startTelemetry() {
 
   let lastInput = Date.now()
   let idle = false
-  const onInput = () => {
+  const onInput = (e: Event) => {
+    if (!e.isTrusted) return
     lastInput = Date.now()
     if (idle) {
       idle = false
@@ -161,6 +162,7 @@ export function startTelemetry() {
   // Input that scrolls: the wheel, keys, touch, or pressing on a scroll area itself (its scrollbar).
   let lastScrollInput = 0
   const onScrollInput = (e: Event) => {
+    if (!e.isTrusted) return // the study's own scrolling (gate.tsx) is not the participant's
     if (e.type !== "pointerdown" || (e.target instanceof Element && e.target.scrollHeight > e.target.clientHeight)) lastScrollInput = Date.now()
   }
   for (const type of ["wheel", "keydown", "touchmove", "pointerdown"]) document.addEventListener(type, onScrollInput, { capture: true, passive: true })

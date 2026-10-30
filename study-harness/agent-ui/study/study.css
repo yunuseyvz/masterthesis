@@ -35,24 +35,6 @@ body[data-study] [data-slot="titlebar-tab-item"]:not([data-active="true"]) {
   pointer-events: none;
 }
 
-[data-study-ticket] {
-  position: fixed;
-  left: 50%;
-  bottom: 10px;
-  transform: translateX(-50%);
-  z-index: 100;
-  max-width: 60vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 2px 10px;
-  border-radius: 6px;
-  font: 500 11px/1.6 var(--font-family-mono, ui-monospace, monospace);
-  color: var(--text-weak);
-  background: var(--surface-raised-base, rgba(127, 127, 127, 0.12));
-  pointer-events: none;
-}
-
 [data-study-list] {
   margin: 0;
   padding-left: 1.2em;
@@ -143,6 +125,62 @@ body[data-study] [data-slot="titlebar-tab-item"]:not([data-active="true"]) {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-weaker, var(--text-weak));
+}
+
+/* The welcome page: the role, the three steps of each feature, and two short notes. */
+[data-study-card] p[data-study-intro] {
+  font-size: 15px;
+  color: var(--text-base);
+}
+[data-study-panel] {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-weak-base);
+  background: var(--surface-raised-base, rgba(127, 127, 127, 0.06));
+}
+[data-study-steps] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: study-step;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+[data-study-steps] li {
+  counter-increment: study-step;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  line-height: 1.5;
+}
+[data-study-steps] li::before {
+  content: counter(study-step);
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border-base);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+[data-study-steps] li > b {
+  color: var(--text-strong);
+}
+[data-study-steps] li > span {
+  color: var(--text-weak);
+}
+[data-study-notes] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
 }
 
 [data-study-consent] {

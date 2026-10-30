@@ -1,4 +1,4 @@
-import { Match, Show, Switch, createEffect, onMount, type ParentProps } from "solid-js"
+import { Match, Show, Switch, createEffect, onCleanup, onMount, type ParentProps } from "solid-js"
 import { useLocation, useNavigate } from "@solidjs/router"
 import { useLanguage } from "@/runtime/i18n/language"
 import { ServerConnection } from "@/runtime/server/registry"
@@ -7,6 +7,9 @@ import { StudyPage } from "./pages"
 import { active, error, load, view } from "./store"
 import { markRecording, resetCoverage, startRecording, startTelemetry } from "./telemetry"
 import "./study.css"
+
+/** The scroll area of opencode's chat timeline. */
+const timeline = () => document.querySelector<HTMLElement>('[data-slot="session-timeline-scroll"] > .scroll-view__viewport')
 
 /**
  * Study mode for opencode's web app. The study server decides what is on screen: its own pages (questionnaires,
@@ -49,6 +52,32 @@ export function StudyGate(props: ParentProps) {
     markRecording(v.phase, v.trial)
   })
 
+  // A new story opens at its start (the user story, then the plan as it arrives), not at the newest message.
+  // opencode follows the newest content until upward input; a synthetic upward wheel releases that, then scroll to
+  // the top. Once the plan is approved, scrolling to the end makes opencode follow the agent's work again.
+  let topFor: string | undefined
+  createEffect(() => {
+    const v = view()
+    if (!v?.agentSessionId) return
+    const id = v.agentSessionId
+    if (v.phase === "working" && topFor === id) {
+      topFor = undefined
+      const el = timeline()
+      if (el) el.scrollTop = el.scrollHeight
+      return
+    }
+    if (v.phase !== "plan" || topFor === id) return
+    const timer = setInterval(() => {
+      const el = timeline()
+      if (!el || el.scrollHeight - el.clientHeight <= 1) return
+      el.dispatchEvent(new WheelEvent("wheel", { deltaY: -1, bubbles: true }))
+      el.scrollTop = 0
+      topFor = id
+      clearInterval(timer)
+    }, 200)
+    onCleanup(() => clearInterval(timer))
+  })
+
   createEffect(() => {
     const v = view()
     if (!v || !active() || !v.agentSessionId) return
@@ -71,11 +100,6 @@ export function StudyGate(props: ParentProps) {
         <Show when={view()!.debugTag}>
           <div data-study-tag title="regime · variant (experimenter view)">
             {view()!.participantId} {view()!.debugTag}
-          </div>
-        </Show>
-        <Show when={view()!.story}>
-          <div data-study-ticket>
-            {view()!.practice ? "Practice feature · take your time" : `Ticket · ${view()!.story!.title} · release today`}
           </div>
         </Show>
         {props.children}

@@ -337,7 +337,8 @@ generating, archiving and sharing.
 
 `study-harness/agent-ui/build.sh` clones opencode at `OPENCODE_VERSION` (default `v2.1.3`) into `agent-ui/.cache` (or uses
 `OPENCODE_SRC`), copies `study/` into `packages/app/src/study`, applies `opencode.patch` (two hooks: `<StudyGate>`
-around the app, `<StudyDock>` in place of the composer), installs with bun 1.4.4 and builds `packages/app` into
+around the app, `<StudyDock>` in place of the composer; and in study mode the file extension opens its "Open file" tab,
+the whole file tree, in every session), installs with bun 1.4.4 and builds `packages/app` into
 `agent-ui/dist`.
 
 | File in `study/` | Role |

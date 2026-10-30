@@ -31,7 +31,7 @@ the recorded timing: `1` (default) as recorded, `2` twice as slow, `0` instant.
 opencode's web app (`packages/app` of [anomalyco/opencode](https://github.com/anomalyco/opencode), MIT) at a pinned version, plus:
 
 - `study/`: the study module (state from `/_study/state`, the prompt that replaces the composer, the full-screen pages).
-- `opencode.patch`: two hooks into upstream, at the app root (`StudyGate`) and in the composer region (`StudyDock`).
+- `opencode.patch`: two hooks into upstream, at the app root (`StudyGate`) and in the composer region (`StudyDock`), and in study mode the file extension opens its "Open file" tab (the whole file tree) in every session.
 
 `study-harness/agent-ui/build.sh` clones the pinned version, copies `study/`, applies the patch and builds into `study-harness/agent-ui/dist` (not in git; the Docker image builds it too). The study server hosts that build and forwards `/api` and `/auth` (including the terminal's websocket) to opencode on loopback, adding opencode's password itself. Study and agent share one origin, and the browser never talks to opencode directly.
 
