@@ -2,7 +2,7 @@
  * What the participant does inside opencode, sent to the study server as `ui_*` events: clicks on controls, the
  * changes view opening and closing, how far the diff was scrolled, which code lines are on screen, files opened,
  * the terminal (commands typed, test results printed), window focus, idleness, and reading back in the chat.
- * The server turns these into per-trial measures (see docs/telemetry.md).
+ * The server turns these into per-trial measures (see docs/harness/telemetry.md).
  */
 
 type View = { file: string; from: number; to: number }

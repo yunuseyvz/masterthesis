@@ -9,7 +9,7 @@ Reproduce:
 ```
 npx tsx analysis/design.ts 30 > analysis/scenario/design.csv        # the real design: groups, rounds, pause steps
 Rscript analysis/simulate.R analysis/scenario/design.csv analysis/scenario/trials.csv 7
-Rscript analysis/analyze.R analysis/scenario/trials.csv              # the planned analysis (docs/analysis-plan.md)
+Rscript analysis/analyze.R analysis/scenario/trials.csv              # the planned analysis (docs/study/analysis-plan.md)
 Rscript analysis/power.R 250 30,60                                   # §3, about 25 minutes on 4 cores
 ```
 
@@ -121,7 +121,7 @@ What else the run shows:
 - **Reversals are rare:** 15 in 180 trials, nearly all on flawed code.
 - **Time:** a pause halves the time before the decision but moves time to the end, as the design implies.
 - Several fits are singular (`isSingular` messages in the full output): six features are too few to estimate a
-  feature variance. Expected; see `docs/analysis-plan.md` §4.
+  feature variance. Expected; see `docs/study/analysis-plan.md` §4.
 
 ## 3. Power: how often does a study of this size find the effect?
 

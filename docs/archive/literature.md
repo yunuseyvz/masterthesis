@@ -1,6 +1,6 @@
 # Related Literature: Knowing When to Pause
 
-**Compiled:** 18 October 2026 · **For:** the exposé in [`expose.md`](expose.md) (pair-programming-driven verification checkpoints, parallel System-1 review, agentic coding)
+**Compiled:** 18 October 2026 · **For:** the exposé in [`expose.md`](../study/expose.md) (pair-programming-driven verification checkpoints, parallel System-1 review, agentic coding)
 
 **Sources:** the old material in `archive/` (`literature-links.md`, `literature-matrix.md`, `literature-audit.md`, `literature-with-dois.md`) plus new searches for the gaps (pair programming, interruption timing, agent oversight and monitoring).
 

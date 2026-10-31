@@ -8,7 +8,7 @@ the agent live, following a hidden script per story (the Drehbuch), and stops fo
 |---|---|
 | `study-harness/` | The study harness: study server, the study build of opencode's web app, the project, the trials, the Docker image |
 | `shared/` | The study's types and the session plan generator |
-| `docs/` | [technical.md](docs/technical.md), [telemetry.md](docs/telemetry.md), [analysis-plan.md](docs/analysis-plan.md), [scenario.md](docs/scenario.md), thesis material |
+| `docs/` | The study (`study/`), how the harness works (`harness/`), earlier material (`archive/`); index: [docs/README.md](docs/README.md) |
 | `analysis/` | The planned analysis in R (`analyze.R`), fictitious data for it (`design.ts`, `simulate.R`) and the power simulation (`power.R`) |
 | `scripts/` | Research scripts (benchmarks) |
 
@@ -110,11 +110,9 @@ Each session writes to `exports/`:
 
 ## Documentation
 
-- [docs/technical.md](docs/technical.md): architecture, trials, the live agent, study flow, opencode, agent UI,
-  isolation, configuration, tests.
-- [docs/concept-live-agent.md](docs/concept-live-agent.md): why the agent is set up this way, test runs, open points.
-- [docs/telemetry.md](docs/telemetry.md): every column, event and how each measure is computed.
-- [docs/data-collected.md](docs/data-collected.md): German overview of the data, direct and telemetry.
-- [docs/analysis-plan.md](docs/analysis-plan.md): hypotheses, models, exclusions.
-- [docs/briefing.md](docs/briefing.md): what the experimenter says before and after a session.
-- [docs/scenario.md](docs/scenario.md): a fictitious study run end to end, and the power simulation.
+[docs/README.md](docs/README.md) lists every doc. The ones to start with:
+
+- [docs/harness/technical.md](docs/harness/technical.md): how the harness is built, and why.
+- [docs/harness/telemetry.md](docs/harness/telemetry.md): every column, event and how each measure is computed.
+- [docs/study/analysis-plan.md](docs/study/analysis-plan.md): hypotheses, models, exclusions.
+- [docs/study/pilot-plan.md](docs/study/pilot-plan.md): what the pilot checks, and what is known before it.

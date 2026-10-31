@@ -1,6 +1,6 @@
 # How the intervention criteria (C1–C3) were derived
 
-**Status:** 18 October 2026. Companion to §2.2 of [`expose.md`](expose.md).
+**Status:** 18 October 2026. Companion to §2.2 of [`expose.md`](../study/expose.md).
 
 **One-sentence answer.** The criteria are a *synthesis*: I took the supervisor's request for "when and why" criteria grounded in pair programming, extracted what eight primary sources actually say about moments where a second person (or a break in the work) matters, grouped that evidence into three mechanisms, turned each mechanism into an observable decision test, and then tested the tests on the study corpus and on unscripted agent traces. The first formulation (iteration 1) was informal; the documented, repeatable procedure below starts at iteration 2 and finishes with an independent-rater study that has **not been run yet**.
 

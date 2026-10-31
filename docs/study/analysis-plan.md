@@ -1,7 +1,7 @@
 # Analysis plan
 
 What is tested, with which model, on which data. Written before any data are collected; the code is
-`analysis/analyze.R`, and `docs/scenario.md` runs it on fictitious data.
+`analysis/analyze.R`, and `docs/study/scenario.md` runs it on fictitious data.
 
 There is **one research question**: does where the agent pauses affect how well people understand and judge the code?
 Understanding is the primary outcome; fault detection, confidence and reversals are secondary. H1–H4 below are the
@@ -14,7 +14,7 @@ analyses of those outcomes, not four research questions.
   Flawed. The practice feature (`US0`) is not analysed.
 - **180 trials, 720 understanding items** (4 per trial, one per subtask). Of the items, 180 ask about the milestone
   subtask, **60 per regime**.
-- Source: `exports/trials.csv`, one row per trial (columns: `docs/telemetry.md` §4).
+- Source: `exports/trials.csv`, one row per trial (columns: `docs/harness/telemetry.md` §4).
 
 | Counts at N = 30 | BATCH | MILESTONE | NON_MILESTONE |
 |---|---|---|---|
@@ -74,7 +74,7 @@ the criterion c (tendency to reject). d′ per person is not estimable (one Corr
 subtask in every BATCH trial, in half of the MILESTONE trials and in about a quarter of the NON_MILESTONE trials
 (`flawStepReviewed`). A regime difference in d′ is therefore partly a difference in what could be seen. Reported
 twice: all trials, and only trials with `flawStepReviewed` (small for NON_MILESTONE; estimates, no test). The
-simulation (`docs/scenario.md` §3) shows the all-trials test finds a "difference" in 8–16 % of studies without any
+simulation (`docs/study/scenario.md` §3) shows the all-trials test finds a "difference" in 8–16 % of studies without any
 real effect and misses a real one; unless the design changes, H2 is reported as exploratory.
 
 ### H3 (secondary): confidence vs. correctness
@@ -105,5 +105,5 @@ feature variance rests on six features; they are reported, not a reason to chang
 
 ## 5. Power
 
-Estimated by simulation (`analysis/power.R`, results in `docs/scenario.md`): many fictitious studies on the real
+Estimated by simulation (`analysis/power.R`, results in `docs/study/scenario.md`): many fictitious studies on the real
 design, each analysed exactly as above.

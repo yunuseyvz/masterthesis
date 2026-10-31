@@ -1,4 +1,4 @@
-# The planned analysis (docs/analysis-plan.md). Runs on the harness's trials.csv, real or simulated.
+# The planned analysis (docs/study/analysis-plan.md). Runs on the harness's trials.csv, real or simulated.
 #
 # Usage: Rscript analysis/analyze.R trials.csv [excluded participant IDs, comma-separated]
 # As a library (power.R): source("analysis/analyze.R"); fit_primary(items_long(read_trials(path)))

@@ -34,7 +34,7 @@ Fault detection, confidence vs. correctness, reversals.
 
 A coding agent works in a loop: reason, call a tool, observe, repeat. There is no natural "step". A subtask is a unit of work that serves one sub-goal and ends in a reviewable state: a plan item if the agent keeps a plan, otherwise a commit, a test run or the end of a turn. A milestone is a review gate at such a boundary.
 
-In the study, each feature is scripted as four subtasks.
+In the study, the agent is instructed to build each feature in four subtasks.
 
 ## Semantic milestones (C1 to C3)
 
@@ -136,23 +136,23 @@ Literature (2)
 
 ## Study design
 
-Within-participants lab study, 30 people, \~60 minutes. Six features, two per condition: one correct, one with a seeded flaw. Six counterbalancing groups of five people (Williams design): across the groups every feature appears in every condition, and the order is balanced for carry-over.
+Within-participants lab study, 30 people, \~60 minutes. Six features, two per condition: one correct, one with a flaw. Six counterbalancing groups of five people (Williams design): across the groups every feature appears in every condition, and the order is balanced for carry-over.
 
 ### BATCH
 
-Review once at the end, the whole feature (160–390 changed lines).
+Review once at the end, the whole feature (about 160–390 changed lines).
 
 **review**
 
 ### MILESTONE
 
-Pause after the subtask chosen as the milestone (29–63 changed lines).
+Pause after the subtask chosen as the milestone (about 29–63 changed lines).
 
 **review**
 
 ### NON-MILESTONE
 
-Pause after one of the two other subtasks among 1–3 (18–86 changed lines). Each is used equally often per feature.
+Pause after one of the two other subtasks among 1–3 (about 18–86 changed lines). Each is used equally often per feature.
 
 **review**
 
@@ -160,7 +160,7 @@ Pause after one of the two other subtasks among 1–3 (18–86 changed lines). E
 
 **Onboarding**Consent, demographics, practice feature.
 
-**Review**Accept or reject, then one behaviour question answered by running the code. Same in all conditions.
+**Review**Accept or reject, then one behaviour question answered by running the code. Same in all conditions. After a rejection the agent asks what to change and fixes it.
 
 **After**One understanding question per subtask, each with a confidence rating, then one mental-effort item (Paas, 1–9).
 
@@ -169,19 +169,19 @@ Pause after one of the two other subtasks among 1–3 (18–86 changed lines). E
 ### Materials
 
 - **Corpus:** six features in a Next.js shop, four subtasks each.
-- **Flaws:** invisible to the tests; half in the milestone subtask, half elsewhere.
+- **Flaws:** in the Flawed variant, the agent's instructions contain one plausible but wrong design decision that contradicts the user story; the agent's own tests do not catch it. Half in the milestone subtask, half elsewhere.
 - **Milestones:** one per feature, two each at subtask 1, 2 and 3, so position is no cue. In the author's reading, every milestone meets C2, five also meet C1, none meets C3. The criteria justify the choice and are reported descriptively, they are not a factor of the study.
 
-| Feature | Milestone | Criteria | Flaw in |
-| --- | --- | --- | --- |
-| US1 Flash-sale reservation | 2 Stock reservation | C2, C1 (failed reservation) | 2 |
-| US2 Payment webhook | 3 Deduplication and retry | C2, C1 (failure between credit and log) | 2 |
-| US3 Tenant configuration | 2 Defaults merged with overrides | C2 | 3 |
-| US4 SLA credits | 1 Duration parsing, time helpers | C2, C1 (malformed durations) | 3 |
-| US5 Rate limiter | 3 Sliding-window check | C2, C1 (whether rejected requests count) | 3 |
-| US6 Coupons | 1 Discount calculation | C2, C1 (discount above the amount) | 1 |
+| Feature | Milestone | Criteria | Flaw in | The wrong decision |
+| --- | --- | --- | --- | --- |
+| US1 Flash-sale reservation | 2 Stock reservation | C2, C1 (failed reservation) | 2 | sold-out items are removed: 404 instead of 409 |
+| US2 Payment webhook | 3 Deduplication and retry | C2, C1 (failure between credit and log) | 2 | cents by rounding down: "19.99" credits 1998 |
+| US3 Tenant configuration | 2 Defaults merged with overrides | C2 | 3 | a bulk operation counts as one against the quota |
+| US4 SLA credits | 1 Duration parsing, time helpers | C2, C1 (malformed durations) | 3 | outages crossing the billing period are skipped |
+| US5 Rate limiter | 3 Sliding-window check | C2, C1 (whether rejected requests count) | 3 | rejected requests count: a retrying client stays blocked |
+| US6 Coupons | 1 Discount calculation | C2, C1 (discount above the amount) | 1 | a 100 % coupon is refused |
 - **Questions:** decision-awareness items, coded as milestone or not, checked by running the code.
-- **Agent:** scripted, but looks like a real agent session.
+- **Agent:** a real model (DeepSeek V4.1 Flash) in opencode, following hidden instructions per feature: the subtasks, their design decisions, and a review checkpoint to call after each of subtasks 1–3. The study decides at the checkpoint whether the agent waits. Answers are graded on the code the agent actually wrote. Line counts above are from a reference implementation; the agent's code varies.
 
 ## The study harness
 
@@ -211,7 +211,7 @@ After each feature: one understanding question per subtask, each with a confiden
 
 Expected: a milestone pause closes the understanding gap on milestone decisions; a pause elsewhere does not, and may raise confidence without raising understanding.
 
-Analysis: mixed-effects regressions with participant and feature as random effects, planned contrasts MILESTONE vs. BATCH and MILESTONE vs. NON-MILESTONE, Holm-corrected. Details and a simulated run with fictitious data: `docs/analysis-plan.md`, `docs/scenario.md`.
+Analysis: mixed-effects regressions with participant and feature as random effects, planned contrasts MILESTONE vs. BATCH and MILESTONE vs. NON-MILESTONE, Holm-corrected. Details and a simulated run with fictitious data: `docs/study/analysis-plan.md`, `docs/study/scenario.md`.
 
 ## Contributions
 
@@ -237,7 +237,7 @@ Evaluation needs ground truth beyond the author's labels: multiple raters, real 
 
 - Participants may not perceive a difference between a milestone and a non-milestone pause.
 - The author places the milestones; no second person has checked them.
-- Scripted agent, small project, lab participants.
+- A real but instructed agent: its code varies between sessions, and a flaw it is told to make may not land (checked per trial). Small project, lab participants.
 - A pause shows a fifth to a sixth of the code a review at the end shows, so timing and amount of code are confounded for BATCH. MILESTONE and NON-MILESTONE are of similar size.
 - With six features, each milestone criterion is tied to one or two features; the study cannot compare criteria.
 
@@ -246,4 +246,4 @@ Evaluation needs ground truth beyond the author's labels: multiple raters, real 
 - **Conditions**
 - **Measuring understanding:** which instrument, grounded in which literature?
 - **Automatic detection:** how much of it belongs in the thesis?
-- **Sample size:** 30 people; is that enough (see the simulation in `docs/scenario.md`)?
+- **Sample size:** 30 people; is that enough (see the simulation in `docs/study/scenario.md`)?
