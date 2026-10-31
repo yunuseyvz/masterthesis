@@ -33,7 +33,7 @@ index d4632fc..15ffbb4 100644
  import { SessionWebSearchDock } from "@/session/requests/session-websearch-dock"
  import type { SessionComposerRegionController } from "./session-composer-region-controller"
 +import { StudyDock } from "@/study/dock"
-+import { active as studyActive } from "@/study/store"
++import { active as studyActive, composerOpen as studyComposerOpen } from "@/study/store"
  
  type SessionComposerRegionState = Pick<
    SessionComposerRegionController["state"],
@@ -42,12 +42,12 @@ index d4632fc..15ffbb4 100644
          </Show>
  
 -        <Show when={controller.showComposer()}>
-+        {/* Study mode (beacon): the study prompt replaces the composer; the participant never types to the agent. */}
++        {/* Study mode (beacon): the study prompt replaces the composer; the participant types to the agent only to answer its question after a rejection. */}
 +        <Show when={studyActive()}>
 +          <StudyDock />
 +        </Show>
 +
-+        <Show when={controller.showComposer() && !studyActive()}>
++        <Show when={controller.showComposer() && (!studyActive() || studyComposerOpen())}>
            <div
              classList={{
                "relative z-[70]": true,

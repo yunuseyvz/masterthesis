@@ -161,6 +161,10 @@ export function StudyDock() {
         </Prompt>
       </Match>
 
+      <Match when={v().phase === "feedback"}>
+        <div data-study-working>Answer the agent in the message box below: tell it what to change.</div>
+      </Match>
+
       <Match when={v().phase === "reviewing"}>
         <Prompt
           title="The feature is finished"

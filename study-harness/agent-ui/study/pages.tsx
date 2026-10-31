@@ -376,10 +376,10 @@ function Debrief(props: { onDone: () => void }) {
   return (
     <Card title="Thank you, and a few things we couldn't tell you earlier">
       <p>
-        The agent you worked with replayed a recorded run: every participant sees the same code, written in advance, and no AI
-        model was answering live. In some features the agent's code contained a deliberate defect that the happy-path tests do
-        not catch. The study compares when the agent pauses for your review, and how well people understand the code and spot
-        such defects.
+        The agent you worked with was a real AI model, but it followed hidden instructions from the study: how to split each
+        feature into steps, which design decisions to take, and when to stop for your review. In some features these
+        instructions included a deliberately wrong design decision, a defect the happy-path tests do not catch. The study
+        compares when the agent pauses for your review, and how well people understand the code and spot such defects.
       </p>
       <p>
         Your answers and interaction data are stored under your participant ID only. If you have questions or want your data

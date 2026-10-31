@@ -8,6 +8,7 @@ export type StudyPhase =
   | "working"
   | "stage1"
   | "stage2"
+  | "feedback"
   | "reviewing"
   | "understanding"
   | "postsurvey"
@@ -32,7 +33,7 @@ export interface StudyView {
 }
 
 /** Phases where opencode itself is on screen (with the study prompt in place of the composer). */
-export const AGENT_PHASES: StudyPhase[] = ["plan", "working", "stage1", "stage2", "reviewing"]
+export const AGENT_PHASES: StudyPhase[] = ["plan", "working", "stage1", "stage2", "feedback", "reviewing"]
 
 // opencode asks for system notification permission when the agent finishes; a browser popup has no place in the
 // study. Its own completion sound stays (the same in every condition).
@@ -113,6 +114,17 @@ export async function finish() {
     setBusy(false)
   }
 }
+
+/** Live, after a rejection: the agent has asked what to change, and opencode's own composer is the participant's answer. */
+export const composerOpen = () => view()?.phase === "feedback"
+
+// The participant's answer goes straight to opencode (not through a study action), so while the agent asks or works
+// on after it, the study state is fetched until it moves on.
+setInterval(() => {
+  const v = view()
+  if (!v || busy() || (v.phase !== "feedback" && v.phase !== "working")) return
+  call<StudyView>("state", undefined, "GET").then((next) => setView(next), () => {})
+}, 1500)
 
 export const active = () => {
   const v = view()
