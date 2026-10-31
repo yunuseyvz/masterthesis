@@ -10,7 +10,7 @@ import { generateSessionPlan } from "@beacon/shared";
 import { makeStoryLoader } from "../study-harness/server/src/trial.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const loadStory = makeStoryLoader(path.join(root, "study-harness/trials"), path.join(root, "captures"));
+const loadStory = makeStoryLoader(path.join(root, "study-harness/trials"), path.join(root, "study-harness/project"));
 const n = Number(process.argv[2] ?? 30);
 if (!Number.isInteger(n) || n < 1) throw new Error("usage: design.ts N");
 

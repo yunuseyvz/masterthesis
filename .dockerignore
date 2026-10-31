@@ -9,5 +9,4 @@ docs
 **/*.log
 .env*
 **/.cache
-capture-tool/synthetic
 scripts

@@ -5,11 +5,12 @@ import { Confidence, Style, UNDERSTANDING_ITEMS, type Decision } from "./schema.
 
 /**
  * plan: the agent's plan is shown, the participant approves it. working: the agent is running (or finishing after the
- * decision). stage1/stage2: the scored review. reviewing: the feature is finished, the participant confirms they are
+ * decision). stage1/stage2: the scored review. feedback: live trials, after a rejection, the agent has asked what to
+ * change and the participant answers in opencode's composer (the agent then fixes it). reviewing: the feature is finished, the participant confirms they are
  * done looking before the code is hidden for the understanding questions.
  */
 export type Phase =
-  | "intro" | "presurvey" | "plan" | "working" | "stage1" | "stage2" | "reviewing" | "understanding" | "postsurvey" | "debrief" | "finished";
+  | "intro" | "presurvey" | "plan" | "working" | "stage1" | "stage2" | "feedback" | "reviewing" | "understanding" | "postsurvey" | "debrief" | "finished";
 
 export interface ViewState {
   phase: Phase;

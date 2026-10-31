@@ -1,6 +1,5 @@
 // Runs the story's code and prints the true option text for every understanding item (one per agent step).
 // The harness test compares this output with the item's `correct` index for both variants.
-import { readFileSync } from "node:fs";
 import { fakeClock } from "./src/lib/clock.ts";
 import { createLimiter } from "./src/lib/ratelimit/limiter.ts";
 import { clientId } from "./src/lib/ratelimit/respond.ts";
@@ -23,9 +22,23 @@ const items: (() => Promise<string> | string)[] = [
     return "Only after it stops retrying for a full window";
   },
   // step 4
-  () => {
-    const t = readFileSync("test/limiter.test.ts", "utf8");
-    return /independently/.test(t) && !/retrying|keeps/i.test(t) && !/shared|instances/i.test(t) ? "Clients are counted separately" : "?";
+  async () => {
+    const { rateLimited } = await import("./src/lib/ratelimit/gateway.ts");
+    let runs = 0;
+    const handler = rateLimited(() => {
+      runs++;
+      return new Response("ok");
+    }, createLimiter(fakeClock(0), { limit: 1, windowMs: 1000 }));
+    const request = () => new Request("http://localhost/api", { headers: { "x-forwarded-for": "10.0.0.1" } });
+    await handler(request());
+    let res: Response;
+    try {
+      res = await handler(request());
+    } catch {
+      return "The gateway throws an error";
+    }
+    if (res.status === 429) return runs === 1 ? "No: the gateway answers with 429 itself" : "Yes, but the client still gets a 429";
+    return res.status === 200 ? "Yes: the request goes through" : `It answers ${res.status}`;
   },
 ];
 const out: (string | null)[] = [];

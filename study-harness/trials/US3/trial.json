@@ -1,47 +1,36 @@
 {
   "id": "US3",
-  "capture": "US3-deepseek",
   "title": "Multi-Tenant Feature Flags & Quotas",
   "project": "shopfront",
-  "approveTurn": 1,
+  "brief": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.",
   "steps": [
     {
       "n": 1,
       "kind": "scaffold",
-      "summary": "Add the tenant feature-flag and limit types plus the organization defaults",
-      "start": 5
+      "summary": "Add the tenant feature-flag and limit types plus the organization defaults"
     },
     {
       "n": 2,
       "kind": "milestone",
-      "summary": "Merge the organization defaults with each tenant's overrides",
-      "start": 6
+      "summary": "Merge the organization defaults with each tenant's overrides"
     },
     {
       "n": 3,
       "kind": "scaffold",
-      "summary": "Add the 429 quota error and the usage checks that wrap an operation",
-      "start": 7
+      "summary": "Add the 429 quota error and the usage checks that wrap an operation"
     },
     {
       "n": 4,
       "kind": "completion",
-      "summary": "Add tests for config merging and quota checks, document the model",
-      "start": 8
+      "summary": "Add tests for config merging and quota checks, document the model"
     }
   ],
-  "variants": {
-    "Correct": [],
-    "Flawed": [
-      {
-        "position": 7,
-        "tool": 1,
-        "find": "  assertWithinQuota(limitFor(tenant, name, defaults), used, amount, name);",
-        "replace": "  assertWithinQuota(limitFor(tenant, name, defaults), used, 1, name);"
-      }
-    ]
-  },
+  "flawStep": 3,
   "testFile": "test/config.test.ts",
+  "outline": {
+    "Correct": "outline-correct.md",
+    "Flawed": "outline-flawed.md"
+  },
   "probes": [
     {
       "step": 1,
@@ -136,12 +125,12 @@
       },
       {
         "step": 4,
-        "question": "Which case do the unit tests cover?",
+        "question": "Suppose a tenant's own limits were ignored, so every tenant got the organization's limits. Would the agent's unit tests notice?",
         "options": [
-          "An operation over quota does not run",
-          "Adding several units at once through withQuota",
-          "Two tenants changing the defaults at the same time",
-          "Negative usage"
+          "Yes: at least one unit test fails",
+          "No: all unit tests still pass",
+          "The tests stop with an error before any test runs",
+          "Only the type checker (tsc) would report it"
         ],
         "correct": {
           "Correct": 0,

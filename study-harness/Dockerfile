@@ -12,26 +12,25 @@ COPY study-harness/agent-ui/study agent-ui/study
 COPY study-harness/agent-ui/opencode.patch agent-ui/opencode.patch
 RUN agent-ui/build.sh
 
-# Build stage: install the workspaces (the capture tool's too, as npm ci needs every workspace), then the harness.
+# Build stage: install the workspaces, then the harness.
 FROM node:24 AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY shared/package.json shared/
 COPY study-harness/server/package.json study-harness/server/
-COPY capture-tool/package.json capture-tool/
 RUN npm ci
 COPY shared shared
 COPY study-harness/server study-harness/server
-# What the harness replays: the trials and the captures they use.
+# The trials (Drehbuch, questions, reference code) and the project every trial starts from.
 COPY study-harness/trials study-harness/trials
-COPY captures captures
+COPY study-harness/project study-harness/project
 # opencode v2 ships as one self-contained binary; keep it outside /app (which the sandbox user cannot read)
 RUN cp node_modules/@opencode/cli/bin/opencode.exe /opencode && rm -rf node_modules/@opencode
 
 # Dependencies of the shared Next.js project, installed once so `npm run dev` works in the participant's terminal.
 FROM node:24 AS shopfront
 WORKDIR /opt/shopfront
-COPY capture-tool/seeds/shopfront/package.json ./
+COPY study-harness/project/package.json ./
 RUN npm install --no-audit --no-fund && chmod -R a+rX /opt/shopfront
 
 FROM node:24-slim

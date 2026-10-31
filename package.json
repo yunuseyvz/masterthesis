@@ -4,13 +4,11 @@
   "type": "module",
   "workspaces": [
     "shared",
-    "study-harness/server",
-    "capture-tool"
+    "study-harness/server"
   ],
   "scripts": {
-    "test": "npm test -w shared -w study-harness/server -w capture-tool",
-    "typecheck": "npm run typecheck -w shared -w study-harness/server -w capture-tool",
-    "build": "study-harness/agent-ui/build.sh",
-    "capture": "npm run capture -w capture-tool --"
+    "test": "npm test -w shared -w study-harness/server",
+    "typecheck": "npm run typecheck -w shared -w study-harness/server",
+    "build": "study-harness/agent-ui/build.sh"
   }
 }

@@ -1,17 +1,37 @@
 // Runs the story's code and prints the true option text for every understanding item (one per agent step).
 // The harness test compares this output with the item's `correct` index for both variants.
-import { readFileSync } from "node:fs";
 import { createAccountStore, getAccount } from "./src/lib/accounts.ts";
 import { fakeClock } from "./src/lib/clock.ts";
-import { createEventLog } from "./src/lib/db.ts";
-import { applyPayment } from "./src/lib/webhooks/handlers.ts";
+import { applyPayment, parsePaymentEvent } from "./src/lib/webhooks/handlers.ts";
 import { processEventOnce } from "./src/lib/webhooks/idempotency.ts";
+
+/** The event log's factory: in src/lib/db.ts as the outline says, or next to the webhook types. */
+async function eventLogFactory(): Promise<(clock: unknown) => any> {
+  for (const p of ["./src/lib/db.ts", "./src/lib/webhooks/types.ts", "./src/lib/webhooks/event-log.ts", "./src/lib/webhooks/eventLog.ts"]) {
+    const m = await import(p).catch(() => ({}));
+    if (typeof (m as { createEventLog?: unknown }).createEventLog === "function") return (m as { createEventLog: (c: unknown) => any }).createEventLog;
+  }
+  throw new Error("no createEventLog");
+}
+const createEventLog = await eventLogFactory();
 
 const items: (() => Promise<string> | string)[] = [
   // step 1
   () => {
-    const t = readFileSync("src/lib/webhooks/types.ts", "utf8");
-    return /amount: string;/.test(t) && /in dollars, e\.g\. "15\.00"/.test(t) ? "Dollars, as a decimal string such as \"15.00\"" : "?";
+    // Which form of amount does the parser accept: a dollar string, or a number?
+    const accepts = (amount: unknown) => {
+      try {
+        parsePaymentEvent({ id: "e", type: "payment.succeeded", accountId: "a", amount });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const string = accepts("15.00");
+    const number = accepts(1500);
+    if (string && !number) return "Dollars, as a decimal string such as \"15.00\"";
+    if (number && !string) return "Integer cents";
+    return `? string ${string}, number ${number}`;
   },
   // step 2
   () => {
@@ -34,9 +54,15 @@ const items: (() => Promise<string> | string)[] = [
     return String(tries);
   },
   // step 4
-  () => {
-    const t = readFileSync("test/webhook.test.ts", "utf8");
-    return /retries a temporary failure/.test(t) && !/signature/i.test(t) && !/refund/i.test(t) && !/same moment|concurren|parallel/i.test(t) ? "Retrying a temporary failure" : "?";
+  async () => {
+    const { handleWebhookRequest } = await import("./src/lib/webhooks/webhook.ts");
+    const deps = { accounts: createAccountStore([{ id: "a", name: "A", balanceCents: 0 }]), log: createEventLog(fakeClock()), clock: fakeClock() };
+    const deliver = () => handleWebhookRequest(new Request("http://localhost/api/webhooks/payments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "evt_1", type: "payment.succeeded", accountId: "a", amount: "10.00" }) }), deps);
+    await deliver();
+    const second: Response = await deliver();
+    const balance = getAccount(deps.accounts, "a").balanceCents;
+    if (second.status === 200) return balance === 1000 ? "200: accepted, without crediting again" : "200: accepted and credited again";
+    return { 409: "409: rejected as a conflict", 400: "400: rejected as invalid", 500: "500: server error" }[second.status] ?? `It answers ${second.status}`;
   },
 ];
 

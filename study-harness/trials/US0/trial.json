@@ -1,40 +1,36 @@
 {
   "id": "US0",
-  "capture": "US0-deepseek",
   "title": "Practice: Greeting Formatter",
   "project": "shopfront",
-  "approveTurn": 1,
+  "brief": "As a user, I want the app to greet me by name, so that it feels friendly. This is a practice story: take your time to explore the interface.",
   "steps": [
     {
       "n": 1,
       "kind": "scaffold",
-      "summary": "Add the greeting types",
-      "start": 5
+      "summary": "Add the greeting types"
     },
     {
       "n": 2,
       "kind": "milestone",
-      "summary": "Implement the greeting formatter",
-      "start": 6
+      "summary": "Implement the greeting formatter"
     },
     {
       "n": 3,
       "kind": "scaffold",
-      "summary": "Add a helper that greets several users",
-      "start": 8
+      "summary": "Add a helper that greets several users"
     },
     {
       "n": 4,
       "kind": "completion",
-      "summary": "Add unit tests and a README section",
-      "start": 9
+      "summary": "Add unit tests and a README section"
     }
   ],
-  "variants": {
-    "Correct": [],
-    "Flawed": []
-  },
+  "flawStep": null,
   "testFile": "test/greeting.test.ts",
+  "outline": {
+    "Correct": "outline.md",
+    "Flawed": "outline.md"
+  },
   "probes": [
     {
       "step": 1,
@@ -129,12 +125,12 @@
       },
       {
         "step": 4,
-        "question": "Which case do the unit tests cover?",
+        "question": "Suppose formatGreeting ignored the tone, so formal users were greeted with \"Hello, …!\" too. Would the agent's unit tests notice?",
         "options": [
-          "Rejecting a blank name",
-          "Greeting users in alphabetical order",
-          "A preferred name combined with a formal tone",
-          "Names in non-Latin scripts"
+          "Yes: at least one unit test fails",
+          "No: all unit tests still pass",
+          "The tests stop with an error before any test runs",
+          "Only the type checker (tsc) would report it"
         ],
         "correct": {
           "Correct": 0,

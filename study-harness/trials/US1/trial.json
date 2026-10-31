@@ -1,47 +1,36 @@
 {
   "id": "US1",
-  "capture": "US1-deepseek",
   "title": "Flash-Sale Inventory Reservation",
   "project": "shopfront",
-  "approveTurn": 1,
+  "brief": "As a customer during a flash sale, I want to reserve stock for the items in my cart so that I don't lose them while I check out. If the shop can't fulfil my order, I should be told.",
   "steps": [
     {
       "n": 1,
       "kind": "scaffold",
-      "summary": "Add the inventory types and the 409 out-of-stock error",
-      "start": 5
+      "summary": "Add the inventory types and the 409 out-of-stock error"
     },
     {
       "n": 2,
       "kind": "milestone",
-      "summary": "Implement stock reservation and stock lookup",
-      "start": 6
+      "summary": "Implement stock reservation and stock lookup"
     },
     {
       "n": 3,
       "kind": "scaffold",
-      "summary": "Add the checkout handler that validates and reserves",
-      "start": 7
+      "summary": "Add the checkout handler that validates and reserves"
     },
     {
       "n": 4,
       "kind": "completion",
-      "summary": "Wire the store and route, add tests and README docs",
-      "start": 8
+      "summary": "Wire the store and route, add tests and README docs"
     }
   ],
-  "variants": {
-    "Correct": [],
-    "Flawed": [
-      {
-        "position": 6,
-        "tool": 0,
-        "find": "  if (available < quantity) {",
-        "replace": "  if (available && available < quantity) {"
-      }
-    ]
-  },
+  "flawStep": 2,
   "testFile": "test/inventory.test.ts",
+  "outline": {
+    "Correct": "outline-correct.md",
+    "Flawed": "outline-flawed.md"
+  },
   "probes": [
     {
       "step": 1,
@@ -60,17 +49,17 @@
     },
     {
       "step": 2,
-      "question": "The notebook is sold out (stock 0). reserveStock is called for 1 notebook. What happens?",
+      "question": "The shop has 2 pens. One customer reserves 2 pens, then another customer reserves 1. What happens to the second reservation?",
       "options": [
         "Rejected with OutOfStockError (409)",
-        "Reserved; the stock becomes -1",
-        "Rejected: the notebook is not found (404)",
-        "Reserved; the stock stays 0"
+        "Reserved; the stock stays at 2",
+        "Rejected: the pen is not found (404)",
+        "Reserved; the stock becomes -1"
       ],
       "script": "probe2.ts",
       "expected": {
         "Correct": "Rejected with OutOfStockError (409)",
-        "Flawed": "Reserved; the stock becomes -1"
+        "Flawed": "Rejected: the pen is not found (404)"
       }
     },
     {
@@ -108,12 +97,12 @@
       },
       {
         "step": 2,
-        "question": "A shop has 2 pens. One customer reserves 2, then another customer reserves 1. What happens to the second reservation?",
+        "question": "A shop has 3 mugs. One customer reserves 3, then another customer reserves 2. What happens to the second reservation?",
         "options": [
           "It is rejected as out of stock",
-          "It succeeds and the stock goes to -1",
-          "It succeeds and the stock stays at 0",
-          "The first reservation is undone"
+          "It is rejected: the mug is not found",
+          "It succeeds and the stock stays at 3",
+          "It succeeds and the stock goes to -2"
         ],
         "correct": {
           "Correct": 0,
@@ -136,12 +125,12 @@
       },
       {
         "step": 4,
-        "question": "Which case do the unit tests cover?",
+        "question": "The checkout route (POST /api/checkout) receives an order for an item the shop does not sell. Which status does it answer with?",
         "options": [
-          "Reserving more than is in stock",
-          "Reserving a sold-out product",
-          "Two customers reserving at the same time",
-          "The checkout API route"
+          "404 (not found)",
+          "400 (invalid request)",
+          "409 (out of stock)",
+          "500 (server error)"
         ],
         "correct": {
           "Correct": 0,

@@ -1,47 +1,36 @@
 {
   "id": "US2",
-  "capture": "US2-deepseek",
   "title": "Webhook Payment Idempotency & Retry",
   "project": "shopfront",
-  "approveTurn": 1,
+  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
   "steps": [
     {
       "n": 1,
       "kind": "scaffold",
-      "summary": "Add the webhook types and the event-log contract",
-      "start": 5
+      "summary": "Add the webhook types and the event-log contract"
     },
     {
       "n": 2,
       "kind": "scaffold",
-      "summary": "Parse the provider's event and credit the account in integer cents",
-      "start": 6
+      "summary": "Parse the provider's event and credit the account in integer cents"
     },
     {
       "n": 3,
       "kind": "milestone",
-      "summary": "Deduplicate deliveries and retry only temporary failures",
-      "start": 7
+      "summary": "Deduplicate deliveries and retry only temporary failures"
     },
     {
       "n": 4,
       "kind": "completion",
-      "summary": "Wire the event log and endpoint, add tests and docs",
-      "start": 8
+      "summary": "Wire the event log and endpoint, add tests and docs"
     }
   ],
-  "variants": {
-    "Correct": [],
-    "Flawed": [
-      {
-        "position": 6,
-        "tool": 0,
-        "find": "  return adjustBalance(deps.accounts, event.accountId, dollarsToCents(event.amount));",
-        "replace": "  return adjustBalance(deps.accounts, event.accountId, Math.floor(Number(event.amount) * 100));"
-      }
-    ]
-  },
+  "flawStep": 2,
   "testFile": "test/webhook.test.ts",
+  "outline": {
+    "Correct": "outline-correct.md",
+    "Flawed": "outline-flawed.md"
+  },
   "probes": [
     {
       "step": 1,
@@ -136,12 +125,12 @@
       },
       {
         "step": 4,
-        "question": "Which case do the unit tests cover?",
+        "question": "The provider delivers the same payment event to the webhook endpoint twice. What does the endpoint answer the second time?",
         "options": [
-          "Retrying a temporary failure",
-          "Verifying the provider's signature",
-          "Refund events",
-          "Two deliveries arriving at the same moment"
+          "200: accepted, without crediting again",
+          "200: accepted and credited again",
+          "409: rejected as a conflict",
+          "500: server error"
         ],
         "correct": {
           "Correct": 0,

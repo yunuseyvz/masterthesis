@@ -112,6 +112,9 @@ export const TrialResult = z.object({
   stage2ProbeLatencyMs: z.number().nonnegative(),
   probeAnswer: z.number().int().min(-1).max(3), // -1 = "I don't know"
   probeCorrect: z.boolean(),
+  /** Live trials with a final rejection: what the participant told the agent to change, and how long writing it took. */
+  feedback: z.string().optional(),
+  feedbackMs: z.number().nonnegative().optional(),
   /** Canonical option index chosen for each understanding item. */
   understandingAnswers: z.array(z.number().int().min(0).max(3)).length(UNDERSTANDING_ITEMS),
   understandingCorrects: z.array(z.boolean()).length(UNDERSTANDING_ITEMS),

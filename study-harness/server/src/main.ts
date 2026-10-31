@@ -11,7 +11,7 @@ if (!/^[A-Za-z0-9]{1,32}$/.test(env.PARTICIPANT_ID)) throw new Error(`PARTICIPAN
 
 const exportDir = env.EXPORT_DIR ?? "/exports";
 const trialsDir = env.TRIALS_DIR ?? path.resolve(here, "../../trials");
-const capturesDir = env.CAPTURES_DIR ?? path.resolve(here, "../../../captures");
+const projectDir = env.PROJECT_DIR ?? path.resolve(here, "../../project");
 const uid = env.SANDBOX_UID !== undefined ? Number(env.SANDBOX_UID) : undefined;
 const gid = env.SANDBOX_GID !== undefined ? Number(env.SANDBOX_GID) : uid;
 // An empty LISTEN_SOCKET falls back to TCP on LISTEN_HOST:PORT (e.g. behind a reverse proxy).
@@ -21,10 +21,13 @@ const port = Number(env.PORT ?? 5185);
 
 const demo = env.DEMO === "1";
 if (demo) console.warn("[study] DEMO=1: after Finish the harness starts a fresh session instead of exiting. Do not use for real participants.");
+// TRY_TRIAL=US1,MILESTONE,Flawed plays that trial in place of the practice story.
+const tryTrial = env.TRY_TRIAL ? (([story, regime, variant]) => ({ story: story!, regime: regime as "MILESTONE", variant: (variant ?? "Correct") as "Correct" }))(env.TRY_TRIAL.split(",")) : undefined;
+if (tryTrial) console.warn(`[study] TRY_TRIAL: the practice trial is ${tryTrial.story} ${tryTrial.regime} ${tryTrial.variant}. Do not use for real participants.`);
 if (env.SHOW_CONDITION === "1") console.warn("[study] SHOW_CONDITION=1: the UI shows each trial's regime and variant. Do not use with real participants.");
 if (uid === undefined) console.warn("[sandbox] SANDBOX_UID not set: the agent and its terminal run as the server user and are NOT isolated (dev only)");
 
-// The agent: real opencode v2 by default, or AGENT=fake to play the replay without opencode (no agent UI).
+// The agent: real opencode v2 with the live model, or AGENT=fake to write the reference code (no agent UI; flow development).
 const opencodeBin = env.OPENCODE_BIN ?? [path.resolve(here, "../../../node_modules/.bin/opencode"), path.resolve(here, "../node_modules/.bin/opencode")].find((p) => fs.existsSync(p)) ?? "opencode";
 const agentPort = Number(env.AGENT_PORT ?? 4591);
 const workRoot = env.WORK_ROOT ?? "/work";
@@ -37,15 +40,15 @@ const app = await buildApp({
   round: env.STUDY_ROUND !== undefined ? Number(env.STUDY_ROUND) : undefined,
   exportDir,
   trialsDir,
-  capturesDir,
+  projectDir,
   staticDir: env.STATIC_DIR ?? path.resolve(here, "../../agent-ui/dist"),
   exitOnFinish: !demo && env.EXIT_ON_FINISH !== "0",
   demo,
   showCondition: env.SHOW_CONDITION === "1",
+  tryTrial,
   recording: env.SESSION_RECORDING !== "0",
   sandbox: { uid, gid },
   workRoot,
-  replayPace: env.REPLAY_PACE !== undefined ? Number(env.REPLAY_PACE) : 1,
   agent:
     env.AGENT === "fake"
       ? { kind: "fake" }
@@ -53,10 +56,17 @@ const app = await buildApp({
           kind: "opencode",
           bin: opencodeBin,
           port: agentPort,
-          replayPort: Number(env.REPLAY_PORT ?? 4590),
           home: agentHome,
+          // The model that plays the agent.
+          live: {
+            model: env.LIVE_MODEL ?? (() => { throw new Error("LIVE_MODEL is required (and LIVE_API_KEY): the model that plays the agent"); })(),
+            upstream: env.LIVE_UPSTREAM ?? "https://opencode.ai/zen/go/v1",
+            apiKey: env.LIVE_API_KEY,
+            port: Number(env.LIVE_PORT ?? 4592),
+            checkpointPort: Number(env.CHECKPOINT_PORT ?? 4593),
+          },
         },
-  protectedPaths: env.ALLOW_READABLE_PATHS === "1" ? [] : [exportDir, trialsDir, capturesDir, path.resolve(here, ".."), ...(socketPath ? [path.dirname(socketPath)] : [])],
+  protectedPaths: env.ALLOW_READABLE_PATHS === "1" ? [] : [exportDir, trialsDir, path.resolve(here, ".."), ...(socketPath ? [path.dirname(socketPath)] : [])],
 });
 
 if (socketPath) {

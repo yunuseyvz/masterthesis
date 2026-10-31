@@ -3,16 +3,23 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { generateSessionPlan } from "@beacon/shared";
+import { generateSessionPlan, type SessionPlan } from "@beacon/shared";
 import { buildApp } from "./app.js";
 import { FakeAgentHost } from "./agent.js";
 import { StudySession } from "./machine.js";
-import { ReplayEndpoint } from "./replay.js";
-import { capturesDir, trialsDir } from "./test-paths.js";
+import { loadReference, referenceSteps } from "./reference.js";
+import { projectDir, trialsDir } from "./test-paths.js";
 import { changedLines } from "./lines.js";
 import { loadStory, makeStoryLoader } from "./trial.js";
 
-const load = (id: string) => loadStory(trialsDir, capturesDir, id);
+const load = (id: string) => loadStory(trialsDir, projectDir, id);
+const ref = (id: string) => loadReference(load(id));
+
+/** A session's dependencies with the fake agent, which writes the reference code (see FakeAgentHost). */
+function fakeDeps(plan: SessionPlan, loader = makeStoryLoader(trialsDir, projectDir)) {
+  const agent = new FakeAgentHost(referenceSteps(loader, () => [plan.practice, ...plan.trials]));
+  return { agent, endpoint: { load: () => {} }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
+}
 
 const PRESURVEY = {
   type: "presurvey",
@@ -38,15 +45,30 @@ async function startSession(session: StudySession) {
 }
 
 const fakeConfig = (participantId: string, studySeed: string, group: number, extra: object = {}) => ({
-  participantId, studySeed, group, trialsDir, capturesDir, exitOnFinish: false, sandbox: {},
+  participantId, studySeed, group, trialsDir, projectDir, exitOnFinish: false, sandbox: {},
   exportDir: fs.mkdtempSync(path.join(os.tmpdir(), "exp-")),
   workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")),
   agent: { kind: "fake" as const },
   ...extra,
 });
 
+describe("service worker", () => {
+  it("replaces opencode's caching service worker with one that clears the cache and removes itself", async () => {
+    const staticDir = fs.mkdtempSync(path.join(os.tmpdir(), "static-"));
+    fs.writeFileSync(path.join(staticDir, "index.html"), "<html></html>");
+    fs.writeFileSync(path.join(staticDir, "sw.js"), "precacheAndRoute([])");
+    const app = await buildApp({ ...fakeConfig("SW", "1", 0), staticDir });
+    const res = await app.inject({ url: "/sw.js" });
+    expect(res.headers["cache-control"]).toBe("no-store");
+    expect(res.body).toContain("caches.delete");
+    expect(res.body).toContain("unregister");
+    expect(res.body).not.toContain("precache");
+    await app.close();
+  });
+});
+
 describe("agent proxy", () => {
-  it("refuses requests from the browser that would change the recorded session", async () => {
+  it("refuses requests from the browser that would change the agent's session or its configuration", async () => {
     const { isBlocked } = await import("./app.js");
     for (const [m, u] of [
       ["POST", "/api/session"],
@@ -56,7 +78,12 @@ describe("agent proxy", () => {
       ["POST", "/api/session/ses_1/revert/stage"],
       ["DELETE", "/api/session/ses_1/revert"],
       ["POST", "/api/session/ses_1/fork"],
+      ["POST", "/api/experimental/mcp/review/disconnect"],
+      ["DELETE", "/api/experimental/mcp/review"],
+      ["PATCH", "/api/experimental/config"],
     ]) expect(isBlocked(m!, u!), `${m} ${u}`).toBe(true);
+    // The composer sets the session's model before every message (the configuration has only the live model).
+    expect(isBlocked("POST", "/api/session/ses_1/model")).toBe(false);
     for (const [m, u] of [
       ["GET", "/api/session/ses_1/message"],
       ["GET", "/api/event"],
@@ -85,15 +112,16 @@ describe("study flow", () => {
     for (let i = 0; i < 7; i++) {
       const t = i === 0 ? flowPlan.practice : flowPlan.trials[i - 1]!;
       const story = load(t.story);
+      const r = ref(t.story);
       const trialDir = path.join(cfg.workRoot, "PT", `${String(t.position).padStart(2, "0")}-${t.story}`);
       expect(view.trial).toBe(i + 1);
       expect(view.practice).toBe(i === 0);
       expect(view.phase).toBe("plan");
       expect(view.story.plan).toHaveLength(4);
       // The project on disk, for every file the feature touches.
-      const touched = story.diff(t.variant, 1, 4).map((d) => d.path);
+      const touched = r.diff(t.variant, 1, 4).map((d) => d.path);
       const expectAt = (step: number) => {
-        const expected = story.workspaceAt(t.variant, step);
+        const expected = r.workspaceAt(t.variant, step);
         for (const f of touched) {
           const disk = path.join(trialDir, f);
           expect(fs.existsSync(disk) ? fs.readFileSync(disk, "utf8") : undefined, f).toBe(expected.get(f));
@@ -108,7 +136,7 @@ describe("study flow", () => {
       expectAt(until); // the agent stopped at the checkpoint (BATCH: the end)
       // Earlier steps are committed: the open changes are exactly the step under review (BATCH: the whole feature).
       const open = execFileSync("git", ["status", "--porcelain", "-uall"], { cwd: trialDir, encoding: "utf8" }).split("\n").filter(Boolean).map((l) => l.slice(3)).sort();
-      expect(open).toEqual(story.diff(t.variant, t.regime === "BATCH" ? 1 : pause, until).map((d) => d.path).sort());
+      expect(open).toEqual(r.diff(t.variant, t.regime === "BATCH" ? 1 : pause, until).map((d) => d.path).sort());
       view = await post("/_study/action", { type: "stage1", decision: "accept" });
       expect(view.phase).toBe("stage2");
       expect(view.probe.options).toHaveLength(4);
@@ -149,9 +177,8 @@ describe("study flow", () => {
       if (t.regime === "MILESTONE") expect(t.pauseStep).toBe(t.milestoneStep);
       if (t.regime === "NON_MILESTONE") expect([1, 2, 3].filter((n) => n !== t.milestoneStep)).toContain(t.pauseStep);
       expect(t.flawStepReviewed).toBe(t.regime === "BATCH" || t.pauseStep === t.flawStep);
-      const story = load(t.story);
       const [from, to] = t.regime === "BATCH" ? [1, 4] : [t.pauseStep, t.pauseStep];
-      const changed = story.diff(t.variant, from, to).reduce((n, d) => n + changedLines(d.before, d.after).length, 0);
+      const changed = ref(t.story).diff(t.variant, from, to).reduce((n, d) => n + changedLines(d.before, d.after).length, 0);
       expect(t.reviewedLines).toBe(changed);
     }
     const batch = bundle.trials.filter((t: { regime: string }) => t.regime === "BATCH");
@@ -164,11 +191,13 @@ describe("study flow", () => {
     expect(csv[0]).toContain("u1_answer,u1_correct,u1_confidence,u1_milestone,u1_ms,u1_changes,u2_answer");
     expect(bundle.trials[0].understandingAnswers).toHaveLength(4);
     expect(bundle.trials[0].understandingScore).toBe(bundle.trials[0].understandingCorrects.filter(Boolean).length);
-    expect(bundle.events.some((e: { type: string }) => e.type === "replay_call")).toBe(true);
+    // The probe was graded on the code under review, the understanding items on the finished code.
+    expect(bundle.events.filter((e: { type: string }) => e.type === "live_probe")).toHaveLength(7);
+    expect(bundle.events.filter((e: { type: string }) => e.type === "live_key")).toHaveLength(7);
     const jsonl = fs.readFileSync(path.join(cfg.exportDir, "PT_42.events.jsonl"), "utf8").trim().split("\n");
     expect(jsonl.length).toBe(bundle.events.length);
     await app.close();
-  });
+  }, 120_000); // every trial runs its questions' scripts on the code
 
   it("grades the probe by execution, not by option position", async () => {
     const cfg = fakeConfig("PT2", "7", 3);
@@ -220,15 +249,13 @@ describe("demo mode", () => {
     expect(fresh.participantId).toMatch(/^[A-Z2-9]{6}$/);
     expect((await post("/_study/action", { type: "begin" })).phase).toBe("presurvey");
     await app.close();
-  });
+  }, 120_000);
 });
 
 describe("condition tag (experimenter aid)", () => {
   const plan = generateSessionPlan({ participantId: "TG", studySeed: "5", group: 2 });
   const mk = (show: boolean) => {
-    const replay = new ReplayEndpoint();
-    const deps = { agent: new FakeAgentHost(replay), replay, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
-    return new StudySession(plan, makeStoryLoader(trialsDir, capturesDir), deps, () => {}, Date.now, show);
+    return new StudySession(plan, makeStoryLoader(trialsDir, projectDir), fakeDeps(plan), () => {}, Date.now, show);
   };
   const letter = { BATCH: "B", MILESTONE: "M", NON_MILESTONE: "N" } as const;
 
@@ -253,9 +280,7 @@ describe("stage-1 dwell", () => {
   it("is measured from the moment the agent has stopped at the review", async () => {
     let t = 1000;
     const plan = generateSessionPlan({ participantId: "PT3", studySeed: "9", group: 0 });
-    const replay = new ReplayEndpoint();
-    const deps = { agent: new FakeAgentHost(replay), replay, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
-    const session = new StudySession(plan, makeStoryLoader(trialsDir, capturesDir), deps, () => {}, () => t);
+    const session = new StudySession(plan, makeStoryLoader(trialsDir, projectDir), fakeDeps(plan), () => {}, () => t);
     await startSession(session);
     t += 3000; // reading the plan
     await session.act({ type: "approvePlan" });
@@ -270,9 +295,7 @@ describe("telemetry from the agent UI", () => {
   it("turns UI events into per-trial measures for the review, the probe and the final look", async () => {
     let t = 1000;
     const plan = generateSessionPlan({ participantId: "PT5", studySeed: "4", group: 0 });
-    const replay = new ReplayEndpoint();
-    const deps = { agent: new FakeAgentHost(replay), replay, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
-    const s = new StudySession(plan, makeStoryLoader(trialsDir, capturesDir), deps, () => {}, () => t);
+    const s = new StudySession(plan, makeStoryLoader(trialsDir, projectDir), fakeDeps(plan), () => {}, () => t);
     await startSession(s);
     s.recordUi({ type: "review", data: { open: true } }); // opened while the agent still planned: counts only from the review on
     t += 500;
@@ -313,12 +336,10 @@ describe("code regions for review telemetry", () => {
   it("times code on screen, focus, idleness, chat reading and quiz answers per trial", async () => {
     let t = 1000;
     const plan = generateSessionPlan({ participantId: "PT6", studySeed: "4", group: 0 });
-    const replay = new ReplayEndpoint();
-    const deps = { agent: new FakeAgentHost(replay), replay, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
-    const loader = makeStoryLoader(trialsDir, capturesDir);
-    const s = new StudySession(plan, loader, deps, () => {}, () => t);
+    const loader = makeStoryLoader(trialsDir, projectDir);
+    const s = new StudySession(plan, loader, fakeDeps(plan, loader), () => {}, () => t);
     await startSession(s);
-    // Skip ahead to the first BATCH trial: its review covers the whole feature, so the flaw region is on screen.
+    // Skip ahead to the first BATCH trial: its review covers the whole feature.
     const trials = [plan.practice, ...plan.trials];
     const k = trials.findIndex((tr) => tr.position > 0 && tr.regime === "BATCH");
     for (let i = 0; i < k; i++) {
@@ -328,13 +349,11 @@ describe("code regions for review telemetry", () => {
       await s.act({ type: "reviewed" });
       await s.act(UNDERSTANDING);
     }
-    const story = loader(trials[k]!.story);
-    const variant = trials[k]!.variant;
-    const flaw = story.flawRegion(variant, 4)[0]!;
-    const hunks = story.hunks(variant, 1, 4);
+    const hunks = loadReference(loader(trials[k]!.story)).hunks(trials[k]!.variant, 1, 4);
+    const seen = hunks[0]!;
     await s.act({ type: "approvePlan" });
     s.recordUi({ type: "review", data: { open: true } });
-    s.recordUi({ type: "diff_view", data: { views: [{ file: flaw.file, from: flaw.from, to: flaw.to }] } });
+    s.recordUi({ type: "diff_view", data: { views: [{ file: seen.file, from: seen.from, to: seen.to }] } });
     t += 2000;
     s.recordUi({ type: "diff_view", data: { views: [] } });
     s.recordUi({ type: "focus", data: { focused: false } });
@@ -347,12 +366,12 @@ describe("code regions for review telemetry", () => {
     s.recordUi({ type: "test_result", data: { pass: 3, fail: 1 } });
     s.recordUi({ type: "test_result", data: { pass: 4, fail: 0 } });
     t += 4000; // still idle at the decision: counts up to it
-    await s.act({ type: "stage1", decision: "reject" });
+    await s.act({ type: "stage1", decision: "accept" });
     const s1 = [...s.events].reverse().find((e) => e.type === "stage1_submit")!.data as { ui: Record<string, unknown> };
-    expect(s1.ui).toMatchObject({ hunks: hunks.length, flawMs: 2000, flawSeen: true, unfocusedMs: 3000, idleMs: 4000, chatBacks: 1, toolExpands: 1, testFails: 1 });
-    expect(s1.ui.hunksViewed).toBe(hunks.filter((h) => h.file === flaw.file && h.from <= flaw.to && flaw.from <= h.to).length);
+    // The hunks are the uncommitted changes the agent made; the flaw's place in its code is not known (no flaw region).
+    expect(s1.ui).toMatchObject({ hunks: hunks.length, hunksViewed: 1, flawMs: 0, flawSeen: false, unfocusedMs: 3000, idleMs: 4000, chatBacks: 1, toolExpands: 1, testFails: 1 });
     const detail = [...s.events].reverse().find((e) => e.type === "review_window")!.data as { fileMs: Record<string, number> };
-    expect(detail.fileMs[flaw.file]).toBe(2000);
+    expect(detail.fileMs[seen.file]).toBe(2000);
 
     await s.act({ type: "stage2", probeAnswer: 0, final: "confirm" });
     s.recordUi({ type: "idle", data: { idle: false } });
@@ -360,8 +379,32 @@ describe("code regions for review telemetry", () => {
     await s.act({ type: "reviewed" });
     await s.act(UNDERSTANDING);
     const end = [...s.events].reverse().find((e) => e.type === "trial_end")!.data as Record<string, unknown>;
-    expect(end).toMatchObject({ flawRegionSeenStage1: true, flawRegionMsStage1: 2000, idleMsStage1: 4000, testFailRunsStage1: 1, flawRegionSeenFinal: false, hunksFinal: hunks.length });
+    expect(end).toMatchObject({ idleMsStage1: 4000, testFailRunsStage1: 1, hunksStage1: hunks.length });
     expect(end.understandingItemMs).toEqual(UNDERSTANDING.itemMs);
     expect(end.understandingAnswerChanges).toEqual(UNDERSTANDING.answerChanges);
+  });
+});
+
+describe("rejection", () => {
+  it("lets the agent ask; the participant's one answer makes it fix the step and finish, then the final look opens", async () => {
+    const plan = generateSessionPlan({ participantId: "RJ", studySeed: "2", group: 0 });
+    const deps = fakeDeps(plan);
+    const s = new StudySession(plan, makeStoryLoader(trialsDir, projectDir), deps, () => {});
+    await startSession(s);
+    await s.act({ type: "approvePlan" });
+    await s.act({ type: "stage1", decision: "reject" });
+    const view = await s.act({ type: "stage2", probeAnswer: 0, final: "confirm" });
+    expect(view.phase).toBe("feedback");
+    const url = `/api/session/${view.agentSessionId}/prompt`;
+    expect(s.acceptsComposerMessage("POST", "/api/session/other/prompt")).toBe(false);
+    expect(s.acceptsComposerMessage("POST", url)).toBe(true);
+    await s.composerMessage(url, JSON.stringify({ text: "Use the first name only." }));
+    expect(s.acceptsComposerMessage("POST", url)).toBe(false); // one message only
+    for (let i = 0; i < 300 && s.view().phase !== "reviewing"; i++) await new Promise((r) => setTimeout(r, 50));
+    expect(s.view().phase).toBe("reviewing");
+    expect(deps.agent.prompts.at(-1)!.text).toBe("Use the first name only.");
+    // The practice trial pauses at step 2: held, rejected, then called again for the fix, and step 3 follows.
+    expect(s.events.filter((e) => e.type === "live_checkpoint").map((e) => (e.data as { step: number }).step)).toEqual([1, 2, 2, 3]);
+    expect(s.events.find((e) => e.type === "feedback_submit")!.data).toMatchObject({ text: "Use the first name only." });
   });
 });

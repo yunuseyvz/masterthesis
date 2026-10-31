@@ -1,47 +1,36 @@
 {
   "id": "US5",
-  "capture": "US5-deepseek",
   "title": "Sliding-Window API Rate Limiter",
   "project": "shopfront",
-  "approveTurn": 1,
+  "brief": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.",
   "steps": [
     {
       "n": 1,
       "kind": "scaffold",
-      "summary": "Add the rate limit types and defaults",
-      "start": 4
+      "summary": "Add the rate limit types and defaults"
     },
     {
       "n": 2,
       "kind": "scaffold",
-      "summary": "Add the 429 helper and client identification",
-      "start": 5
+      "summary": "Add the 429 helper and client identification"
     },
     {
       "n": 3,
       "kind": "milestone",
-      "summary": "Add the sliding-window check",
-      "start": 6
+      "summary": "Add the sliding-window check"
     },
     {
       "n": 4,
       "kind": "completion",
-      "summary": "Add the gateway filter, unit tests and README docs",
-      "start": 7
+      "summary": "Add the gateway filter, unit tests and README docs"
     }
   ],
-  "variants": {
-    "Correct": [],
-    "Flawed": [
-      {
-        "position": 6,
-        "tool": 0,
-        "find": "      if (history.timestamps.length >= limit) {\n        clients.set(clientId, history);",
-        "replace": "      if (history.timestamps.length >= limit) {\n        history.timestamps.push(now);\n        clients.set(clientId, history);"
-      }
-    ]
-  },
+  "flawStep": 3,
   "testFile": "test/limiter.test.ts",
+  "outline": {
+    "Correct": "outline-correct.md",
+    "Flawed": "outline-flawed.md"
+  },
   "probes": [
     {
       "step": 1,
@@ -136,12 +125,12 @@
       },
       {
         "step": 4,
-        "question": "Which case do the unit tests cover?",
+        "question": "A client that is over its limit sends another request through the gateway. Does the wrapped request handler run?",
         "options": [
-          "Clients are counted separately",
-          "A client that keeps retrying while it is blocked",
-          "The limit resetting at the start of each minute",
-          "Limits shared across several servers"
+          "No: the gateway answers with 429 itself",
+          "Yes, but the client still gets a 429",
+          "Yes: the request goes through",
+          "The gateway throws an error"
         ],
         "correct": {
           "Correct": 0,

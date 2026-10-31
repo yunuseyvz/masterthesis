@@ -56,9 +56,9 @@ export async function runTests(workspace: Map<string, string>, testFile: string)
 }
 
 /** Executes the probe script against the workspace and returns its trimmed stdout. */
-export async function runProbe(workspace: Map<string, string>, script: string): Promise<string | null> {
+export async function runProbe(workspace: Map<string, string>, script: string, timeoutMs = 10_000): Promise<string | null> {
   const ws = new Map(workspace);
   ws.set("__probe.ts", script);
-  const { stdout, code, timedOut } = await execNode(ws, ["__probe.ts"]);
+  const { stdout, code, timedOut } = await execNode(ws, ["__probe.ts"], timeoutMs);
   return code === 0 && !timedOut ? stdout.trim() : null;
 }

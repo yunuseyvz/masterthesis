@@ -18,6 +18,9 @@
 # The screen is recorded (rrweb, exports/<ID>_<seed>.recording.jsonl); --no-recording turns that off.
 # --demo (for showing the harness, never for real participants) keeps the container running: after Finish a fresh
 # session with a new ID starts, and the last screen offers "Start again". Demo exports go to exports-demo/.
+# The agent is a live model: LIVE_MODEL and LIVE_API_KEY (and LIVE_UPSTREAM for an OpenAI-compatible API other than
+# OpenCode Go) come from .env in the repository root (not in git), or from the environment, which wins. They are
+# passed into the container. TRY_TRIAL (development only) is passed on too.
 set -euo pipefail
 
 usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; }
@@ -76,6 +79,14 @@ fi
 echo "Participant $PARTICIPANT  seed $SEED  group $GROUP  round $ROUND$([ "$DEMO" = 1 ] && echo "  (demo)")"
 [ "$DRY" = 1 ] && exit 0
 
+# .env sets only what the environment does not already set.
+if [ -f "$ROOT/.env" ]; then
+  while IFS='=' read -r key value; do
+    case "$key" in LIVE_MODEL|LIVE_API_KEY|LIVE_UPSTREAM) [ -n "${!key:-}" ] || export "$key=$value" ;; esac
+  done < <(grep -E '^[A-Z_]+=' "$ROOT/.env")
+fi
+[ -n "${LIVE_MODEL:-}" ] && [ -n "${LIVE_API_KEY:-}" ] || { echo "set LIVE_MODEL and LIVE_API_KEY (the model that plays the agent)" >&2; exit 2; }
+
 RUN="$ROOT/.run/$PARTICIPANT"
 
 # 0700 matters: the agent and the participant's terminal run as another uid inside the container and must not be
@@ -93,6 +104,7 @@ docker run --rm --name "beacon-$PARTICIPANT" \
   --cap-drop ALL --cap-add SETUID --cap-add SETGID --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add KILL \
   --security-opt no-new-privileges --pids-limit 512 --memory 3g \
   -e PARTICIPANT_ID="$PARTICIPANT" -e STUDY_SEED="$SEED" -e STUDY_GROUP="$GROUP" -e STUDY_ROUND="$ROUND" -e SHOW_CONDITION="$SHOW" -e DEMO="$DEMO" -e SESSION_RECORDING="$RECORD" \
+  -e LIVE_MODEL -e LIVE_API_KEY -e LIVE_UPSTREAM -e TRY_TRIAL \
   -v "$EXPORTS:/exports" -v "$RUN:/run/study" \
   beacon-study-harness &
 DOCKER_PID=$!
