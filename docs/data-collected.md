@@ -10,8 +10,8 @@
 |---|---|---|
 | Einwilligung, Demografie | Zeit pro Phase und pro Frage | Event-Log (jedes Ereignis mit Zeitstempel) |
 | NCS-6, Attention-Check, S-TIAS | Review-Dauer, Scroll-Abdeckung, Dateien, Hunks | Bildschirmaufnahme (rrweb) |
-| Plan freigeben, Accept/Reject, Umentscheiden | Code auf dem Bildschirm (Datei/Zeile, ≥ 1 s) | Agent-Ereignisse von opencode |
-| Verhaltensfrage (Antwort, richtig/falsch) | Flaw-Region gesehen, Terminal-Befehle, Testläufe | |
+| Plan freigeben, Accept/Reject, Umentscheiden, Antwort an den Agenten nach Reject | Code auf dem Bildschirm (Datei/Zeile, ≥ 1 s) | Agent-Ereignisse von opencode, Modellaufrufe |
+| Verhaltensfrage (Antwort, richtig/falsch) | Terminal-Befehle, Testläufe | |
 | 4 Verständnisfragen + Konfidenz | Fokus, Idle, Chat-Scroll, Tool-Aufklappen, Klicks | |
 | Paas (mentaler Aufwand) | | |
 | Präferenz-Ranking, Kommentar | | |
@@ -87,7 +87,7 @@ Die **Practice-Story** (`US0`) durchläuft denselben Ablauf, wird aber als `prac
 | `hunks`, `hunksViewed` | Hunks im reviewten Code; wie viele ≥ 1 s auf dem Bildschirm waren |
 | `fileMs` | Zeit pro Datei auf dem Bildschirm (im Roh-Event) |
 | `hunkMs` | Zeit pro Hunk auf dem Bildschirm (im Roh-Event) |
-| `flawRegionMs`, `flawRegionSeen` | Zeit, in der die Flaw-Zeilen sichtbar waren; ≥ 1 s = gesehen (auch bei Correct als Baseline) |
+| `flawRegionMs`, `flawRegionSeen` | Bleiben 0/false: wo der Fehler im Code des Agenten liegt, ist nicht bekannt |
 | `terminalCommands` | Im Terminal eingegebene Befehlszeilen |
 | `testRuns`, `testFailRuns` | Läufe von `node --test`/`npm test`; davon mit Fehlschlägen |
 | `unfocusedMs` | Zeit, in der das Studienfenster nicht fokussiert/sichtbar war |
@@ -114,13 +114,14 @@ Die **Practice-Story** (`US0`) durchläuft denselben Ablauf, wird aber als `prac
 
 ### 2.4 Agent und Server
 
-- **Ablauf:** `session_start` (mit komplettem Session-Plan), `presurvey_*`, `trial_start`, `plan_*`, `review_shown`,
+- **Ablauf:** `session_start` (mit komplettem Session-Plan), `presurvey_*`, `trial_prepare`, `trial_start`, `plan_*`, `review_shown`,
   `stage1_submit`, `probe_shown`, `stage2_submit`, `final_review_shown`, `reviewed`, `trial_end`, `postsurvey_*`,
   `debrief_shown`, `finish`.
-- **Agent:** `agent_turn` (die für die Person gesendete Nachricht und Dauer), `replay_call` (welche aufgezeichnete
-  Antwort an welcher Position, Tool-Namen, ob ein Varianten-Patch angewendet wurde), `replay_checkpoint`,
-  `replay_error`; dazu opencodes eigene Ereignisse (`agent_*`: Nachrichten, Tool-Calls, Dateien, Berechtigungen) und
-  blockierte API-Aufrufe.
+- **Agent:** `agent_turn` (die für die Person gesendete Nachricht und Dauer), `live_call` (jeder Modellaufruf:
+  Dauer, Tool-Namen, Tokens), `live_checkpoint` (jeder Checkpoint-Aufruf, ob er angehalten wurde), `live_probe` und
+  `live_key` (die Antworten auf die Fragen, berechnet auf dem Code des Agenten), nach einem Reject `feedback_*` (die
+  Antwort der Person an den Agenten und wie lange sie dafür brauchte); dazu opencodes eigene Ereignisse (`agent_*`:
+  Nachrichten, Tool-Calls, Dateien, Berechtigungen) und blockierte API-Aufrufe.
 - **Fehler:** `server_error`.
 
 ### 2.5 Bildschirmaufnahme (rrweb)
@@ -135,8 +136,8 @@ Die **Practice-Story** (`US0`) durchläuft denselben Ablauf, wird aber als `prac
 ### 2.6 Daraus berechnet
 
 - **Code auf dem Bildschirm:** pro Datei und Hunk die Zeit; „gesehen“ = mindestens 1 s.
-- **Flaw-Region:** die Zeilen, die sich zwischen Correct und Flawed unterscheiden; Zeit sichtbar und „gesehen“.
-- **Hunks:** aus dem Capture berechnet (LCS-Zeilen-Diff, Kontext wie bei git), nicht aus dem Screenshot.
+- **Hunks:** aus den noch nicht committeten Änderungen des Agenten berechnet (LCS-Zeilen-Diff, Kontext wie bei git),
+  nicht aus dem Screenshot.
 - **Abdeckung:** weiteste Scroll-Position im Diff.
 - **Zustände:** Changes-Ansicht offen, unfokussiert, idle — jeweils nur innerhalb des Messfensters.
 

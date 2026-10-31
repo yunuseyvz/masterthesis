@@ -24,10 +24,10 @@ Then let them read the start page and click **Start**. Do not read the questionn
 
 | Question | Answer |
 |---|---|
-| „Ist der Agent echt?“ | „Er läuft in dieser Umgebung. Behandle ihn wie den Agenten deines Teams.“ (The replay is revealed in the debrief, not before.) |
+| „Ist der Agent echt?“ | „Ja, ein KI-Modell, das live arbeitet. Behandle ihn wie den Agenten deines Teams.“ (Its hidden instructions are revealed in the debrief, not before.) |
 | „Soll ich nach Fehlern suchen?“ | „Prüfe die Arbeit so, wie du sie im Alltag prüfen würdest, und entscheide, ob sie rausgeht.“ |
 | „Wie lange habe ich?“ | „So lange du brauchst. Es gibt keine Zeitvorgabe, die Sitzung dauert insgesamt etwa eine Stunde.“ |
-| „Was passiert bei Accept/Reject?“ | „Accept: geht mit dem Release raus. Reject: geht zurück, das Feature wartet.“ |
+| „Was passiert bei Accept/Reject?“ | „Accept: geht mit dem Release raus. Reject: der Agent fragt, was er ändern soll; du antwortest ihm einmal im Chat.“ |
 | „Darf ich die Tests laufen lassen?“ | „Ja, Terminal und Tests funktionieren. Nutze, was du auch sonst nutzen würdest.“ |
 | „Warum pausiert der Agent manchmal / warum schreibt er so viel auf einmal?“ | „Das gehört zur Studie. Mach einfach so weiter wie bisher.“ |
 
@@ -44,9 +44,11 @@ ich dir am Ende, ja?“
 
 ## Debrief (the page says it too)
 
-> „Der Agent hat eine aufgezeichnete Sitzung abgespielt: Alle sehen denselben Code, kein Modell hat live geantwortet.
-> In einigen Features steckte absichtlich ein Fehler, den die Tests nicht finden. Die Studie vergleicht, wann der
-> Agent für das Review pausiert, und wie gut man den Code danach versteht und solche Fehler erkennt.“
+> „Der Agent war ein echtes KI-Modell, hat aber versteckten Vorgaben der Studie gefolgt: wie er jedes Feature in
+> Schritte teilt, welche Designentscheidungen er trifft und wann er für dein Review anhält. In einigen Features
+> enthielten diese Vorgaben absichtlich eine falsche Designentscheidung, einen Fehler, den die Tests nicht finden. Die
+> Studie vergleicht, wann der Agent für das Review pausiert, und wie gut man den Code danach versteht und solche
+> Fehler erkennt.“
 
 Then: any questions, how it felt, whether the task was clear (notes for the pilot), data removal on request, thank
 them.

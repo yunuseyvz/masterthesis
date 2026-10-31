@@ -8,7 +8,7 @@ architecture see [technical.md](technical.md). A German overview by direct vs. i
 | Source | Recorded by | Ends up in |
 |---|---|---|
 | Study flow: screens shown, decisions, answers, timings | The study server (`machine.ts`) | Event log, trial results |
-| The agent: opencode's own event stream, replayed responses, checkpoints, turns | The server (`agent.ts`, `replay.ts`) | Event log (`agent_*`, `replay_call`, `replay_checkpoint`, `agent_turn`) |
+| The agent: opencode's own event stream, model calls, checkpoints, turns | The server (`agent.ts`, `live.ts`, `machine.ts`) | Event log (`agent_*`, `live_*`, `agent_turn`) |
 | The participant inside opencode: changes view, code on screen, files, terminal, focus, idleness, chat | The study build of opencode's web app (`agent-ui/study/telemetry.ts`) → `POST /_study/event` | Event log (`ui_*`), aggregated into trial results and `review_window` |
 | Quiz behaviour: time per question, answer changes | The understanding page (`pages.tsx`) | Trial results |
 | Screen recording (rrweb) | `telemetry.ts` → `POST /_study/recording` | `<id>_<seed>.recording.jsonl` |
@@ -68,14 +68,13 @@ between two reports to:
 - every hunk overlapping a visible range (`hunkMs`),
 - the flaw region, if any of its ranges overlaps a visible range (`flawMs`).
 
-**Hunks** are computed from the trial's capture, not from the screen: the lines changed by the window's steps (a longest
-common subsequence line diff of each file before and after those steps), with runs at most six unchanged lines apart
-merged, which matches git's hunks with three lines of context.
+**Hunks** are computed from the trial's project, not from the screen: the changes not committed yet when the window
+opens (a longest common subsequence line diff of each file against the last commit), with runs at most six unchanged
+lines apart merged, which matches git's hunks with three lines of context. At the scored review these are the
+paused step (BATCH: the whole feature), in the final look the steps after it.
 
-**The flaw region** is the set of lines that differ between the Correct and the Flawed variant, located in the
-trial's own variant after the window's last step. It exists in both variants, so Correct trials give the baseline for
-how much attention the same lines get without a defect. It is empty in the practice story, and when the flaw step
-comes after the window's last step (a pause before the flaw step was written).
+**The flaw region** is not known: the agent writes its own code, so where the flaw lies in it is not computed. The
+flaw-region measures (`flawMs`, `flawSeen`, `flawRegion*`) are kept in the format but stay 0/false/empty.
 
 Code counts as **seen** when it was on screen for at least 1 s in total during the window.
 
@@ -130,7 +129,7 @@ One row per measured trial. The practice trial has the same fields in `bundle.pr
 | `initialDecision`, `finalDecision`, `decisionReversed` | Accept/reject before and after the behaviour question |
 | `stage2ProbeLatencyMs` | Time from the behaviour question being shown to its submission |
 | `probeAnswer` | Chosen option in canonical order (-1 = "I don't know") |
-| `probeCorrect` | The chosen option is what the code prints (graded by running it) |
+| `probeCorrect` | The chosen option is what the code under review printed when the question was shown (graded by running it) |
 
 ### Timing
 
@@ -184,7 +183,15 @@ One row per measured trial. The practice trial has the same fields in `bundle.pr
 | `paas` | Mental effort for the feature (1–9) |
 
 In the bundle the per-item values are arrays: `understandingAnswers`, `understandingCorrects`,
-`understandingConfidences`, `understandingItemMs`, `understandingAnswerChanges`.
+`understandingConfidences`, `understandingItemMs`, `understandingAnswerChanges`. An item is correct when the chosen
+option is what the finished code does (`live_key`); an item whose script could not describe the code counts as wrong.
+
+### After a rejection (bundle only)
+
+| Field | Meaning |
+|---|---|
+| `feedback` | The participant's answer to the agent's question |
+| `feedbackMs` | The agent's question shown → the answer sent |
 
 ## 5. `review_window` details
 
@@ -210,11 +217,17 @@ Server events:
 |---|---|
 | `session_start` | Participant, seed, group, the full session plan |
 | `presurvey_shown`, `presurvey_submit` | Answers, scores (NCS-6 mean with items 3–4 reverse-keyed, S-TIAS mean), attention check passed, duration |
-| `trial_start` | Practice flag, position, story, regime, variant, milestone, flaw and pause step, opencode session id |
-| `agent_turn` | Trial, the message sent for the participant, duration of the turn |
-| `replay_call` | A recorded response served: thread (`main` or its key), position, tool names, whether it ends the turn, whether a variant patch was applied |
-| `replay_checkpoint` | The replay stopped for review before this main-thread position |
-| `replay_error` | A request the replay could not answer from the capture (answered with the idle text) |
+| `trial_prepare` | A trial is set up and its plan requested, in the background (position, story) |
+| `trial_start` | Practice flag, position, story, regime, variant, milestone, flaw and pause step, opencode session id, time the participant waited for the plan (`waitedForPlanMs`) |
+| `agent_turn` | Trial, the message sent for the participant (or the checkpoint's answer), duration, whether it ended or paused at the checkpoint |
+| `live_call` | One model request: trial, thread (`main` or its key), position, status, time to first chunk and in total, tool names, finish reason, tokens |
+| `live_checkpoint` | A checkpoint call: trial, step, the agent's summary, pause step, whether it was held |
+| `live_pause_missed` | The agent ended its turn without reaching the paused step |
+| `live_fix_unmarked` | After a rejection the agent went on without calling the checkpoint for the fixed step |
+| `live_probe` | The behaviour question's outcome on the code under review, and the options shown |
+| `live_key` | The understanding items' answers on the finished code, and the options shown |
+| `feedback_shown`, `feedback_submit`, `feedback_refused` | After a rejection: the agent asked; the participant's answer and the time to send it; opencode refused it (status) |
+| `checkpoint_error` | The checkpoint server failed on a request |
 | `plan_shown`, `plan_approved` | Trial; time to approval |
 | `review_shown` | Trial, pause step |
 | `stage1_submit` | Decision, dwell time, the `stage1` window summary |

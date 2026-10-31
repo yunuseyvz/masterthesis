@@ -11,7 +11,11 @@ a script through the real study state machine and export code, with the fake age
 | `trials.csv` | One row per measured trial (6), the input for `analysis/analyze.R` |
 
 Not in this example: the screen recording (`P07_7.recording.jsonl`, written by the browser), and the agent events of
-a real session (`agent_*`, `replay_call`, `replay_checkpoint`), since the fake agent does not run opencode. The UI
-telemetry is a plausible handful of events (changes view, code on screen, terminal, test runs), not a real person's.
+a real session (`agent_*`, `live_call`), since the fake agent runs neither opencode nor a model. The UI telemetry is a
+plausible handful of events (changes view, code on screen, terminal, test runs), not a real person's.
+
+Made before the agent played live: it also lacks the events the live flow adds (`trial_prepare`, `live_checkpoint`,
+`live_probe`, `live_key`, `feedback_*`), and its flaw-region values (`flawRegion*`), which stay 0 in live sessions,
+are invented. The columns of `trials.csv` are unchanged.
 
 Column meanings: [../telemetry.md](../telemetry.md).
