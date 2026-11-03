@@ -1,6 +1,6 @@
 Master's thesis · Yunus Yavuz · LMU Munich
 
-# Interventions in Agentic Coding
+# Knowing Where to Pause: Timing a Blocking Intervention for Understanding AI-Generated Code
 
 Timing human review of agent-written code.
 

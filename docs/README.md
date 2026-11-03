@@ -7,7 +7,7 @@
 | [expose.md](study/expose.md) | The exposé: problem, research question, the milestone criterion, design, measures |
 | [analysis-plan.md](study/analysis-plan.md) | Hypotheses, models, exclusions, power; the code is `analysis/analyze.R` |
 | [scenario.md](study/scenario.md) | A fictitious study run end to end, and the power simulation |
-| [pilot-plan.md](study/pilot-plan.md) | What the pilot checks: the questions, and what the live agent played |
+| [pilot-plan.md](study/pilot-plan.md) | What the pilot checks, and the DeepSeek dry run of the live flow |
 | [briefing.md](study/briefing.md) | What the experimenter says before and after a session (German) |
 
 **The harness** (`harness/`)
