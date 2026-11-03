@@ -81,6 +81,9 @@ try {
   await session.act({ type: "begin" });
   await session.act({ type: "presurvey", consent: true, demographics: { ageGroup: "25-34", programmingYears: "3-5", aiAssistantUse: "weekly", codeReviewFrequency: "weekly", tsFamiliarity: 4 }, ncs: [4, 3, 2, 2, 5, 4], attention: 4, stias: [5, 5, 4] });
   const dir = path.join(out, "work", "00-" + story.def.id);
+  const textOf = (c: { chunks: { data: string }[] }) => c.chunks.map((ch) => { try { return JSON.parse(ch.data).choices?.[0]?.delta?.content ?? ""; } catch { return ""; } }).join("");
+  // The plan: the main conversation's text so far (requests that offer tools; side requests such as titles do not).
+  const plan = live.endpoint.calls().filter((c) => c.request.tools.length > 0).map(textOf).join("\n").trim();
   await session.act({ type: "approvePlan" });
   const atReview = execFileSync("git", ["status", "--porcelain", "--untracked-files=all"], { cwd: dir, encoding: "utf8" }).trim();
   await session.act({ type: "stage1", decision: a.reject ? "reject" : "accept" });
@@ -107,6 +110,10 @@ try {
   const summary = {
     story: story.def.id, variant, regime, model: a.model, minutes: +((Date.now() - started) / 60000).toFixed(1),
     checkpoints: events.filter((e) => e.type === "live_checkpoint").map((e) => (e.data as { step: number }).step),
+    stepChecks: events.filter((e) => e.type === "live_step_check").map((e) => e.data as { step: number; attempt: number; passed: boolean; accepted: boolean; missing: string[]; early: string[]; runs: boolean }).map((d) => ({ step: d.step, attempt: d.attempt, passed: d.passed, accepted: d.accepted, ...(d.passed ? {} : { missing: d.missing, early: d.early, runs: d.runs }) })),
+    plan,
+    planLeaks: events.filter((e) => e.type === "live_plan_leak").map((e) => e.data),
+    summaryLeaks: events.filter((e) => e.type === "live_summary_leak").map((e) => e.data),
     pauseMissed: events.some((e) => e.type === "live_pause_missed"),
     stepAnnouncements: texts.flatMap((t) => [...t.matchAll(/\bStep (\d):/g)].map((m) => Number(m[1]))),
     commits: execFileSync("git", ["log", "--format=%s"], { cwd: dir, encoding: "utf8" }).trim().split("\n").reverse(),

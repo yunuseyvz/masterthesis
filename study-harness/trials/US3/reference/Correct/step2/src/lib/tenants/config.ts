@@ -6,14 +6,22 @@ import {
   type TenantConfig,
 } from "./types.ts";
 
-/** A tenant's effective configuration: the organization defaults with the tenant's own overrides applied. */
+/**
+ * A tenant's effective configuration: the organization defaults with the tenant's own overrides applied. A limit
+ * override can only lower a limit; a value above the default is capped at the default.
+ */
 export function resolveTenantConfig(
   tenant: Tenant,
   defaults: TenantConfig = ORGANIZATION_DEFAULTS,
 ): TenantConfig {
+  const limits = { ...defaults.limits };
+  for (const name of Object.keys(limits) as LimitName[]) {
+    const override = tenant.overrides.limits?.[name];
+    if (override !== undefined) limits[name] = Math.min(override, defaults.limits[name]);
+  }
   return {
     features: { ...defaults.features, ...tenant.overrides.features },
-    limits: { ...defaults.limits, ...tenant.overrides.limits },
+    limits,
   };
 }
 

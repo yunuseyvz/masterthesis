@@ -1,5 +1,11 @@
 # How the intervention criteria (C1–C3) were derived
 
+> **Superseded (2 November 2026).** C1 and C2 were fused into one criterion: a subtask that settles a case the user
+> story leaves open, in a decision code still to be written builds on. In the study material C1 never occurred
+> without C2, and C3 cannot occur at a pause, because the agent writes its tests in the last subtask. The current
+> definition and decision test are in [`expose.md`](../study/expose.md) (Semantic milestones). The derivation below
+> is kept as the record of how the three candidates came about.
+
 **Status:** 18 October 2026. Companion to §2.2 of [`expose.md`](../study/expose.md).
 
 **One-sentence answer.** The criteria are a *synthesis*: I took the supervisor's request for "when and why" criteria grounded in pair programming, extracted what eight primary sources actually say about moments where a second person (or a break in the work) matters, grouped that evidence into three mechanisms, turned each mechanism into an observable decision test, and then tested the tests on the study corpus and on unscripted agent traces. The first formulation (iteration 1) was informal; the documented, repeatable procedure below starts at iteration 2 and finishes with an independent-rater study that has **not been run yet**.

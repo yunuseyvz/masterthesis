@@ -32,6 +32,12 @@ export const TrialDef = z.object({
   /** The step outline the agent follows, per variant (files in the trial folder); see Story.drehbuch. */
   outline: z.object({ Correct: z.string(), Flawed: z.string() }),
   /**
+   * Phrases (regular expressions, case-insensitive) that state one of the story's design decisions, in either
+   * variant. The plan must not contain them: the participant would see the decision before the code (see
+   * StudySession.setUp).
+   */
+  planLeaks: z.array(z.string()).default([]),
+  /**
    * One stage-2 behaviour question per step a pause can follow (1-3), about that step's code. BATCH, which reviews
    * everything, asks the question for the step with the flaw.
    */
@@ -76,6 +82,11 @@ export interface Story {
   flawStep: number | null;
   /** The project every trial starts from (the shared codebase), as a path → content map. */
   files(): Map<string, string>;
+  /**
+   * The step each file the feature writes belongs to: the first step whose reference implementation writes it
+   * (`reference/<variant>/step<n>/`, both variants). The checkpoint checks steps against it.
+   */
+  fileSteps(): Map<string, number>;
   /** The stage-2 question asked after a review that ends at `pauseStep` (BATCH: the flaw step's question). */
   probeFor(regime: Regime, pauseStep: number): TrialDef["probes"][number];
   /** Step after which the scored review happens for a regime (BATCH: 4). */
@@ -119,6 +130,17 @@ export function loadStory(trialsDir: string, projectDir: string, id: string): St
   const outlines = { Correct: read(def.outline.Correct).trim(), Flawed: read(def.outline.Flawed).trim() };
   const nonMilestoneSteps = [1, 2, 3].filter((n) => n !== milestoneStep);
   let project: Map<string, string> | null = null;
+  let owners: Map<string, number> | null = null;
+  const fileSteps = () => {
+    if (owners) return owners;
+    owners = new Map();
+    for (let n = 1; n <= 4; n++)
+      for (const v of ["Correct", "Flawed"]) {
+        const d = path.join(dir, "reference", v, `step${n}`);
+        if (fs.existsSync(d)) for (const f of readTree(d).keys()) if (!owners.has(f)) owners.set(f, n);
+      }
+    return owners;
+  };
 
   return {
     def,
@@ -127,6 +149,7 @@ export function loadStory(trialsDir: string, projectDir: string, id: string): St
     milestoneStep,
     flawStep: def.flawStep,
     files: () => (project ??= readTree(projectDir)),
+    fileSteps,
     probeFor(regime, pauseStep) {
       const step = regime === "BATCH" ? (def.flawStep ?? milestoneStep) : pauseStep;
       return def.probes[step - 1]!;

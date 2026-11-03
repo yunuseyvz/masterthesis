@@ -107,7 +107,7 @@ export async function buildApp(cfg: ServerConfig) {
   } else {
     const fake = new FakeAgentHost(referenceSteps(loadStory, () => [plan.practice, ...plan.trials]));
     agent = fake;
-    deps = { endpoint: { load: () => {} }, checkpoints: fake.checkpoints };
+    deps = { endpoint: { load: () => {}, mainTexts: () => [] }, checkpoints: fake.checkpoints };
   }
 
   const start = (participantId: string, studySeed: string, group?: number, round?: number) => {

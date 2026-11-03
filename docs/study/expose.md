@@ -4,7 +4,7 @@ Master's thesis · Yunus Yavuz · LMU Munich
 
 Timing human review of agent-written code.
 
-[Problem](#problem)[Question](#rqs)[Subtasks](#unit)[Criteria](#milestones)[Study](#study)[Harness](#harness)[Measures](#measures)[Contributions](#contrib)[Future](#future)[Limits](#limits)[Discussion](#discuss)
+[Problem](#problem)[Question](#rqs)[Subtasks](#unit)[Criterion](#milestones)[Study](#study)[Harness](#harness)[Measures](#measures)[Contributions](#contrib)[Future](#future)[Limits](#limits)[Discussion](#discuss)
 
 ## Problem
 
@@ -36,21 +36,25 @@ A coding agent works in a loop: reason, call a tool, observe, repeat. There is n
 
 In the study, the agent is instructed to build each feature in four subtasks.
 
-## Semantic milestones (C1 to C3)
+## Semantic milestones
 
-Synthesised from research on requirements ambiguity, developer oversight, pair programming, modularity and testing. Each has a decision test.
+A milestone is a subtask that **settles a case the user story leaves open, in a decision that code still to be
+written builds on**. Two things make such a moment worth a human check: the agent has decided something on the
+developer's behalf without saying so, and the rest of the feature is about to rest on that decision. Once later code
+builds on it, a wrong choice spreads to several files.
 
-C1
+The criterion is judged from what a reviewer sees: the user story, the plan, the subtask's diff and the visible tests.
+Synthesised from research on requirements ambiguity, developer oversight, pair programming, modularity and testing.
 
-## Unspecified case
+### Decision test
 
-The agent has to do something on a failure, an empty input or a boundary input. The story does not say what. It picks an answer and does not mention it.
+All three must hold:
 
-### Rules
-
-1. The code handles a failure, empty or boundary case differently from the normal case.
-2. The story is silent on it.
-3. More than one outcome would be reasonable.
+1. **Open case settled.** The code handles a failure, empty, boundary or ambiguous case in one particular way; the
+   story is silent on it; more than one outcome would be reasonable.
+2. **Built upon.** The subtask owns the state or rule that encodes the decision, and at least one file still to be
+   written calls it (tests do not count).
+3. **Not yet built upon.** No downstream code exists yet.
 
 ### Example: a webhook that credits payments
 
@@ -65,74 +69,31 @@ export async function processWebhook(log, event, handler) {
 }
 ```
 
-A crash between the two lines credits the customer twice. "Never twice, sometimes not at all" would also be reasonable; the story does not say.
+A crash between the two lines credits the customer twice. "Never twice, sometimes not at all" would also be
+reasonable; the story does not say (open case settled). The retry loop, the endpoint and the tests will all build on
+`processWebhook` (built upon), and none of them exists yet (not yet built upon).
 
-Literature (4)
+### Why both halves
 
-- Mu et al. 2024, ClarifyGPT, FSE. LLMs generate code directly from unclear requirements instead of asking. [10.1145/3660810](https://doi.org/10.1145/3660810)
-- Yang et al. 2026, ASE. 1,304 tasks: ambiguity degrades all evaluated models; they flag ambiguity with high recall but low precision, and fail to localise or resolve it. [10.1145/3832783.3834403](https://doi.org/10.1145/3832783.3834403)
-- Dhanorkar et al. 2026, FAccT. Developers report that agents left alone fail to fill decision gaps consistently, so they plan with the agent first. [10.1145/3805689.3812402](https://doi.org/10.1145/3805689.3812402)
-- Zieris & Prechelt 2016, ICSE Companion. Pairs have to actively re-synchronise their understanding; equal grasp does not guarantee common understanding. [10.1145/2889160.2889249](https://doi.org/10.1145/2889160.2889249)
+- **The open case:** models generate code directly from unclear requirements instead of asking (Mu et al. 2024,
+  ClarifyGPT, FSE, [10.1145/3660810](https://doi.org/10.1145/3660810)); ambiguity degrades all evaluated models,
+  which fail to localise or resolve it (Yang et al. 2026, ASE,
+  [10.1145/3832783.3834403](https://doi.org/10.1145/3832783.3834403)); developers report that agents left alone fill
+  decision gaps inconsistently (Dhanorkar et al. 2026, FAccT,
+  [10.1145/3805689.3812402](https://doi.org/10.1145/3805689.3812402)); pairs have to re-synchronise their
+  understanding actively (Zieris & Prechelt 2016, ICSE Companion,
+  [10.1145/2889160.2889249](https://doi.org/10.1145/2889160.2889249)).
+- **Built upon, not yet:** LLM code looks modular but creates hidden dependencies between modules (Kravchuk-Kirilyuk
+  et al. 2025, LMPL, [10.1145/3759425.3763392](https://doi.org/10.1145/3759425.3763392)); more capable models
+  generate more coupled code (Zhu et al. 2026, [arXiv:2605.02741](https://arxiv.org/abs/2605.02741)); reviewers want
+  cohesive sub-changes and their rationale (Tao et al. 2012, FSE,
+  [10.1145/2393596.2393656](https://doi.org/10.1145/2393596.2393656)); interruptions are cheaper at subtask
+  boundaries (Iqbal & Bailey 2006, CHI, [10.1145/1124772.1124882](https://doi.org/10.1145/1124772.1124882)).
 
-C2
-
-## Foundation fixed
-
-The subtask defines state or a rule, and code that is still to be written calls it. If it is only checked later, several files have to be corrected at once.
-
-### Rules
-
-1. The subtask owns state or a rule.
-2. At least one file still to be written calls it (tests do not count).
-3. No downstream code exists yet.
-
-### Example: account balance
-
-```
-export function createLedger() {
-  return { balances: new Map<string, number>() };   // amounts in cents
-}
-export function credit(ledger, accountId, cents) {
-  const old = ledger.balances.get(accountId) ?? 0;
-  ledger.balances.set(accountId, old + cents);
-}
-```
-
-Handler, API and tests will all build on `credit` and cents. A wrong choice spreads to all of them.
-
-Literature (2)
-
-- Kravchuk-Kirilyuk et al. 2025, LMPL workshop. LLM code often looks modular but creates hidden dependencies between modules and struggles to stay consistent across files. [10.1145/3759425.3763392](https://doi.org/10.1145/3759425.3763392)
-- Zhu et al. 2026, preprint. As models get more capable, the code they and agents generate becomes more bloated and coupled; correct code and detailed prompts do not prevent this. [arXiv:2605.02741](https://arxiv.org/abs/2605.02741)
-
-C3
-
-## Test blind spot
-
-The code distinguishes more kinds of input than the visible tests exercise. Green tests then give false confidence.
-
-### Rules
-
-1. The code distinguishes at least three kinds of input.
-2. The visible tests exercise fewer.
-
-### Example: discount code
-
-```
-export function applyDiscount(code, subtotal) {
-  if (code === "NONE") return subtotal;                       // kind 1
-  if (code.endsWith("%")) return subtotal * (1 - parseInt(code) / 100);  // kind 2
-  return Math.max(0, subtotal - Number(code));                // kind 3: fixed amount
-
-// test: applyDiscount("10%", 200) === 180     <- covers only kind 2
-```
-
-Tests are green, but two of three branches never ran.
-
-Literature (2)
-
-- Dhanorkar et al. 2026, FAccT. Developers treat passing tests as a guarantee. [10.1145/3805689.3812402](https://doi.org/10.1145/3805689.3812402)
-- Inozemtseva & Holmes 2014, ICSE. Coverage is only weakly to moderately correlated with how well a test suite finds faults once its size is controlled. [10.1145/2568225.2568271](https://doi.org/10.1145/2568225.2568271)
+An earlier version had three separate criteria. In the study material the open case never occurred without the
+dependency, and a third criterion (a **test blind spot**: the code distinguishes more kinds of input than the visible
+tests exercise) cannot occur at a pause, since the agent writes its tests in the last subtask. The two that occur
+were therefore fused; the test blind spot remains a reason for review outside this study.
 
 ## Study design
 
@@ -170,16 +131,16 @@ Pause after one of the two other subtasks among 1–3 (about 18–86 changed lin
 
 - **Corpus:** six features in a Next.js shop, four subtasks each.
 - **Flaws:** in the Flawed variant, the agent's instructions contain one plausible but wrong design decision that contradicts the user story; the agent's own tests do not catch it. Half in the milestone subtask, half elsewhere.
-- **Milestones:** one per feature, two each at subtask 1, 2 and 3, so position is no cue. In the author's reading, every milestone meets C2, five also meet C1, none meets C3. The criteria justify the choice and are reported descriptively, they are not a factor of the study.
+- **Milestones:** one per feature, two each at subtask 1, 2 and 3, so position is no cue. In the author's reading, every milestone meets the criterion; a second rater checks this. The criterion justifies where the milestone is; it is not a factor of the study.
 
-| Feature | Milestone | Criteria | Flaw in | The wrong decision |
+| Feature | Milestone | Open case it settles | Flaw in | The wrong decision |
 | --- | --- | --- | --- | --- |
-| US1 Flash-sale reservation | 2 Stock reservation | C2, C1 (failed reservation) | 2 | sold-out items are removed: 404 instead of 409 |
-| US2 Payment webhook | 3 Deduplication and retry | C2, C1 (failure between credit and log) | 2 | cents by rounding down: "19.99" credits 1998 |
-| US3 Tenant configuration | 2 Defaults merged with overrides | C2 | 3 | a bulk operation counts as one against the quota |
-| US4 SLA credits | 1 Duration parsing, time helpers | C2, C1 (malformed durations) | 3 | outages crossing the billing period are skipped |
-| US5 Rate limiter | 3 Sliding-window check | C2, C1 (whether rejected requests count) | 3 | rejected requests count: a retrying client stays blocked |
-| US6 Coupons | 1 Discount calculation | C2, C1 (discount above the amount) | 1 | a 100 % coupon is refused |
+| US1 Flash-sale reservation | 2 Stock reservation | a reservation the stock cannot fulfil | 2 | sold-out items are removed: 404 instead of 409 |
+| US2 Payment webhook | 3 Deduplication and retry | a failure between the credit and the log entry | 2 | cents by rounding down: "19.99" credits 1998 |
+| US3 Tenant configuration | 2 Defaults merged with overrides | whether an override may raise a limit | 3 | a bulk operation counts as one against the quota |
+| US4 SLA credits | 1 Duration parsing, time helpers | malformed durations | 3 | outages crossing the billing period are skipped |
+| US5 Rate limiter | 3 Sliding-window check | whether rejected requests count | 3 | rejected requests count: a retrying client stays blocked |
+| US6 Coupons | 1 Discount calculation | a discount above the amount | 1 | a 100 % coupon is refused |
 - **Questions:** decision-awareness items, coded as milestone or not, checked by running the code.
 - **Agent:** a real model (DeepSeek V4.1 Flash) in opencode, following hidden instructions per feature: the subtasks, their design decisions, and a review checkpoint to call after each of subtasks 1–3. The study decides at the checkpoint whether the agent waits. Answers are graded on the code the agent actually wrote. Line counts above are from a reference implementation; the agent's code varies.
 
@@ -215,7 +176,7 @@ Analysis: mixed-effects regressions with participant and feature as random effec
 
 ## Contributions
 
-- Pause criteria with decision tests.
+- A pause criterion with a decision test.
 - A controlled comparison of where to pause.
 - A reproducible study harness.
 
@@ -223,7 +184,7 @@ Analysis: mixed-effects regressions with participant and feature as random effec
 
 A **parallel reviewer** runs next to the agent and decides when to stop for a human.
 
-- **System One model** (e.g. TypeSafe Jev): answers the C1–C3 yes/no tests fast and cheap; its probability sets how often to interrupt.
+- **System One model** (e.g. TypeSafe Jev): answers the criterion's yes/no tests fast and cheap; its probability sets how often to interrupt.
 - **LLM as judge:** slower, but can name the silent decision and turn it into the review prompt.
 - **Combined:** System One screens everything, the judge checks what it flags.
 
@@ -239,7 +200,7 @@ Evaluation needs ground truth beyond the author's labels: multiple raters, real 
 - The author places the milestones; no second person has checked them.
 - A real but instructed agent: its code varies between sessions, and a flaw it is told to make may not land (checked per trial). Small project, lab participants.
 - A pause shows a fifth to a sixth of the code a review at the end shows, so timing and amount of code are confounded for BATCH. MILESTONE and NON-MILESTONE are of similar size.
-- With six features, each milestone criterion is tied to one or two features; the study cannot compare criteria.
+- One fused criterion: the study cannot say whether the open case or the dependency matters more.
 
 ## Open points for discussion
 

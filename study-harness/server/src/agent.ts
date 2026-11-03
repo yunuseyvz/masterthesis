@@ -13,6 +13,8 @@ export interface AgentHost {
   runTurn(sessionId: string, text: string, agent?: string): Promise<void>;
   /** Resolves once the session's turn is over. */
   waitIdle(sessionId: string): Promise<void>;
+  /** Removes a session (a discarded plan). */
+  deleteSession(sessionId: string): Promise<void>;
   /** Passes a prompt request from the participant's composer to opencode unchanged (body and query as sent). */
   forwardPrompt(sessionId: string, query: string, body: string): Promise<{ status: number; body: string }>;
   /** Where the study server forwards the agent's API (/api, /auth), with the credentials to add; undefined: no agent UI. */
@@ -179,6 +181,10 @@ export class OpencodeHost implements AgentHost {
     });
   }
 
+  async deleteSession(sessionId: string) {
+    await this.api("DELETE", `/api/session/${sessionId}`);
+  }
+
   async forwardPrompt(sessionId: string, query: string, body: string) {
     const res = await fetch(`${this.local}/api/session/${sessionId}/prompt${query}`, {
       method: "POST",
@@ -249,6 +255,10 @@ export class FakeAgentHost implements AgentHost {
 
   async waitIdle(sessionId: string) {
     await this.sessions.get(sessionId)!.running;
+  }
+
+  async deleteSession(sessionId: string) {
+    this.sessions.delete(sessionId);
   }
 
   async forwardPrompt(sessionId: string, _query: string, body: string) {

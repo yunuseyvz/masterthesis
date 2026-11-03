@@ -31,6 +31,21 @@
     "Correct": "outline-correct.md",
     "Flawed": "outline-flawed.md"
   },
+  "planLeaks": [
+    "used \\+",
+    "one operation",
+    "counts? as one",
+    "whatever its",
+    "room for",
+    "\\bcap",
+    "ceiling",
+    "only lower",
+    "above the (organi[sz]ation )?default",
+    "Math\\.min",
+    "at most the default",
+    "can(not|'t) raise",
+    "most any tenant"
+  ],
   "probes": [
     {
       "step": 1,
@@ -97,11 +112,11 @@
       },
       {
         "step": 2,
-        "question": "A tenant overrides { limits: { maxProducts: 10 } }. What is its monthlyOrders limit?",
+        "question": "A tenant overrides { limits: { maxProducts: 500 } }. What is its effective maxProducts limit?",
         "options": [
-          "1000",
-          "10",
-          "0",
+          "100",
+          "500",
+          "600",
           "undefined"
         ],
         "correct": {

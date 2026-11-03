@@ -18,7 +18,7 @@ const ref = (id: string) => loadReference(load(id));
 /** A session's dependencies with the fake agent, which writes the reference code (see FakeAgentHost). */
 function fakeDeps(plan: SessionPlan, loader = makeStoryLoader(trialsDir, projectDir)) {
   const agent = new FakeAgentHost(referenceSteps(loader, () => [plan.practice, ...plan.trials]));
-  return { agent, endpoint: { load: () => {} }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
+  return { agent, endpoint: { load: () => {}, mainTexts: () => [] }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
 }
 
 const PRESURVEY = {
@@ -408,3 +408,56 @@ describe("rejection", () => {
     expect(s.events.find((e) => e.type === "feedback_submit")!.data).toMatchObject({ text: "Use the first name only." });
   });
 });
+
+describe("step check at the checkpoint", () => {
+  it("refuses a step whose files are missing or that writes a later step's files, with a neutral message", async () => {
+    const plan = generateSessionPlan({ participantId: "SC", studySeed: "2", group: 0 });
+    const loader = makeStoryLoader(trialsDir, projectDir);
+    const ref = loadReference(loader("US0"));
+    // The practice story (US0, paused after step 2): step 1 without its file, step 2 together with step 3's file.
+    const steps = [new Map(), new Map([...ref.step("Correct", 2), ...ref.step("Correct", 3)]), ref.step("Correct", 3), ref.step("Correct", 4)];
+    const agent = new FakeAgentHost(() => steps);
+    const s = new StudySession(plan, loader, { agent, endpoint: { load: () => {}, mainTexts: () => [] }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} }, () => {});
+    const answers: string[] = [];
+    await startSession(s);
+    // Record what the agent is told.
+    const wrapped = agent.checkpoints.handler!;
+    agent.checkpoints.handler = async (step, summary) => {
+      const a = await wrapped(step, summary);
+      answers.push(a);
+      return a;
+    };
+    // The fake agent does not retry a failed step, so only the logged checks and the first answer are compared.
+    await s.act({ type: "approvePlan" });
+    const checks = s.events.filter((e) => e.type === "live_step_check").map((e) => e.data as { step: number; passed: boolean; missing: string[]; early: string[] });
+    expect(checks[0]).toMatchObject({ step: 1, passed: false, missing: [...ref.step("Correct", 1).keys()] });
+    expect(answers[0]).toMatch(/^Step 1 check failed: .* was not changed\. Complete step 1 as planned/);
+    expect(answers[0]).not.toMatch(/outline|Flawed|Correct/);
+    const step2 = checks.find((c) => c.step === 2)!;
+    expect(step2).toMatchObject({ passed: false, early: [...ref.step("Correct", 3).keys()] });
+  });
+});
+
+describe("plan check", () => {
+  it("plans again when the plan states a design decision, and keeps the last plan after the retries", async () => {
+    const plan = generateSessionPlan({ participantId: "PL", studySeed: "2", group: 0 });
+    plan.practice = { ...plan.practice, story: "US1" }; // a story with design decisions
+    const loader = makeStoryLoader(trialsDir, projectDir);
+    const agent = new FakeAgentHost(referenceSteps(loader, () => [plan.practice, ...plan.trials]));
+    const plans = ["Step 2 deletes the SKU when the new level is 0.", "Step 2 adds reserveStock and stockOf."];
+    let loads = 0;
+    const endpoint = { load: () => void loads++, mainTexts: () => [plans[Math.min(loads, plans.length) - 1]!] };
+    const s = new StudySession(plan, loader, { agent, endpoint, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} }, () => {});
+    await startSession(s);
+    expect(s.view().phase).toBe("plan");
+    expect(s.events.filter((e) => e.type === "trial_prepare").map((e) => (e.data as { attempt: number }).attempt)).toEqual([1, 2]);
+    expect(s.events.find((e) => e.type === "live_plan_leak")!.data).toMatchObject({ attempt: 1, found: expect.arrayContaining(["delet"]), kept: false });
+
+    // Always a leak: the third plan is kept and logged.
+    const s2 = new StudySession(plan, loader, { agent, endpoint: { load: () => {}, mainTexts: () => [plans[0]!] }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} }, () => {});
+    await startSession(s2);
+    expect(s2.view().phase).toBe("plan");
+    expect(s2.events.filter((e) => e.type === "live_plan_leak").map((e) => (e.data as { kept: boolean }).kept)).toEqual([false, false, true]);
+  });
+});
+

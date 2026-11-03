@@ -31,6 +31,14 @@
     "Correct": "outline-correct.md",
     "Flawed": "outline-flawed.md"
   },
+  "planLeaks": [
+    "delet",
+    "remov",
+    "taken off",
+    "sold.out",
+    "(new|stock) level (is|of|reaches|becomes) 0",
+    "level is zero"
+  ],
   "probes": [
     {
       "step": 1,

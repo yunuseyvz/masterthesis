@@ -4,8 +4,8 @@ import { z } from "zod";
 export const UNDERSTANDING_ITEMS = 4;
 
 /**
- * BATCH: review once at the end (reference). MILESTONE: pause after the step that meets C1-C3.
- * NON_MILESTONE: pause after a randomly drawn step that meets none of the criteria.
+ * BATCH: review once at the end (reference). MILESTONE: pause after the step that meets the milestone criterion.
+ * NON_MILESTONE: pause after a drawn step among the others (1-3), which does not meet it.
  */
 export const Regime = z.enum(["BATCH", "MILESTONE", "NON_MILESTONE"]);
 export type Regime = z.infer<typeof Regime>;
@@ -60,7 +60,7 @@ export const TrialResult = z.object({
   story: StoryId,
   regime: Regime,
   variant: Variant,
-  /** Step (1-3) that meets the criteria in this story. */
+  /** Step (1-3) that meets the milestone criterion in this story. */
   milestoneStep: z.number().int().min(1).max(4),
   /** The step whose code differs between the variants (null: the practice story, which has no flaw). */
   flawStep: z.number().int().min(1).max(4).nullable(),

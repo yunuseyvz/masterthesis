@@ -29,7 +29,7 @@ const items: (() => Promise<string> | string)[] = [
     return off.length === 0 ? "None" : off.length === 1 ? off[0]! : "?";
   },
   // step 2
-  () => String(limitFor({ id: "t", name: "T", overrides: { limits: { maxProducts: 10 } } }, "monthlyOrders")),
+  () => String(limitFor({ id: "t", name: "T", overrides: { limits: { maxProducts: 500 } } }, "maxProducts")),
   // step 3
   async () => {
     try {

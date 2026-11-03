@@ -7,8 +7,8 @@
 2. Event parsing and the credit handler in `src/lib/webhooks/handlers.ts`: `parsePaymentEvent(raw)` validates an
    incoming event; `applyPayment(deps, event)` credits the account through `adjustBalance` in `src/lib/accounts.ts`.
    The provider sends the amount as a decimal string in dollars, such as `"15.00"`; convert it to integer cents
-   by parsing it as a number, multiplying by 100 and rounding down (`Math.floor`), so that a credit never exceeds
-   what the customer paid.
+   by parsing it as a number, multiplying by 100 and rounding down (`Math.floor`, in `dollarsToCents`), so that a
+   credit never exceeds what the customer paid.
 3. Deduplication and retry in `src/lib/webhooks/idempotency.ts`:
    `processEventOnce(deps, event, handler = applyPayment, wait = sleep)` processes each event at most once even when
    the provider delivers it again (a `processing` or `processed` event is a duplicate; a `failed` one may run again),

@@ -42,11 +42,15 @@ test("resolving a tenant does not mutate the organization defaults", () => {
 });
 
 test("feature and limit reads go through the tenant's effective config", () => {
-  const acme = tenant({ features: { analytics: true }, limits: { maxUsers: 20 } });
+  const acme = tenant({ features: { analytics: true }, limits: { maxUsers: 3 } });
   assert.equal(isFeatureEnabled(acme, "analytics"), true);
   assert.equal(isFeatureEnabled(acme, "checkout"), true);
-  assert.equal(limitFor(acme, "maxUsers"), 20);
+  assert.equal(limitFor(acme, "maxUsers"), 3);
   assert.equal(limitFor(acme, "maxProducts"), ORGANIZATION_DEFAULTS.limits.maxProducts);
+});
+
+test("a limit override above the organization default is capped at the default", () => {
+  assert.equal(limitFor(tenant({ limits: { maxUsers: 20 } }), "maxUsers"), ORGANIZATION_DEFAULTS.limits.maxUsers);
 });
 
 test("the quota check allows usage up to the limit", () => {

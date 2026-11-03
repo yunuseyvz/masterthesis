@@ -115,7 +115,7 @@ One row per measured trial. The practice trial has the same fields in `bundle.pr
 | `participant_id`, `study_seed`, `group` | Session identity; counterbalancing group 0–5 |
 | `position`, `story` | Order in the session (1–6); story id |
 | `regime`, `variant` | BATCH / MILESTONE / NON_MILESTONE; Correct / Flawed |
-| `milestoneStep` | Step (1–3) that meets the milestone criteria in this story |
+| `milestoneStep` | Step (1–3) that meets the milestone criterion in this story |
 | `flawStep` | Step whose code differs between the variants (null for the practice story, in `bundle.practice`) |
 | `pauseStep` | Step after which the scored review happened (BATCH: 4) |
 | `flawStepReviewed` | The scored review includes the flaw step (BATCH: always; a pause: `pauseStep = flawStep`), so a Flawed trial's flaw was visible before the decision; set for Correct trials too |

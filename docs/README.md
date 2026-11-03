@@ -4,7 +4,7 @@
 
 | Doc | What |
 |---|---|
-| [expose.md](study/expose.md) | The exposé: problem, research question, milestone criteria, design, measures |
+| [expose.md](study/expose.md) | The exposé: problem, research question, the milestone criterion, design, measures |
 | [analysis-plan.md](study/analysis-plan.md) | Hypotheses, models, exclusions, power; the code is `analysis/analyze.R` |
 | [scenario.md](study/scenario.md) | A fictitious study run end to end, and the power simulation |
 | [pilot-plan.md](study/pilot-plan.md) | What the pilot checks: the questions, and what the live agent played |

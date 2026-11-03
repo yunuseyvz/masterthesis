@@ -70,7 +70,8 @@ unmeasured) → six measured stories → preference ranking → debrief.
 
 ## Design
 
-Each story has four steps. One meets the milestone criteria (C1–C3); it is step 1, 2 or 3 depending on the story.
+Each story has four steps. One is the milestone: it settles a case the user story leaves open, in a decision later
+steps build on. It is step 1, 2 or 3 depending on the story.
 Three regimes decide when the participant reviews:
 
 - **BATCH**: one review of the finished feature (reference).

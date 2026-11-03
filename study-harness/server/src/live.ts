@@ -77,6 +77,12 @@ export class LiveEndpoint {
     this.first = this.proxy.calls.length;
   }
 
+  /** What the agent has written in the trial's main conversation so far (its text responses, in order). */
+  mainTexts(): string[] {
+    const l = this.l;
+    return l ? this.calls().filter((c) => c.thread === l.mainThread).map((c) => parseChunks(c.chunks).text).filter(Boolean) : [];
+  }
+
   /** Calls of the current trial. */
   calls(): Call[] {
     return this.proxy.calls.slice(this.first);
