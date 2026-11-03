@@ -1,0 +1,273 @@
+<title>Thesis Update</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column, sections as chapters of the meeting agenda; tables and flows scroll in place */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #18202c;
+  --muted: #5a6474;
+  --line: #dde1e8;
+  --accent: #2c55c7;
+  --accent-soft: #e6ecfb;
+  --ok: #1d7a4f;
+  --ok-soft: #e3f3ea;
+  --wip: #9a5b00;
+  --wip-soft: #fbf0dc;
+  --open: #8a2f45;
+  --open-soft: #f8e6ea;
+  --display: "Newsreader", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --ink: #e5e9f0; --muted: #9aa4b4; --line: #2c3440;
+    --accent: #8aa8ff; --accent-soft: #1f2a44;
+    --ok: #6fd3a0; --ok-soft: #173126; --wip: #f0b860; --wip-soft: #352813; --open: #f29bb0; --open-soft: #3a1d26;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --ink: #e5e9f0; --muted: #9aa4b4; --line: #2c3440;
+  --accent: #8aa8ff; --accent-soft: #1f2a44;
+  --ok: #6fd3a0; --ok-soft: #173126; --wip: #f0b860; --wip-soft: #352813; --open: #f29bb0; --open-soft: #3a1d26;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
+.wrap { max-width: 820px; margin: 0 auto; padding-block: 48px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 48px; }
+header { display: grid; gap: 12px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 600 clamp(32px, 6vw, 46px)/1.1 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 26px/1.2 var(--display); margin: 0; text-wrap: balance; display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }
+h2 .n { font: 500 13px/1 var(--mono); color: var(--accent); }
+h3 { font: 600 15px/1.3 var(--body); margin: 0; }
+p { margin: 0; max-width: 68ch; }
+.lead { font-size: 17px; color: var(--muted); max-width: 62ch; }
+section { display: grid; gap: 16px; }
+code, .mono { font-family: var(--mono); font-size: .88em; }
+.muted { color: var(--muted); }
+
+.summary { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; }
+.summary ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+
+.pill { display: inline-block; font: 500 11px/1 var(--mono); letter-spacing: .05em; text-transform: uppercase;
+  padding: 5px 8px; border-radius: 99px; white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.wip { background: var(--wip-soft); color: var(--wip); }
+
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; max-width: 70ch; }
+
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 11px/1.3 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+
+.flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.flow .box { flex: 1 1 140px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; align-content: start; }
+.flow .box b { font-size: 14px; }
+.flow .box span { font-size: 13px; color: var(--muted); }
+.flow .arrow { align-self: center; color: var(--muted); font-family: var(--mono); }
+.flow .box.hl { border-color: var(--accent); background: var(--accent-soft); }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.cols > div { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.cols ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+
+.regimes { display: grid; gap: 10px; }
+.regime { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: center; }
+.regime .name { font: 500 12px/1.2 var(--mono); }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: center; padding-right: 10px; }
+.steps i { position: relative; height: 26px; border-radius: 4px; background: var(--line); font: 500 11px/26px var(--mono); text-align: center; font-style: normal; color: var(--muted); }
+.steps i.ms { background: var(--accent-soft); color: var(--accent); outline: 1.5px solid var(--accent); outline-offset: -1.5px; }
+.steps i.pause::after { content: ""; position: absolute; right: -6.5px; top: -5px; bottom: -5px; width: 3px; border-radius: 2px; background: var(--open); }
+.legend { font-size: 13px; color: var(--muted); }
+.key { display: inline-block; vertical-align: -1px; margin-right: 4px; }
+.key.ms { width: 14px; height: 11px; border-radius: 2px; background: var(--accent-soft); outline: 1.5px solid var(--accent); outline-offset: -1.5px; }
+.key.pause { width: 3px; height: 13px; border-radius: 2px; background: var(--open); }
+
+.explain { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.explain summary { cursor: pointer; padding: 14px 18px; font-weight: 600; }
+.explain summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+.explain-body { display: grid; gap: 14px; padding: 4px 18px 18px; }
+.explain-body > div { display: grid; gap: 4px; }
+.explain-body p { font-size: 14px; }
+
+.qs { display: grid; gap: 8px; margin: 0; padding-left: 22px; }
+.qs li { padding-left: 4px; max-width: 70ch; }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+@media (max-width: 520px) {
+  .regime { grid-template-columns: 1fr; gap: 4px; }
+  .flow .arrow { display: none; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Master's thesis · Supervisor meeting, Thu 29 Oct 2026</div>
+    <h1>Update</h1>
+    <p class="lead">Where should a coding agent pause for review? Progress since 22 Oct.</p>
+  </header>
+
+  <div class="summary">
+    <ul>
+      <li><b>Harness:</b> the study now runs inside <b>opencode v2</b> (real agent, its own web app) with a small study module.</li>
+      <li><b>Capture &amp; replay</b> <span class="pill wip">WIP</span>: real agent sessions are recorded once and replayed 1:1, so everyone sees the same work while tools still run for real.</li>
+      <li><b>Same start, same end:</b> every story begins in Plan mode with the same request and plan, and ends in the same state.</li>
+      <li><b>Analysis:</b> plan with H1–H4 written; R scripts run on simulated data.</li>
+    </ul>
+  </div>
+
+  <section>
+    <h2><span class="n">Recap</span>Feedback from 22 Oct</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Point</th><th>Done</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Use an existing agent harness</td><td>opencode v2 web app, 53-line patch</td><td><span class="pill ok">done</span></td></tr>
+          <tr><td>Start after Plan mode, controlled ending</td><td>Request already sent, agent shows its plan, participant clicks “Approve plan”. Replay gives everyone the same end state.</td><td><span class="pill ok">done</span></td></tr>
+          <tr><td>“OK, reviewed” before the quiz</td><td>“I've finished reviewing” hides the code, then the questions</td><td><span class="pill ok">done</span></td></tr>
+          <tr><td>Diff sizes</td><td>Reviewed lines: 18–86 at a pause, 160–390 at the end</td><td><span class="pill wip">partly</span></td></tr>
+          <tr><td>Statistical methods</td><td>Mixed models (lme4), Holm correction</td><td><span class="pill ok">draft</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">1</span>opencode harness</h2>
+    <p>Participants work in opencode's own web app. Tool calls (<code>write</code>, <code>edit</code>, <code>shell</code>) really execute: files appear, tests run. Only the model behind it is a replay.</p>
+    <ul class="plain">
+      <li>Modified the opencode harness and GUI</li>
+      <li>Full study will happen inside this UI (incl. surveys etc)</li>
+      <li>Telemetry added</li>
+      <li>One Docker container per session</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span>Capture tool <span class="pill wip">WIP</span></h2>
+    <p>A proxy between opencode and the model records every response with its timing and a snapshot of the project. opencode replays it. Capturing a real agent session makes the study more realistic. Checkpoints and flaws are inserted manually.</p>
+    <div class="flow" role="img" aria-label="Capture to replay">
+      <div class="box"><b>Capture</b><span>opencode + real model (DeepSeek V4.1 Flash), 4 steps. The agent gets a short brief so that it actually works in steps, which makes placing the milestone easier.</span></div>
+      <div class="arrow">→</div>
+      <div class="box hl"><b>Replay</b><span>answers as recorded, stops at the checkpoint</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span>Measures &amp; analysis</h2>
+    <p>One research question: <b>does where the agent pauses affect how well people understand and judge the code?</b></p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Measure</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>4 understanding questions per story (one per step) + confidence</td><td><span class="pill ok">primary</span></td></tr>
+          <tr><td>Accept / reject → fault detection (d′); behaviour question; reversals</td><td>secondary</td></tr>
+          <tr><td>Review time, diff coverage, code on screen, flaw lines seen, terminal and test runs</td><td>descriptive</td></tr>
+          <tr><td>Mental effort, need for cognition, trust in AI, preference ranking</td><td>covariates / descriptive</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="plain">
+      <li><b>H1 (primary):</b> after a pause at the milestone, the question about the milestone step is answered correctly more often than with review at the end (H1a) or a pause elsewhere (H1b).</li>
+      <li><b>H2:</b> better fault detection at the milestone. <b>H3:</b> a pause elsewhere raises confidence without understanding. <b>H4:</b> reversals after the behaviour question.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span>Data collected</h2>
+    <div class="cols">
+      <div>
+        <h3>Asked directly</h3>
+        <ul>
+          <li>Consent, age group, programming experience, AI assistant use, code review frequency, TypeScript familiarity</li>
+          <li>Need for cognition (NCS-6) + attention check, trust in AI (S-TIAS)</li>
+          <li>Per story: plan approval, accept / reject, behaviour question, final decision, 4 understanding questions + confidence, mental effort (Paas)</li>
+          <li>At the end: preference ranking, optional comment</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Telemetry (automatic)</h3>
+        <ul>
+          <li>Time per phase and per question, answer changes</li>
+          <li>Changes view open, diff scroll coverage, files opened</li>
+          <li>Code on screen per file and hunk (≥ 1 s = seen), flaw lines seen</li>
+          <li>Terminal commands, test runs and results</li>
+          <li>Focus, idle, chat scrolling, tool expands, clicks</li>
+          <li>Agent events: replayed responses, checkpoints</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">5</span>Scenario</h2>
+    <p>Participants play a new developer at <b>Shopfront</b>, a small online shop. The product owner writes a user story, the AI agent plans and implements it, and the participant reviews the work before it ships.</p>
+    <ul class="plain">
+      <li><b>Accept</b> ships the feature with today's release. <b>Reject</b> sends it back and holds the feature for a day.</li>
+      <li>Afterwards they are on call: a support colleague asks how the new code behaves, without showing it (the understanding quiz).</li>
+      <li>Stakes are framed as real: accepting broken code costs the shop, rejecting good code delays a feature.</li>
+      <li>Not told: the replay, the conditions, the planted flaws. All of it is revealed in the debrief.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="n">6</span>Study design</h2>
+    <p>Within-subjects: each person sees every regime × variant once (2 stories per regime, one correct, one flawed). Each story has 4 steps; one is the milestone (criteria C1–C3).</p>
+    <div class="regimes" aria-label="The three pause regimes">
+      <div class="regime"><div class="name">BATCH</div><div class="steps"><i>1</i><i class="ms">2</i><i>3</i><i class="pause">4</i></div></div>
+      <div class="regime"><div class="name">MILESTONE</div><div class="steps"><i>1</i><i class="ms pause">2</i><i>3</i><i>4</i></div></div>
+      <div class="regime"><div class="name">NON_MILESTONE</div><div class="steps"><i>1</i><i class="ms">2</i><i class="pause">3</i><i>4</i></div></div>
+      <p class="legend"><span class="key ms"></span> milestone step, fixed by the story (step 1, 2 or 3; here 2). <span class="key pause"></span> where the agent stops for review, set by the regime.</p>
+    </div>
+    <div class="flow" aria-label="One story">
+      <div class="box"><b>Plan mode</b><span>request sent, agent shows plan → approve</span></div>
+      <div class="arrow">→</div>
+      <div class="box"><b>Agent works</b><span>until the checkpoint</span></div>
+      <div class="arrow">→</div>
+      <div class="box hl"><b>Review</b><span>accept / reject, behaviour question</span></div>
+      <div class="arrow">→</div>
+      <div class="box"><b>Rest</b><span>agent finishes, same end state</span></div>
+      <div class="arrow">→</div>
+      <div class="box"><b>Quiz</b><span>code hidden, 4 questions</span></div>
+    </div>
+    <p class="muted">Stories: practice (greeting formatter), then flash-sale reservation, payment webhook, tenant feature flags, SLA calculator, rate limiter, discount tiers. About 55 min per person; pilot with 3–5 people first.</p>
+  </section>
+
+
+  <section>
+    <h2><span class="n">7</span>Example run: one participant</h2>
+    <p>A fictitious run of participant P07, from <code>docs/scenario.md</code>. Decisions and scores are invented.</p>
+    <div class="flow" aria-label="One session">
+      <div class="box"><b>Before · ~8 min</b><span>consent, demographics, NCS-6 + attention check, S-TIAS, practice story</span></div>
+      <div class="arrow">→</div>
+      <div class="box hl"><b>6 stories · ~7 min each</b><span>plan, review at the checkpoint, rest, quiz</span></div>
+      <div class="arrow">→</div>
+      <div class="box"><b>After · ~3 min</b><span>preference ranking, debrief</span></div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>#</th><th>Story</th><th>Condition</th><th>Reviewed before deciding</th><th>Decision</th><th>Quiz</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Flash-sale reservation</td><td>BATCH · correct</td><td>all 4 steps, 162 lines</td><td>accept</td><td>3/4</td></tr>
+          <tr><td>2</td><td>Payment webhook</td><td>MILESTONE · correct</td><td>step 3</td><td>reject (false alarm)</td><td>4/4</td></tr>
+          <tr><td>3</td><td>Discount tiers</td><td>NON_MILESTONE · <b>flawed</b></td><td>step 3; flaw is in step 1</td><td>reject</td><td>3/4</td></tr>
+          <tr><td>4</td><td>Tenant feature flags</td><td>NON_MILESTONE · correct</td><td>step 3</td><td>accept</td><td>4/4</td></tr>
+          <tr><td>5</td><td>Rate limiter</td><td>MILESTONE · <b>flawed</b></td><td>step 3, contains the flaw</td><td>reject</td><td>4/4</td></tr>
+          <tr><td>6</td><td>SLA calculator</td><td>BATCH · <b>flawed</b></td><td>all 4 steps, 352 lines</td><td>accept → <b>reject</b> after behaviour question</td><td>3/4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">Each person meets every regime × variant once. Story order and conditions come from a Williams design over 6 groups. Output per person: one event log, one screen recording and six rows in <code>trials.csv</code>.</p>
+  </section>
+
+  <footer>Repo <span class="mono">code/</span>, branch <span class="mono">capture-replay</span> @ f16d610</footer>
+</div>

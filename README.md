@@ -1,76 +1,119 @@
-# Beacon study harness
+# Beacon
 
-Participants review a scripted AI coding agent in a Claude-Code-Desktop-style workspace (chat, diff review, files, real terminal).
+Code for a master's thesis study on where a coding agent should pause for review. Participants work with an AI coding
+agent in [opencode](https://opencode.ai) v2: the real agent and its own web app, in a study build. A real model plays
+the agent live, following a hidden script per story (the Drehbuch), and stops for review where the condition says.
 
-## Run locally (dev, no isolation)
+| Folder | What |
+|---|---|
+| `study-harness/` | The study harness: study server, the study build of opencode's web app, the project, the trials, the Docker image |
+| `shared/` | The study's types and the session plan generator |
+| `docs/` | The study (`study/`), how the harness works (`harness/`), earlier material (`archive/`); index: [docs/README.md](docs/README.md) |
+| `analysis/` | The planned analysis in R (`analyze.R`), fictitious data for it (`design.ts`, `simulate.R`) and the power simulation (`power.R`) |
+| `scripts/` | Research scripts (benchmarks) |
+
+## Run a session (Docker)
 
 ```bash
-npm install && npm run build
-PARTICIPANT_ID=P1 STUDY_SEED=1 STUDY_GROUP=1 EXPORT_DIR=./exports ALLOW_READABLE_PATHS=1 EXIT_ON_FINISH=0 \
-  npx -w server tsx src/main.ts      # http://localhost:5185
+study-harness/scripts/run-session.sh   # opens http://localhost:5185 in an app window (--no-window: URL only)
 ```
 
-Flow: welcome → questionnaire (consent, demographics, NCS-6 + attention check, S-TIAS) → practice story (US0, unmeasured) → six measured stories → preference ranking → debrief.
+The model comes from `.env` in the repository root (ignored by git):
+
+```
+LIVE_MODEL=deepseek-v4.1-flash
+LIVE_API_KEY=...
+# LIVE_UPSTREAM=...   an OpenAI-compatible API other than OpenCode Go
+```
+
+With no options the script generates a random participant ID and seed, and picks the counterbalancing group from the
+number of completed sessions in `exports/` (modulo 6). Override with `--participant ID`, `--seed N`, `--group 0-5`;
+`--no-recording` turns the screen recording off; `--dry-run` prints the resolved values without starting anything.
+
+## Run locally (development, no isolation)
+
+```bash
+npm install && npm run build         # build = study-harness/agent-ui/build.sh (clones opencode once, ~3 GB install)
+set -a; . ./.env; set +a
+PARTICIPANT_ID=P1 STUDY_SEED=1 STUDY_GROUP=1 EXPORT_DIR=./exports ALLOW_READABLE_PATHS=1 EXIT_ON_FINISH=0 \
+  WORK_ROOT=/tmp/beacon-work AGENT_HOME=/tmp/beacon-agent \
+  npx -w study-harness/server tsx src/main.ts      # http://localhost:5185
+```
+
+- `TRY_TRIAL=US1,MILESTONE,Flawed` puts one trial in place of the practice story.
+- `npx tsx src/live-run.ts --story US1 --variant Flawed` (in `study-harness/server`) plays one story without a
+  participant and reports how the agent kept to the Drehbuch.
+- `AGENT=fake` runs the study flow without opencode or a model (no agent UI): the fake agent writes each story's
+  reference code. For working on the flow, and in tests.
+
+## How a trial runs
+
+1. Every trial starts from a fresh copy of the same project (`study-harness/project`, a small Next.js shop). The
+   story's request is sent for the participant in Plan mode, in the background while the participant is on the
+   previous page; the agent explores the code and answers with its plan.
+2. **Approve plan** sends "The plan looks good. Go ahead." The agent implements four steps with real tool calls.
+3. After each of steps 1–3 the agent calls the `review_checkpoint` tool. Steps before the scored one are committed;
+   the scored call is held, so the agent waits and the changes view shows exactly that step (BATCH: the review comes
+   at the end).
+4. Accept or reject, then the behaviour question, then optionally reverse the decision. After an acceptance the agent
+   finishes the rest. After a rejection it asks what to change, the participant answers once in opencode's composer,
+   and it fixes the step before going on.
+5. **I've finished reviewing** hides the code; four understanding questions with confidence, then mental effort.
+   Answers are graded by running the trial's scripts on the code the agent wrote.
+
+The model behind opencode is the study server's live endpoint: a proxy in front of the real model that adds the
+trial's Drehbuch (`study-harness/trials/drehbuch.md` plus the story's step outline for the variant) to the system
+prompt of the trial's conversation. The Drehbuch is in no file opencode or the participant's terminal can read.
+
+Flow: welcome → questionnaire (consent, demographics, NCS-6 + attention check, S-TIAS) → practice story (US0,
+unmeasured) → six measured stories → preference ranking → debrief.
 
 ## Design
 
-Each story is built by the scripted agent in four steps. One step meets the milestone criteria (C1–C3); it is step 1, 2 or 3 depending on the story. Three regimes decide when the participant reviews:
+Each story has four steps. One is the milestone: it settles a case the user story leaves open, in a decision later
+steps build on. It is step 1, 2 or 3 depending on the story.
+Three regimes decide when the participant reviews:
 
 - **BATCH**: one review of the finished feature (reference).
 - **MILESTONE**: the agent pauses after the milestone step.
 - **NON_MILESTONE**: the agent pauses after one of the two other steps among 1–3, drawn per trial.
 
-Every participant meets each regime × variant cell once (two stories per regime, one Correct and one Flawed). Six groups, a Williams order per group, balance every story across all six cells; N should be a multiple of 6. In three stories the flaw is in the milestone step, in the other three in a non-milestone step.
+Every participant meets each regime × variant cell once (two stories per regime, one Correct and one Flawed). Six
+groups, a Williams order per group, balance every story across all six cells; N should be a multiple of 6. In the
+Flawed variant the step outline contains one wrong design decision; in three stories it is in the milestone step, in
+the other three in a non-milestone step.
 
-At the scored review the participant accepts or rejects, then answers one behaviour question about the reviewed step (BATCH: about the flaw step), answered by running the code, and may reverse the decision. The remaining steps are then shown without a decision, so everyone sees every step once. After each story come four understanding questions, one per step, each with a confidence rating, and one mental-effort rating.
-
-`npm test` validates every story in `server/corpus`: both variants pass the visible tests; every probe and understanding answer is checked by running the code in both variants; only the probe and question about the flaw step differ between variants.
-
-## Run a real session (Docker)
-
-```bash
-scripts/run-session.sh   # then open http://localhost:5185
-```
-
-With no options the script generates a random alphanumeric participant ID and a random seed, and picks the counterbalancing group from the number of completed sessions in `exports/` (modulo 6). Override with `--participant ID`, `--seed N`, `--group 0-5`; `--dry-run` prints the resolved values without starting anything.
+`npm test` checks every trial against its reference implementation: the Correct variant passes the visible tests,
+every probe and understanding answer is what the code prints in both variants, and only the questions about the flaw
+step differ between variants.
 
 ## Isolation model
 
-- The container has network access by default (`--offline` turns it off). The participant's dev server (port 3000) is published on `127.0.0.1` for the Preview pane. The harness itself serves on a unix socket; `scripts/forward.mjs` bridges it to `localhost:5185` on the host.
-- The server runs as root only to start the participant's shell as uid 61234. `/app` (code and corpus with ground truth) is `0700`, and `exports/` and `.run/<id>` are `0700` on the host, so the shell cannot read variants or answers.
-- At startup the server checks (as the sandbox uid, `test -r`) that none of those paths are readable and refuses to start otherwise.
-- Without `SANDBOX_UID` (dev) the terminal is NOT isolated.
+- The study server serves on a unix socket; `study-harness/scripts/forward.mjs` bridges it to `localhost:5185` on
+  the host. opencode listens on loopback inside the container and is reached only through the study server.
+- The server runs as root only to start opencode as uid 61234. opencode's tools and the participant's terminal run as
+  that user, which owns only the trial repositories (`/work`) and opencode's home (`/agent-home`). `/app` (code and
+  trials, with outlines and answer keys) is `0700`, and `exports/` and `.run/<id>` are `0700` on the host.
+- At startup the server checks (as the sandbox uid, `test -r`) that none of those paths are readable and refuses to
+  start otherwise.
+- The terminal can reach the model endpoint and the checkpoint server over loopback; accepted, since sessions are
+  supervised.
+- Without `SANDBOX_UID` (dev) opencode runs as the server user and is NOT isolated.
 
 ## Data
 
-Each finished session writes three files to `exports/`:
+Each session writes to `exports/`:
 
-- `<id>_<seed>.json`: the full bundle (session plan, six measured trials, practice trial, surveys, event log).
-- `<id>_<seed>.events.jsonl`: the event log, written and fsynced as it happens, so a crash loses at most one event.
-- `trials.csv`: one row per measured trial, appended across sessions.
+- `<id>_<seed>.events.jsonl`: the event log, written and fsynced as it happens.
+- `<id>_<seed>.recording.jsonl`: the screen recording (rrweb; `--no-recording` turns it off).
+- `<id>_<seed>.json` (at Finish): the bundle with session plan, trial results, surveys and event log.
+- `trials.csv` (at Finish): one row per measured trial, appended across sessions.
 
-### Per trial (`trials.csv`, `bundle.trials`)
+## Documentation
 
-| Column | Meaning |
-|---|---|
-| `participant_id`, `study_seed`, `group` | Session identity and counterbalancing group (0–5) |
-| `position`, `story` | Order in the session (1–6) and story id |
-| `regime`, `variant` | BATCH / MILESTONE / NON_MILESTONE; Correct / Flawed |
-| `milestoneStep`, `pauseStep`, `probeStep` | Step that meets the criteria; step after which the scored review happened (BATCH: 4); step the behaviour question asked about |
-| `initialDecision`, `finalDecision`, `decisionReversed` | Accept/reject before and after the behaviour question |
-| `stage1DwellMs` | Time from the review being on screen (after the agent replay) to the first decision |
-| `diffScrollCoverage` | Share of the diff scrolled through before deciding (0–1) |
-| `testRunsStage1` | Test commands run in the terminal before deciding |
-| `stage2ProbeLatencyMs`, `probeAnswer`, `probeCorrect` | Time to answer the behaviour question, chosen option (-1 = don't know), correct by execution |
-| `understandingScore` | Correct understanding answers (0–4) |
-| `uK_answer`, `uK_correct`, `uK_confidence`, `uK_milestone` | Per understanding item K (= agent step K): chosen option, correct, confidence (50–100 %), whether step K is the milestone |
-| `paas` | Mental effort for the story (1–9) |
+[docs/README.md](docs/README.md) lists every doc. The ones to start with:
 
-### Surveys (`bundle.survey`)
-
-- **Before**: consent, demographics (age group, programming experience, AI-assistant use, code-review frequency, TypeScript familiarity), NCS-6 (scored mean, items 3–4 reverse-keyed), attention check (pass/fail), S-TIAS (mean), duration.
-- **After**: ranking of the two styles participants can tell apart (review at the end vs. a pause partway through), optional comment, duration.
-
-### Event log
-
-Timestamped events for the whole session: survey screens and submissions, trial start (with regime, variant, milestone and pause step), each checkpoint shown and ready (agent replay time), decisions, behaviour-question answers (including the executed answer), wrap-up dwell, every terminal command and terminal open, and UI events while code is on screen (file opened, tab switched, diff file expanded/collapsed, preview navigation). The bundle can be re-derived from this log.
+- [docs/harness/technical.md](docs/harness/technical.md): how the harness is built, and why.
+- [docs/harness/telemetry.md](docs/harness/telemetry.md): every column, event and how each measure is computed.
+- [docs/study/analysis-plan.md](docs/study/analysis-plan.md): hypotheses, models, exclusions.
+- [docs/study/pilot-plan.md](docs/study/pilot-plan.md): what the pilot checks, and what is known before it.

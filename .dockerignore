@@ -8,3 +8,5 @@ docs
 **/.run
 **/*.log
 .env*
+**/.cache
+scripts

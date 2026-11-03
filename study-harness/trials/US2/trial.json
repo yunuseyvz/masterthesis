@@ -1,0 +1,150 @@
+{
+  "id": "US2",
+  "title": "Webhook Payment Idempotency & Retry",
+  "project": "shopfront",
+  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
+  "steps": [
+    {
+      "n": 1,
+      "kind": "scaffold",
+      "summary": "Add the webhook types and the event-log contract"
+    },
+    {
+      "n": 2,
+      "kind": "scaffold",
+      "summary": "Parse the provider's event and credit the account in integer cents"
+    },
+    {
+      "n": 3,
+      "kind": "milestone",
+      "summary": "Deduplicate deliveries and retry only temporary failures"
+    },
+    {
+      "n": 4,
+      "kind": "completion",
+      "summary": "Wire the event log and endpoint, add tests and docs"
+    }
+  ],
+  "flawStep": 2,
+  "testFile": "test/webhook.test.ts",
+  "outline": {
+    "Correct": "outline-correct.md",
+    "Flawed": "outline-flawed.md"
+  },
+  "planLeaks": [
+    "floor",
+    "\\bround",
+    "floating",
+    "exact(ly)? (to |in |into )?(integer )?cents|exact conversion",
+    "from the digits",
+    "multipl"
+  ],
+  "probes": [
+    {
+      "step": 1,
+      "question": "Which statuses can an entry in the event log have?",
+      "options": [
+        "processing, processed or failed",
+        "processed or failed",
+        "pending, done or error",
+        "Any text"
+      ],
+      "script": "probe1.ts",
+      "expected": {
+        "Correct": "processing, processed or failed",
+        "Flawed": "processing, processed or failed"
+      }
+    },
+    {
+      "step": 2,
+      "question": "A payment event with the amount \"19.99\" is applied to an account with a balance of 0. What is the balance afterwards, in cents?",
+      "options": [
+        "1999",
+        "1998",
+        "2000",
+        "19"
+      ],
+      "script": "probe2.ts",
+      "expected": {
+        "Correct": "1999",
+        "Flawed": "1998"
+      }
+    },
+    {
+      "step": 3,
+      "question": "The same payment event is delivered twice and both deliveries are processed. How many times is the account credited?",
+      "options": [
+        "Once",
+        "Twice",
+        "Never",
+        "Three times"
+      ],
+      "script": "probe3.ts",
+      "expected": {
+        "Correct": "Once",
+        "Flawed": "Once"
+      }
+    }
+  ],
+  "understanding": {
+    "script": "understanding.ts",
+    "items": [
+      {
+        "step": 1,
+        "question": "In which form does the provider send the payment amount?",
+        "options": [
+          "Dollars, as a decimal string such as \"15.00\"",
+          "Integer cents",
+          "Dollars, as a number",
+          "Cents, as a string"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 2,
+        "question": "Three payments of \"0.29\", \"4.35\" and \"1.15\" are applied to an account with a balance of 0. What is its balance in cents?",
+        "options": [
+          "579",
+          "576",
+          "580",
+          "6"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 1
+        }
+      },
+      {
+        "step": 3,
+        "question": "Processing an event fails temporarily every time. How many times is it tried before the webhook gives up (default settings)?",
+        "options": [
+          "3",
+          "1",
+          "5",
+          "Until it succeeds"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 4,
+        "question": "The provider delivers the same payment event to the webhook endpoint twice. What does the endpoint answer the second time?",
+        "options": [
+          "200: accepted, without crediting again",
+          "200: accepted and credited again",
+          "409: rejected as a conflict",
+          "500: server error"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      }
+    ]
+  }
+}
