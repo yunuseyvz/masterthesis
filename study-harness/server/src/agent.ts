@@ -13,8 +13,11 @@ export interface AgentHost {
   runTurn(sessionId: string, text: string, agent?: string): Promise<void>;
   /** Resolves once the session's turn is over. */
   waitIdle(sessionId: string): Promise<void>;
-  /** Removes a session (a discarded plan). */
-  deleteSession(sessionId: string): Promise<void>;
+  /**
+   * Sends the agent a message the participant does not see (an opencode synthetic message, which the chat does not
+   * show) and resolves once the turn it starts is over.
+   */
+  nudge(sessionId: string, text: string): Promise<void>;
   /** Passes a prompt request from the participant's composer to opencode unchanged (body and query as sent). */
   forwardPrompt(sessionId: string, query: string, body: string): Promise<{ status: number; body: string }>;
   /** Where the study server forwards the agent's API (/api, /auth), with the credentials to add; undefined: no agent UI. */
@@ -181,8 +184,9 @@ export class OpencodeHost implements AgentHost {
     });
   }
 
-  async deleteSession(sessionId: string) {
-    await this.api("DELETE", `/api/session/${sessionId}`);
+  async nudge(sessionId: string, text: string) {
+    await this.api("POST", `/api/session/${sessionId}/synthetic`, { text });
+    await this.waitIdle(sessionId);
   }
 
   async forwardPrompt(sessionId: string, query: string, body: string) {
@@ -208,12 +212,15 @@ export class OpencodeHost implements AgentHost {
  * Stand-in for opencode and the model, for tests and flow development (AGENT=fake; no agent UI). It plays the agent
  * as the Drehbuch asks: no code while planning; after the approval each step's reference files (see reference.ts),
  * with the checkpoint call after steps 1-3; after a rejection it ends its turn (it "asks"), and the participant's
- * answer makes it call the checkpoint for that step again and go on. Its fix changes nothing.
+ * answer makes it call the checkpoint for that step again and go on. Its fix changes nothing. An answer of three
+ * characters or fewer makes it ask again instead (the agent stopping early); a nudge then makes it go on.
  */
 export class FakeAgentHost implements AgentHost {
   /** Stands in for the checkpoint tool's MCP server, which the fake agent calls as the model would. */
   readonly checkpoints = { handler: null as CheckpointHandler | null, setHandler: (h: CheckpointHandler) => void (this.checkpoints.handler = h) };
   readonly prompts: { sessionId: string; text: string; agent?: string }[] = [];
+  /** Test hook: the agent ends its turn once after this step's checkpoint call, as a model that stops between two steps. */
+  stopAfterStep?: number;
   private sessions = new Map<string, { dir: string; turns: number; next: number; redo?: number; running?: Promise<void> }>();
   private n = 0;
 
@@ -246,30 +253,40 @@ export class FakeAgentHost implements AgentHost {
         s.redo = n;
         return;
       }
+      if (n === this.stopAfterStep) {
+        this.stopAfterStep = undefined;
+        return;
+      }
     }
   }
 
   private async checkpoint(step: number) {
-    return (await this.checkpoints.handler?.(step, `Step ${step} done.`)) ?? CONTINUE;
+    return (await this.checkpoints.handler?.(step)) ?? CONTINUE;
   }
 
   async waitIdle(sessionId: string) {
     await this.sessions.get(sessionId)!.running;
   }
 
-  async deleteSession(sessionId: string) {
-    this.sessions.delete(sessionId);
-  }
-
   async forwardPrompt(sessionId: string, _query: string, body: string) {
     this.prompts.push({ sessionId, text: String((JSON.parse(body) as { text?: unknown }).text ?? "") });
     const s = this.sessions.get(sessionId)!;
-    s.running = (async () => {
-      if (s.redo !== undefined) await this.checkpoint(s.redo);
-      s.redo = undefined;
-      await this.build(sessionId);
-    })();
+    const text = String((JSON.parse(body) as { text?: unknown }).text ?? "");
+    s.running = text.trim().length <= 3 ? Promise.resolve() : this.goOn(sessionId);
     return { status: 200, body: "{}" };
+  }
+
+  async nudge(sessionId: string, text: string) {
+    this.prompts.push({ sessionId, text });
+    await this.goOn(sessionId);
+  }
+
+  /** After the participant's answer: the step it was about again, then the rest. */
+  private async goOn(sessionId: string) {
+    const s = this.sessions.get(sessionId)!;
+    if (s.redo !== undefined) await this.checkpoint(s.redo);
+    s.redo = undefined;
+    await this.build(sessionId);
   }
 
   proxy() {

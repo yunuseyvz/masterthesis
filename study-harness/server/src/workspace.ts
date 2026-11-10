@@ -40,21 +40,40 @@ export function createTrialWorkspace(root: string, key: string, files: Map<strin
 export function commitWorkspace(dir: string, message: string, sandbox: SandboxOptions) {
   const opts = { ...gitOpts(dir, sandbox), stdio: "ignore" as const };
   execFileSync("git", ["add", "-A"], opts);
-  execFileSync("git", ["commit", "-q", "--allow-empty", "-m", message], opts);
+  execFileSync("git", ["-c", "core.hooksPath=/dev/null", "commit", "-q", "--allow-empty", "-m", message], opts);
 }
 
-/** git in a trial's project runs as the repository's owner (git refuses repositories of other users). */
-const gitOpts = (dir: string, sandbox: SandboxOptions) => ({ cwd: dir, ...(sandbox.uid !== undefined ? { uid: sandbox.uid, gid: sandbox.gid ?? sandbox.uid } : {}), env: { ...process.env, HOME: dir } });
+/**
+ * git in a trial's project runs as the repository's owner (git refuses repositories of other users). The participant
+ * controls that repository (hooks, config), so git gets none of the server's environment, which holds the model's key.
+ */
+const gitOpts = (dir: string, sandbox: SandboxOptions) => ({ cwd: dir, ...(sandbox.uid !== undefined ? { uid: sandbox.uid, gid: sandbox.gid ?? sandbox.uid } : {}), env: { PATH: process.env.PATH, HOME: dir } });
 
 const git = (dir: string, sandbox: SandboxOptions, args: string[]) => execFileSync("git", args, { ...gitOpts(dir, sandbox), encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
+
+/**
+ * A file of the project, or undefined if it is not a regular file or its owner may not read it. The server runs as
+ * root and the participant controls the project (a link to /proc/1/environ, a directory swapped for a link, a named
+ * pipe), so the owner reads it, not the server.
+ */
+function readProjectFile(dir: string, rel: string, sandbox: SandboxOptions): string | undefined {
+  const abs = path.join(dir, rel);
+  try {
+    if (!fs.lstatSync(abs).isFile()) return undefined;
+    if (sandbox.uid === undefined) return fs.readFileSync(abs, "utf8");
+    return execFileSync("cat", ["--", abs], { ...gitOpts(dir, sandbox), encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: 5_000, stdio: ["ignore", "pipe", "ignore"] });
+  } catch {
+    return undefined;
+  }
+}
 
 /** The project's files as they are now (tracked and new, without ignored ones such as node_modules). */
 export function readWorkspace(dir: string, sandbox: SandboxOptions): Map<string, string> {
   const files = git(dir, sandbox, ["ls-files", "-z", "--cached", "--others", "--exclude-standard"]).split("\0").filter(Boolean);
   const out = new Map<string, string>();
   for (const rel of new Set(files)) {
-    const abs = path.join(dir, rel);
-    if (fs.existsSync(abs) && fs.statSync(abs).isFile()) out.set(rel, fs.readFileSync(abs, "utf8"));
+    const content = readProjectFile(dir, rel, sandbox);
+    if (content !== undefined) out.set(rel, content);
   }
   return out;
 }
@@ -71,7 +90,6 @@ export function uncommitted(dir: string, sandbox: SandboxOptions): { path: strin
     try {
       before = git(dir, sandbox, ["show", `HEAD:${rel}`]);
     } catch { /* new file */ }
-    const abs = path.join(dir, rel);
-    return { path: rel, before, after: fs.existsSync(abs) ? fs.readFileSync(abs, "utf8") : "" };
+    return { path: rel, before, after: readProjectFile(dir, rel, sandbox) ?? "" };
   });
 }

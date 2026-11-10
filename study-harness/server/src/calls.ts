@@ -34,6 +34,10 @@ export const Call = z.object({
   }),
   status: z.number().int(),
   chunks: z.array(Chunk),
+  /** The answer's text did not reach opencode (the planning turn). */
+  textDropped: z.boolean().optional(),
+  /** The text opencode got where the proxy checked it first (`guard`); it differs from the chunks' text if it was replaced. */
+  textShown: z.string().optional(),
 });
 export type Call = z.infer<typeof Call>;
 
@@ -79,26 +83,35 @@ export function assistantCount(body: { messages?: Message[] }, ignore: readonly 
   }).length;
 }
 
-/** A streamed response, reassembled: its text and its tool calls (name and JSON arguments). */
+/** A streamed response, reassembled: its text, its tool calls (name and JSON arguments), and the model's reasoning. */
 export interface ParsedResponse {
   text: string;
   tools: { id?: string; name: string; args: string }[];
   finish?: string;
+  /** The last `usage` in the stream, as the model reported it. */
+  usage?: unknown;
+  /** The reasoning, and the field the model sent it in. */
+  reasoning?: { field: string; text: string };
 }
 
 export function parseChunks(chunks: readonly Chunk[]): ParsedResponse {
   const out: ParsedResponse = { text: "", tools: [] };
   for (const c of chunks) {
     if (c.data === "[DONE]") continue;
-    let ev: { choices?: { delta?: { content?: string; tool_calls?: { index?: number; id?: string; function?: { name?: string; arguments?: string } }[] }; finish_reason?: string }[] };
+    let ev: { usage?: unknown; choices?: { delta?: { content?: string; reasoning_content?: string; reasoning?: string; tool_calls?: { index?: number; id?: string; function?: { name?: string; arguments?: string } }[] }; finish_reason?: string }[] };
     try {
       ev = JSON.parse(c.data);
     } catch {
       continue;
     }
+    if (ev.usage) out.usage = ev.usage;
     const choice = ev.choices?.[0];
     if (!choice) continue;
     if (choice.delta?.content) out.text += choice.delta.content;
+    for (const field of ["reasoning_content", "reasoning"] as const) {
+      const part = choice.delta?.[field];
+      if (part) out.reasoning = { field, text: (out.reasoning?.text ?? "") + part };
+    }
     for (const tc of choice.delta?.tool_calls ?? []) {
       const i = tc.index ?? out.tools.length;
       out.tools[i] ??= { name: "", args: "" };

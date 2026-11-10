@@ -41,7 +41,7 @@ Study page and agent share one origin; the browser never talks to opencode direc
 | `study-harness/trials/<id>/` | One story: `trial.json`, the step outlines (`outline-correct.md`, `outline-flawed.md`), probe and understanding scripts, `reference/` |
 | `study-harness/server/src/app.ts` | Fastify app: study routes, proxy to opencode, static hosting, recording endpoints |
 | `study-harness/server/src/machine.ts` | `StudySession`: the study's state machine, the checkpoint logic and telemetry aggregation |
-| `study-harness/server/src/live.ts` | The live endpoint: adds the Drehbuch, logs every call |
+| `study-harness/server/src/live.ts` | The live endpoint: adds the Drehbuch, shows the public plan, keeps the reasoning from opencode, logs every call |
 | `study-harness/server/src/proxy.ts`, `calls.ts` | The recording proxy in front of the model; thread keys, positions, chunk parsing |
 | `study-harness/server/src/checkpoint.ts` | The checkpoint tool's MCP server |
 | `study-harness/server/src/trial.ts` | Trial definitions and the Drehbuch per variant |
@@ -53,6 +53,7 @@ Study page and agent share one origin; the browser never talks to opencode direc
 | `study-harness/server/src/live-run.ts` | Test runs of one story against the real model, without a participant |
 | `study-harness/agent-ui/` | The study build of opencode's web app: `study/`, `opencode.patch`, `build.sh` |
 | `study-harness/scripts/` | `run-session.sh` (one participant session in a container), `forward.mjs` |
+| `study-harness/deploy/` | The online study on Conditioner: its conditions, the model gateway's config, a patch (deployment.md) |
 | `study-harness/Dockerfile` | The study image (built from the repository root) |
 
 ## 3. Trials
@@ -69,7 +70,11 @@ A trial (`study-harness/trials/<id>/trial.json`, schema `TrialDef` in `trial.ts`
 | `outline` | The step outline per variant |
 | `probes`, `understanding` | Behaviour questions (one per step 1–3) and understanding items (one per step), with scripts and the answers for each variant's reference code |
 
-**The Drehbuch** for a trial is `drehbuch.md` followed by the variant's step outline. The outline fixes each step's
+**The public plan** (`plan-public.md`) is what the participant sees as the agent's plan: the four steps with their
+files, functions and purpose, and no design decision. It is one text per story, so it is the same in both variants.
+`trials.test.ts` checks that it names each step's files and contains none of the story's `planLeaks`.
+
+**The Drehbuch** for a trial, the secret plan, is `drehbuch.md` followed by the variant's step outline. The outline fixes each step's
 files, functions and design decisions, and so where the milestone falls. The Flawed outline differs in one design
 decision, written as the team's decision and marked final:
 
@@ -102,13 +107,34 @@ never hints at the defect.
 
 ### 4.1 The model endpoint
 
-`LiveEndpoint` (`live.ts`) is opencode's only provider ("Study agent"). It forwards every request to the upstream
-(`LIVE_UPSTREAM`, OpenAI-compatible; OpenCode Go by default) and streams the answer back unchanged. Requests of the
+`LiveEndpoint` (`live.ts`) is opencode's only provider ("Study agent"). It forwards chat completions for the study's
+model to the upstream (`LIVE_UPSTREAM`, OpenAI-compatible; OpenCode Go by default) and streams the answer back
+unchanged. It holds the key and the participant's terminal can reach it, so nothing else goes upstream: another path,
+another model or a request before the first trial is refused and logged as `live_refused`. Requests of the
 trial's main conversation get the Drehbuch appended to their system prompt on the way upstream. The main
 conversation is recognised by its thread key: whether the request offers tools, and its first user message (the
 brief) with the project path neutralised (`threadKey` in `calls.ts`). The Drehbuch is in no file opencode or the
 participant's terminal can read. Every call is logged as `live_call`: trial, thread, position, timing, tools,
 tokens.
+
+What the participant reads is controlled here too, because what the model writes can give its instructions away:
+
+- **The plan.** In the planning turn, which runs in the background, the endpoint holds each answer until it is complete.
+  Tool calls (the agent looking through the project) go through without their text. The final text is replaced by the
+  public plan and logged as `live_plan_public` with the model's `draft`. The public plan also goes out if the model
+  answers with an error or has not finished 45 s after the trial was loaded, so a plan never waits for an overloaded
+  provider. From then until the approval, opencode's further requests get an empty answer without the model: opencode
+  delivers its plan-mode reminder as an input of its own, which can start another request.
+- **The reasoning** never reaches opencode, so it is not in the chat, the API, the browser or opencode's files. The
+  endpoint removes it from the answers and keeps it by tool call, and adds it back to the assistant messages of later
+  requests, which models such as DeepSeek require during a turn.
+- **The agent's messages** after the plan go through as written unless they mention the instructions or one of the
+  story's `planLeaks`. The endpoint holds a message's text until it is complete (its tool calls or the end of the
+  answer follow) and checks it first. A step's announcement that leaks goes out as the step's summary from
+  `trial.json` (`Step 3: Add the order summary calculator.`); other text loses the sentences that leak. Both are
+  logged as `live_text_leak` with what the model wrote and what was shown. The phrases are a list, so a paraphrase can
+  still get through. The Drehbuch asks for one sentence at the end and no summary of the changes: in BATCH that
+  message is on screen before the decision, and a summary can name the flaw (seen once in US1, "sold-out removal").
 
 ### 4.2 The checkpoint
 
@@ -125,7 +151,11 @@ of them. `StudySession.checkpoint` decides what a call does:
   and opencode's composer opens for one message (§5.2). The agent fixes the step and calls the checkpoint for it
   again, which commits the fix with the step.
 
-If the agent ends its turn without reaching the paused step, the review shows what it did (`live_pause_missed`).
+If the agent ends its turn before the paused step and has not written a later step yet, it is sent on with a message
+the participant does not see (`live_pause_go_on`, at most twice), so the pause still happens where it belongs. If it
+has already written a later step, or the reminders do not help, the review shows what it did (`live_pause_missed`,
+`pauseMissed` in the trial result), and the trial is excluded. The same kind of message finishes a feature the agent
+left incomplete (`live_go_on`; `featureComplete`).
 
 ### 4.3 Preparation in the background
 
@@ -145,12 +175,12 @@ The server holds the session state; the client renders `GET /_study/state` and p
 | `intro` | Welcome page | `begin` |
 | `presurvey` | Consent, demographics, NCS-6 with attention check, S-TIAS | `presurvey` (starts the practice trial) |
 | `working` | opencode, the agent is running; spinner in the study panel | the agent stops |
-| `plan` | opencode with the agent's plan; "Approve plan" | `approvePlan` |
+| `plan` | opencode with the public plan as the agent's answer; "Approve plan" | `approvePlan` |
 | `stage1` | The scored review: "Reject / flag defect" or "Accept" | `stage1` |
 | `stage2` | Behaviour question about the reviewed step, then confirm or reverse | `stage2` |
 | `feedback` | After a rejection: the agent's question, opencode's composer for the answer | the answer is sent |
 | `reviewing` | The finished feature; "I've finished reviewing" | `reviewed` |
-| `understanding` | Code hidden: four questions with confidence, then mental effort | `understanding` (next trial, or post-survey) |
+| `understanding` | Code hidden: five questions with confidence, then mental effort | `understanding` (next trial, or post-survey) |
 | `postsurvey` | Preference ranking, comment | `postsurvey` |
 | `debrief` | Debrief text | `POST /_study/finish` |
 | `finished` | End page (demo: "Start again") | — |
@@ -159,7 +189,7 @@ An action in the wrong phase returns 409; an invalid one 400.
 
 ### 5.2 One trial
 
-1. The prepared trial starts in `plan`: the agent's plan is on screen.
+1. The prepared trial starts in `plan`: the public plan is on screen, as the agent's answer.
 2. `approvePlan` sends "The plan looks good. Go ahead." (build agent). The agent works up to the held checkpoint
    (BATCH: to the end) → `stage1`.
 3. `stage1` records accept/reject, runs the behaviour question's script on the code under review → `stage2`.
@@ -230,6 +260,7 @@ extension opens its "Open file" tab, the whole file tree, in every session.
 | `dock.tsx` | Study prompts in opencode's question style; "Files" and "Terminal (Ctrl+`)" buttons |
 | `pages.tsx` | Full-screen pages: intro, questionnaire, preparing, understanding questions, post-survey, debrief, end |
 | `telemetry.ts` | Client-side telemetry and the rrweb recorder (telemetry.md) |
+| `base.ts`, `router.tsx` | Under a path of its own (behind a study platform; deployment.md): requests and the address bar get the path, and opencode goes on thinking it is at the root. Nothing at the root |
 | `study.css` | Hides navigation that would leave the trial, the model switcher and the MCP switches; one tab per trial |
 
 The server answers `/sw.js` with a worker that clears the browser's caches and unregisters itself, so a browser
@@ -240,12 +271,21 @@ never keeps an older build from an earlier session on the same address.
 - The server runs as root only to start opencode as uid 61234 (`sandbox`), which owns only `/work` and `/agent-home`.
 - `/app` (code and trials, with outlines, reference code and answer keys) and `/exports` are `0700`; on the host,
   `exports/` and `.run/<id>` are `0700`.
-- At startup the server checks as the sandbox uid that exports, trials, its code and the socket directory are
-  unreadable, and refuses to start otherwise (`ALLOW_READABLE_PATHS=1` skips this in development).
+- **Grading.** Behaviour questions, understanding items and step checks run the trial's code, which the agent wrote and
+  the participant can change. So `runner.ts` runs it as a third user (`PROBE_UID`, 61235), in a directory private to that
+  user, with an empty environment; runs take turns, and each ends by killing everything that user still has running, so
+  code the participant left behind can neither hang the session nor outlive the run. The terminal's user cannot read the
+  grading scripts.
+- **The project is the participant's.** Links, named pipes, hooks and git config in it are under their control, while
+  the server runs as root. So the server reads the project's files as their owner (`readProjectFile`, regular files
+  only), gives git only `PATH` and `HOME` from its environment, which also holds the model's key, and commits without hooks.
+- At startup the server checks, as the sandbox uid and the grading uid, that exports, trials, its code and the socket
+  directory are unreadable, and that the grading uid can run node. It refuses to start otherwise
+  (`ALLOW_READABLE_PATHS=1` skips the first check in development).
 - The server listens on a unix socket in `/run/study`; `study-harness/scripts/forward.mjs` bridges it to
   `localhost:5185`. opencode, the live endpoint and the checkpoint server listen on container loopback only.
-- Known and accepted: the sandbox user's terminal can reach the live endpoint and the checkpoint server over
-  loopback. Sessions are supervised.
+- Known: the sandbox user's terminal can reach the live endpoint and the checkpoint server over loopback. Accepted for
+  supervised sessions; still open for unsupervised ones.
 - `run-session.sh` drops capabilities except those needed to switch users and manage files, sets
   `no-new-privileges`, and limits processes (512) and memory (3 GB). After Finish the sandbox user's processes are
   killed.
@@ -266,6 +306,7 @@ never keeps an older build from an earlier session on the same address.
 | `STATIC_DIR` | `study-harness/agent-ui/dist` | The built agent UI |
 | `LISTEN_SOCKET` / `LISTEN_HOST`, `PORT` | image: `/run/study/app.sock` / `127.0.0.1`, `5185` | Where the server listens |
 | `SANDBOX_UID`, `SANDBOX_GID` | unset (image: 61234) | User opencode runs as |
+| `PROBE_UID` | unset (image: 61235) | User that runs the trial's code for grading; required with `SANDBOX_UID` |
 | `ALLOW_READABLE_PATHS` | unset | `1` skips the isolation check |
 | `AGENT` | opencode | `fake`: no opencode, no model, no agent UI |
 | `OPENCODE_BIN` | `node_modules/.bin/opencode` | opencode binary |
@@ -275,6 +316,7 @@ never keeps an older build from an earlier session on the same address.
 | `EXIT_ON_FINISH` | on | `0` keeps the server running after Finish |
 | `TRY_TRIAL` | unset | `US1,MILESTONE,Flawed` plays that trial in place of the practice story (development) |
 | `DEMO`, `SHOW_CONDITION` | off | Demo restarts; condition tag in the UI (never for participants) |
+| `STUDY_SLUG`, `STUDY_USER_ID`, `STUDY_LLM_KEY`, `STUDY_COMPLETION_URL` | unset | Set by Conditioner (deployment.md): the app's path; participant ID and seed unless given; the model's key unless `LIVE_API_KEY` is given; where to go after Finish |
 
 ### 10.2 `study-harness/scripts/run-session.sh`
 
@@ -304,8 +346,9 @@ in parallel need different `--ports`.
 
 ## 12. Maintenance notes
 
-- **Changing a story**: edit its outlines and questions, update `reference/` to code that follows the outline, and run
-  `npm test`; then check it with a few `live-run.ts` runs, since the real agent's code is what gets graded.
+- **Changing a story**: start from [story-spec.md](../study/story-spec.md). Edit its outlines, public plan and questions,
+  update `reference/` to code that follows the outline, and run `npm test`; then check it with a few `live-run.ts` runs,
+  since the real agent's code is what gets graded. `TRIALS_DIR` points them at a draft copy of the trials.
 - **Upgrading opencode**: change the tag in `study-harness/agent-ui/build.sh` and `study-harness/Dockerfile`, and
   `@opencode/cli` in `study-harness/server`. Re-apply `opencode.patch`, run `OPENCODE_IT=1 npm test`, and re-check the
   v2 API calls (`agent.ts`), the MCP config, the blocked-request list, the selectors `study.css` hides, and the DOM
@@ -344,6 +387,12 @@ the time to write it are recorded.
 
 **One codebase, a fresh copy per trial.** Every story starts from the same project (`shopfront`), so after the
 practice story participants know the codebase; no story's code carries over to the next.
+
+**The plan on screen is not the model's.** A plan written by the model can only be told not to state design decisions.
+In test runs it mentioned its instructions all the same, and it would differ between variants. A fixed public plan makes
+"the plan does not state the decision", which the milestone criterion relies on, true by construction. It is a further
+deception, named in the debrief. Cleaning the model's plan with a second model would add cost and delay and could still
+leak; changing only what the UI shows would leave the real text in the history and in the browser's traffic.
 
 **Planning happens in the background.** The next trial's agent explores and plans while the participant answers
 the questionnaire or the previous trial's understanding questions.

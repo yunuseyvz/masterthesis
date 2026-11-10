@@ -1,8 +1,8 @@
 {
   "id": "US5",
-  "title": "Sliding-Window API Rate Limiter",
+  "title": "API Rate Limiter",
   "project": "shopfront",
-  "brief": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.",
+  "brief": "As an API owner, I want each client limited to a number of requests per minute, so that no single client can overload the gateway.\n\nAcceptance criteria:\n- A client that is over its limit gets 429 with a Retry-After header, and its request is not handled.\n- Clients are limited separately: one client over its limit does not slow down another.\n- A client gets through again as soon as its earlier accepted requests have left the one-minute window, even if it kept retrying in the meantime.",
   "steps": [
     {
       "n": 1,
@@ -31,13 +31,17 @@
     "Correct": "outline-correct.md",
     "Flawed": "outline-flawed.md"
   },
+  "publicPlan": "plan-public.md",
   "planLeaks": [
     "rejected request",
     "record every",
     "not recorded",
     "does not count",
     "allowed or rejected",
-    "count against"
+    "count against",
+    "exactly .{0,20}old",
+    "rounded up|round(s|ed)? up|\\bceil",
+    "already left"
   ],
   "probes": [
     {
@@ -90,27 +94,14 @@
     "script": "understanding.ts",
     "items": [
       {
-        "step": 1,
-        "question": "How long is the sliding window by default?",
+        "step": 3,
+        "role": "open-case",
+        "question": "A limiter allows 2 requests per 1000 ms. Requests at 0 ms and 500 ms are allowed. Is a request at exactly 1000 ms allowed?",
         "options": [
-          "60 seconds",
-          "1 second",
-          "1 hour",
-          "10 seconds"
-        ],
-        "correct": {
-          "Correct": 0,
-          "Flawed": 0
-        }
-      },
-      {
-        "step": 2,
-        "question": "A request carries no proxy headers. Which client id is used for it?",
-        "options": [
-          "unknown",
-          "The request URL",
-          "An empty string",
-          "A random id"
+          "Allowed: the request from 0 ms no longer counts",
+          "Rejected: the request from 0 ms still counts",
+          "Allowed only after the limiter is reset",
+          "Checking it throws"
         ],
         "correct": {
           "Correct": 0,
@@ -119,6 +110,7 @@
       },
       {
         "step": 3,
+        "role": "flaw",
         "question": "A client is over its limit and keeps retrying every 100 ms. When does it get through again?",
         "options": [
           "Once its oldest accepted request has left the window",
@@ -132,13 +124,44 @@
         }
       },
       {
-        "step": 4,
-        "question": "A client that is over its limit sends another request through the gateway. Does the wrapped request handler run?",
+        "step": 3,
+        "role": "emergent",
+        "question": "A limiter is created with a limit of 0. What happens when a client sends requests?",
         "options": [
-          "No: the gateway answers with 429 itself",
-          "Yes, but the client still gets a 429",
-          "Yes: the request goes through",
-          "The gateway throws an error"
+          "The first request is allowed, the ones after it are rejected",
+          "Every request is rejected",
+          "Every request is allowed",
+          "Creating the limiter fails with a validation error"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 4,
+        "role": "dependency",
+        "question": "Through the gateway, a client is rejected. It then waits exactly as long as its Retry-After header says, sending nothing in between. Does its next request get through?",
+        "options": [
+          "Yes",
+          "No: it is rejected again",
+          "Only if no other client sent a request meanwhile",
+          "The rejection has no Retry-After header"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 4,
+        "role": "interplay",
+        "question": "Two different clients send requests through the gateway, neither with any proxy header. Are they limited separately?",
+        "options": [
+          "No: both count as the same client (\"unknown\")",
+          "Yes: each one is limited on its own",
+          "Neither of them is limited",
+          "The gateway rejects requests without proxy headers"
         ],
         "correct": {
           "Correct": 0,

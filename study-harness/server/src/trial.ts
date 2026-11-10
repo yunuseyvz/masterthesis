@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import { UNDERSTANDING_ITEMS, type Regime, type Variant } from "@beacon/shared";
+import { ItemRole, UNDERSTANDING_ITEMS, type Regime, type Variant } from "@beacon/shared";
 
 const Four = z.tuple([z.string(), z.string(), z.string(), z.string()]);
 
@@ -31,10 +31,12 @@ export const TrialDef = z.object({
   testFile: z.string(),
   /** The step outline the agent follows, per variant (files in the trial folder); see Story.drehbuch. */
   outline: z.object({ Correct: z.string(), Flawed: z.string() }),
+  /** The plan the participant sees as the agent's, the same in both variants (a file in the trial folder); see LiveEndpoint. */
+  publicPlan: z.string(),
   /**
    * Phrases (regular expressions, case-insensitive) that state one of the story's design decisions, in either
-   * variant. The plan must not contain them: the participant would see the decision before the code (see
-   * StudySession.setUp).
+   * variant. The public plan must not contain them, and the agent's messages are checked for them (`live_text_leak`):
+   * the participant would see the decision before the code.
    */
   planLeaks: z.array(z.string()).default([]),
   /**
@@ -61,6 +63,8 @@ export const TrialDef = z.object({
         z.object({
           /** Agent step (1-4) whose code decides the answer; items are listed in step order. */
           step: z.number().int().min(1).max(4),
+          /** What the item asks about (see ItemRole); each role once, flaw only in a story with a flaw. */
+          role: ItemRole,
           question: z.string(),
           options: Four,
           /** The answer for each variant's reference code. */
@@ -77,6 +81,8 @@ export interface Story {
   dir: string;
   /** The participant's request. */
   brief: string;
+  /** What the participant sees as the agent's plan. */
+  publicPlan: string;
   /** Number (1-3) of the step marked `milestone`; it differs between stories. */
   milestoneStep: number;
   flawStep: number | null;
@@ -125,7 +131,13 @@ export function loadStory(trialsDir: string, projectDir: string, id: string): St
   if (milestoneStep > 3) throw new Error(where("the milestone must be step 1, 2 or 3 so that a pause after it is mid-run"));
   if (def.steps.map((s) => s.n).join() !== "1,2,3,4") throw new Error(where("steps must be numbered 1-4 in order"));
   if (def.probes.map((p) => p.step).join() !== "1,2,3") throw new Error(where("probes must cover steps 1-3 in order"));
-  if (def.understanding.items.map((it) => it.step).join() !== "1,2,3,4") throw new Error(where("understanding items must cover steps 1-4 in order"));
+  const items = def.understanding.items;
+  if (items.some((it, k) => k > 0 && it.step < items[k - 1]!.step)) throw new Error(where("understanding items must be listed in step order"));
+  const roles = ["open-case", "dependency", def.flawStep === null ? "behaviour" : "flaw", "interplay", "emergent"];
+  if (items.map((it) => it.role).sort().join() !== roles.sort().join()) throw new Error(where(`understanding items must have the roles ${roles.join(", ")}, each once`));
+  const roleStep = (role: ItemRole) => items.find((it) => it.role === role)!.step;
+  if (roleStep("open-case") !== milestoneStep) throw new Error(where("the open-case item must ask about the milestone step"));
+  if (def.flawStep !== null && roleStep("flaw") !== def.flawStep) throw new Error(where("the flaw item must ask about the flaw step"));
   const rules = fs.readFileSync(path.join(trialsDir, "drehbuch.md"), "utf8").trim();
   const outlines = { Correct: read(def.outline.Correct).trim(), Flawed: read(def.outline.Flawed).trim() };
   const nonMilestoneSteps = [1, 2, 3].filter((n) => n !== milestoneStep);
@@ -146,6 +158,7 @@ export function loadStory(trialsDir: string, projectDir: string, id: string): St
     def,
     dir,
     brief: def.brief,
+    publicPlan: read(def.publicPlan).trim(),
     milestoneStep,
     flawStep: def.flawStep,
     files: () => (project ??= readTree(projectDir)),

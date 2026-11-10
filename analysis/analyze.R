@@ -14,6 +14,12 @@ read_trials <- function(path, exclude = character()) {
   d <- read.csv(path, stringsAsFactors = FALSE)
   d <- d[!d$participant_id %in% exclude, ]
   for (c in names(d)) if (all(d[[c]] %in% c("true", "false", NA))) d[[c]] <- d[[c]] == "true"
+  # The agent left the feature unfinished: excluded (analysis plan §2).
+  if ("featureComplete" %in% names(d)) {
+    dropped <- !d$featureComplete | (if ("pauseMissed" %in% names(d)) d$pauseMissed else FALSE)
+    if (any(dropped)) message(sprintf("excluded %d trial(s) (unfinished feature or missed pause)", sum(dropped)))
+    d <- d[!dropped, ]
+  }
   d$regime <- factor(d$regime, levels = REGIMES)
   d$flawed <- as.integer(d$variant == "Flawed")
   d$reject <- as.integer(d$initialDecision == "reject")
@@ -21,14 +27,16 @@ read_trials <- function(path, exclude = character()) {
   d
 }
 
-# One row per understanding item: trial x subtask k.
+# One row per understanding item: trial x item k. An item is "reviewed" when the pause followed the step it asks about.
 items_long <- function(d) {
-  do.call(rbind, lapply(1:4, function(k) data.frame(
+  n_items <- sum(grepl("^u[0-9]+_correct$", names(d)))
+  do.call(rbind, lapply(seq_len(n_items), function(k) data.frame(
     participant_id = d$participant_id, story = d$story, regime = d$regime, position_c = d$position_c, item = k,
+    role = d[[paste0("u", k, "_role")]],
     correct = as.integer(d[[paste0("u", k, "_correct")]]),
     confidence = d[[paste0("u", k, "_confidence")]],
     item_type = factor(ifelse(d[[paste0("u", k, "_milestone")]], "milestone", "other"), levels = c("milestone", "other")),
-    reviewed = as.integer(d$regime != "BATCH" & d$pauseStep == k)
+    reviewed = as.integer(d$regime != "BATCH" & d$pauseStep == d[[paste0("u", k, "_step")]])
   )))
 }
 
@@ -68,6 +76,14 @@ dprime_by_regime <- function(m) {
 
 pct <- function(x) sprintf("%.0f %%", 100 * mean(x))
 
+# How often a correct answer has higher confidence than a wrong one (ties count half); pooled over people.
+auroc <- function(score, positive) {
+  r <- rank(score)
+  n1 <- sum(positive == 1)
+  n0 <- sum(positive == 0)
+  (sum(r[positive == 1]) - n1 * (n1 + 1) / 2) / (n1 * n0)
+}
+
 report <- function(d) {
   items <- items_long(d)
   cat(sprintf("%d participants, %d trials, %d understanding items\n\n", length(unique(d$participant_id)), nrow(d), nrow(items)))
@@ -82,6 +98,14 @@ report <- function(d) {
   m1b <- glmer(correct ~ reviewed * item_type + position_c + (1 | participant_id) + (1 | story) + (1 | story:item),
                data = items, family = binomial, control = ctrl)
   print(coef(summary(m1b))[-1, ], digits = 3)
+
+  cat("\n== Exploratory: share correct by item role\n")
+  print(with(items, tapply(correct, list(regime, role), function(x) round(100 * mean(x)))))
+  cat("\n== Exploratory: what builds on the milestone (dependency items)\n")
+  dep <- items[items$role == "dependency", ]
+  m1c <- tryCatch(suppressMessages(glmer(correct ~ regime + position_c + (1 | participant_id) + (1 | story), data = dep, family = binomial, control = ctrl)),
+                  error = function(e) NULL)
+  if (is.null(m1c)) cat("model did not fit\n") else print(coef(summary(m1c))[-1, ], digits = 3)
 
   cat("\n== H2: fault detection (initial decision)\n")
   m2 <- fit_sdt(d)
@@ -98,6 +122,11 @@ report <- function(d) {
   print(with(items, tapply(over, list(regime, item_type), function(x) round(mean(x), 1))))
   m3 <- lmer(over ~ regime * item_type + position_c + (1 | participant_id) + (1 | story), data = items)
   print(coef(summary(m3))[c("regimeBATCH", "regimeNON_MILESTONE"), ], digits = 3)
+  cat("\nExploratory: Brier score (0 is best) and resolution (AUROC of confidence for a correct answer, .5 = none)\n")
+  print(data.frame(
+    brier = tapply((items$confidence / 100 - items$correct)^2, items$regime, mean),
+    resolution = sapply(split(items, items$regime), function(x) auroc(x$confidence, x$correct))
+  ), digits = 3)
 
   cat("\n== H4: reversals after the behaviour question\n")
   print(with(d, tapply(decisionReversed, list(regime, variant), function(x) sprintf("%d/%d", sum(x), length(x)))))

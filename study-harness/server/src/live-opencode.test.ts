@@ -31,7 +31,7 @@ function scriptedModel(brief: string, approval: string, steps: Map<string, strin
   const script: ({ text: string } | { tools: { name: string; args: object }[] })[] = [];
   steps.forEach((files, k) => {
     script.push({ tools: [...files].map(([p, content]) => ({ name: "write", args: { path: p, content } })) });
-    if (k < 3) script.push({ tools: [{ name: "review_checkpoint", args: { step: k + 1, summary: `Step ${k + 1} done.` } }] });
+    if (k < 3) script.push({ tools: [{ name: "review_checkpoint", args: { step: k + 1 } }] });
   });
   script.push({ text: "Done." });
   const server = http.createServer((req, res) => {
@@ -51,7 +51,7 @@ function scriptedModel(brief: string, approval: string, steps: Map<string, strin
       const responses = (from: number, to?: number) => assistantCount({ messages: msgs.slice(from, to) }, [ASK]);
       const fb = feedback ? msgs.findIndex((m) => m.role === "user" && messageText(m) === feedback.text) : -1;
       const before = fb < 0 ? Infinity : responses(at, fb);
-      const played = fb < 0 ? script : [...script.slice(0, before), { tools: [...feedback!.fix].map(([p, content]) => ({ name: "write", args: { path: p, content } })) }, { tools: [{ name: "review_checkpoint", args: { step: 2, summary: "Step 2 fixed." } }] }, ...script.slice(before)];
+      const played = fb < 0 ? script : [...script.slice(0, before), { tools: [...feedback!.fix].map(([p, content]) => ({ name: "write", args: { path: p, content } })) }, { tools: [{ name: "review_checkpoint", args: { step: 2 } }] }, ...script.slice(before)];
       const step = !main ? { text: "Practice" } : at < 0 ? { text: "Plan: four steps." } : rejected ? { text: ASK } : (played[responses(at)] ?? { text: "Done." });
       const ev = (delta: object, finish: string | null = null) => `data: ${JSON.stringify({ id: "x", object: "chat.completion.chunk", created: 0, model: "scripted", choices: [{ index: 0, delta, finish_reason: finish }] })}\n\n`;
       if (!body.stream) {
@@ -60,6 +60,7 @@ function scriptedModel(brief: string, approval: string, steps: Map<string, strin
       }
       res.writeHead(200, { "content-type": "text/event-stream" });
       res.write(ev({ role: "assistant", content: "" }));
+      res.write(ev({ reasoning_content: "REASONING-MARKER" }));
       if ("text" in step) res.write(ev({ content: step.text }));
       else step.tools.forEach((t, i) => res.write(ev({ tool_calls: [{ index: i, id: `call_${requests.length}_${i}`, type: "function", function: { name: t.name, arguments: JSON.stringify(t.args) } }] })));
       res.write(ev({}, "text" in step ? "stop" : "tool_calls"));
@@ -135,6 +136,21 @@ describe.skipIf(process.env.OPENCODE_IT !== "1")("live trial through opencode", 
       })();
       expect(leaked).toBe("");
 
+      // The public plan is what opencode got and what the model sees from now on; its own plan and its reasoning are gone.
+      const seenAfter = main.at(-1)!.messages!.map(messageText).join("\n");
+      expect(seenAfter).toContain(story.publicPlan);
+      expect(seenAfter).not.toContain("Plan: four steps.");
+      const stored = (marker: string) => {
+        try {
+          return execFileSync("grep", ["-rl", marker, path.join(tmp, "home")], { encoding: "utf8" });
+        } catch {
+          return "";
+        }
+      };
+      expect(stored("REASONING-MARKER")).toBe("");
+      expect(stored("Plan: four steps.")).toBe("");
+      expect(readEvents().find((e) => e.type === "live_plan_public")!.data).toMatchObject({ reason: "the model's plan", draft: "Plan: four steps." });
+
       await post({ type: "stage1", decision: "accept" });
       view = await post({ type: "stage2", probeAnswer: 0, final: "confirm" });
       expect(view.phase).toBe("reviewing");
@@ -142,7 +158,7 @@ describe.skipIf(process.env.OPENCODE_IT !== "1")("live trial through opencode", 
       for (const files of steps) for (const [p, content] of files) expect(fs.readFileSync(path.join(dir, p), "utf8"), p).toBe(content);
 
       await post({ type: "reviewed" });
-      view = await post({ type: "understanding", answers: [0, 0, 0, 0], confidences: [50, 50, 50, 50], paas: 5, itemMs: [1, 1, 1, 1], answerChanges: [0, 0, 0, 0] });
+      view = await post({ type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [55, 55, 55, 55, 55], paas: 5, itemMs: [1, 1, 1, 1, 1], answerChanges: [0, 0, 0, 0, 0] });
       const events = readEvents();
       expect(events.filter((e) => e.type === "live_checkpoint").map((e) => [e.data.step, e.data.held])).toEqual([[1, false], [2, true], [3, false]]);
       // The answer key comes from running the code as played: here the reference code, so its documented answers.

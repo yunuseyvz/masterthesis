@@ -1,5 +1,6 @@
 import { assertCents, sumCents, type Cents } from "../money.ts";
 import { ValidationError } from "../errors.ts";
+import { parseDurationMinutes } from "./duration.ts";
 import { minutesBetween } from "./time.ts";
 import type { Invoice, InvoiceLine, Outage, SlaPolicy, SlaTier } from "./types.ts";
 
@@ -21,11 +22,12 @@ export function outageMinutes(outage: Outage): number {
 /** The highest tier the outage length qualifies for, if any. */
 export function tierFor(minutes: number, policy: SlaPolicy): SlaTier | undefined {
   let best: SlaTier | undefined;
+  let bestMinutes = -1;
   for (const tier of policy.tiers) {
-    if (minutes >= tier.minOutageMinutes) {
-      if (!best || tier.minOutageMinutes > best.minOutageMinutes) {
-        best = tier;
-      }
+    const tierMinutes = parseDurationMinutes(tier.minOutage);
+    if (minutes >= tierMinutes && tierMinutes > bestMinutes) {
+      best = tier;
+      bestMinutes = tierMinutes;
     }
   }
   return best;
@@ -33,7 +35,7 @@ export function tierFor(minutes: number, policy: SlaPolicy): SlaTier | undefined
 
 /** Credit for one outage: zero inside the SLA, otherwise a share of the subtotal. */
 export function creditForOutage(minutes: number, subtotalCents: Cents, policy: SlaPolicy): Cents {
-  if (minutes <= policy.thresholdMinutes) {
+  if (minutes <= parseDurationMinutes(policy.threshold)) {
     return 0;
   }
   const tier = tierFor(minutes, policy);

@@ -175,9 +175,13 @@ One row per measured trial. The practice trial has the same fields in `bundle.pr
 
 | Column | Meaning |
 |---|---|
-| `understandingScore` | Correct understanding answers (0–4) |
-| `uK_answer`, `uK_correct`, `uK_confidence` | Item K (asks about agent step K): chosen option in canonical order, correct, confidence (50–100 %) |
-| `uK_milestone` | Step K is the milestone step |
+| `featureComplete` | The agent wrote every file of the feature before the final review (otherwise the trial is excluded) |
+| `pauseMissed` | In a pause regime the agent ended its turn before the pause, so the review came at the end (otherwise the trial is excluded) |
+| `understandingScore` | Correct understanding answers (0–5) |
+| `uK_answer`, `uK_correct`, `uK_confidence` | Item K, in the order asked: chosen option in canonical order, correct, confidence (25, 40, 55, 70, 85 or 100 %) |
+| `uK_role` | What item K asks about: `open-case`, `dependency`, `flaw` (`behaviour` in the practice story), `interplay` or `emergent` |
+| `uK_step` | The agent step whose code decides item K's answer |
+| `uK_milestone` | Item K is the milestone item of H1 (`open-case`) |
 | `uK_ms` | Time on item K's screen, summed over visits (going back and forth) |
 | `uK_changes` | Times the answer to item K was changed after the first pick |
 | `paas` | Mental effort for the feature (1–9) |
@@ -221,8 +225,14 @@ Server events:
 | `trial_start` | Practice flag, position, story, regime, variant, milestone, flaw and pause step, opencode session id, time the participant waited for the plan (`waitedForPlanMs`) |
 | `agent_turn` | Trial, the message sent for the participant (or the checkpoint's answer), duration, whether it ended or paused at the checkpoint |
 | `live_call` | One model request: trial, thread (`main` or its key), position, status, time to first chunk and in total, tool names, finish reason, tokens |
-| `live_checkpoint` | A checkpoint call: trial, step, the agent's summary, pause step, whether it was held |
-| `live_pause_missed` | The agent ended its turn without reaching the paused step |
+| `live_refused` | A request the model endpoint did not send upstream: method, path, reason (another path, another model, no trial loaded). Nothing in a normal session causes one, so it marks the session for review |
+| `live_plan_public` | The public plan went out: why (the model's plan was ready, `deadline`, `status 429`, …) and the model's `draft` it replaced |
+| `live_text_leak` | The agent wrote about its instructions or a design decision of the story: position, phrases found, its text, what the participant read instead (`shown`), and whether that differs (`replaced`) |
+| `live_checkpoint` | A checkpoint call: trial, step, pause step, whether it was held |
+| `live_pause_go_on` | In a pause regime the agent ended its turn before the paused step with no later step written; it was sent a hidden reminder to go on (at most twice) |
+| `live_pause_missed` | The agent ended its turn without reaching the paused step, also after the reminders, or it had already written a later step |
+| `live_go_on` | The agent ended its turn with files of the feature missing; it was sent a hidden reminder to go on (at most twice) |
+| `live_incomplete` | Files were still missing after the reminders; the trial's `featureComplete` is false |
 | `live_fix_unmarked` | After a rejection the agent went on without calling the checkpoint for the fixed step |
 | `live_probe` | The behaviour question's outcome on the code under review, and the options shown |
 | `live_key` | The understanding items' answers on the finished code, and the options shown |
@@ -242,6 +252,7 @@ Server events:
 | `agent_request_blocked` | Method and URL of a refused opencode API request |
 | `ui_<type>` | §3 |
 | `server_error` | Message of an unexpected server error |
+| `client_aborted` | The browser dropped a request before it was read (page load, reconnecting tunnel); harmless |
 
 Everything in the trial results can be re-derived from the event log.
 

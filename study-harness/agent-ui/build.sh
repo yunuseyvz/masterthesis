@@ -22,7 +22,8 @@ git -C "$SRC" apply "$HERE/opencode.patch"
 cd "$SRC"
 [ -d node_modules ] || $BUN install --ignore-scripts
 cd packages/app
-$BUN run build
+# Where the app lives is known when the server starts (behind a study platform, a path per participant); it fills this in.
+$BUN run build --base=/__STUDY_BASE__/
 rm -rf "$HERE/dist"
 cp -r dist "$HERE/dist"
 # Source maps are only useful for debugging opencode itself.

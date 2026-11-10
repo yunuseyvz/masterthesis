@@ -1,58 +1,60 @@
-// Runs the story's code and prints the true option text for every understanding item (one per agent step).
+// Runs the story's code and prints the true option text for every understanding item, in the order of trial.json.
 // The harness test compares this output with the item's `correct` index for both variants.
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
-import { createCatalog } from "./src/lib/catalog.ts";
-import { createOrder } from "./src/lib/orders.ts";
-import { summarizeOrder } from "./src/lib/pricing/order.ts";
-import { discountFor } from "./src/lib/pricing/pricing.ts";
 
-/** Whether the agent's unit tests notice a mistake: `module` replaced by `mutant`, which wraps the original (`./<name>.orig.ts`). */
-function testsNotice(module: string, mutant: string): string {
-  const tests = readdirSync("test").filter((f) => f.endsWith(".test.ts")).map((f) => `test/${f}`);
-  const pass = () => spawnSync(process.execPath, ["--test", ...tests], { encoding: "utf8" }).status === 0;
-  if (!pass()) return "? the tests fail without the mistake";
-  const original = readFileSync(module, "utf8");
-  writeFileSync(module.replace(/\.ts$/, ".orig.ts"), original);
-  writeFileSync(module, mutant);
+/** A module of the agent's code, or an empty one if it is missing: then only the items that use it fail. */
+const optional = <T,>(m: Promise<T>): Promise<T> => m.catch(() => ({}) as T);
+const { createCatalog } = await optional(import("./src/lib/catalog.ts"));
+const { NotFoundError, ValidationError } = await optional(import("./src/lib/errors.ts"));
+const { createOrder } = await optional(import("./src/lib/orders.ts"));
+const { summarizeOrder } = await optional(import("./src/lib/pricing/order.ts"));
+const { discountFor } = await optional(import("./src/lib/pricing/pricing.ts"));
+
+const percent = (value: number) => ({ code: "C", kind: "percentage" as const, value });
+const catalog = createCatalog([
+  { sku: "mug", name: "Mug", priceCents: 1200 },
+  { sku: "a", name: "A", priceCents: 333 },
+  { sku: "b", name: "B", priceCents: 333 },
+  { sku: "c", name: "C", priceCents: 333 },
+]);
+/** Describes discountFor's answer, or "rejected" for a ValidationError. */
+function discount(amount: number, value: number): string {
   try {
-    return pass() ? "No: all unit tests still pass" : "Yes: at least one unit test fails";
-  } finally {
-    writeFileSync(module, original);
+    return String(discountFor(amount, percent(value)));
+  } catch (err) {
+    return err instanceof ValidationError ? "rejected" : "? it throws";
   }
 }
 
 const items: (() => Promise<string> | string)[] = [
-  // step 1
+  // open case (step 1): a share that is not a whole number of cents
+  () => {
+    const d = discount(999, 15);
+    return d === "rejected" ? "It throws" : d;
+  },
+  // flaw (step 1): a 100 % coupon on an order
   () => {
     try {
-      return discountFor(999, { code: "FREE", kind: "percentage", value: 100 }) === 999 ? "Yes: the discount is the full price" : "?";
-    } catch {
-      return "No: a 100% coupon is rejected";
+      return String(summarizeOrder(catalog, createOrder("o", "acc", [{ sku: "mug", quantity: 2 }]), percent(100)).totalCents);
+    } catch (err) {
+      return err instanceof ValidationError ? "It is rejected as an invalid coupon" : "? it throws";
     }
   },
-  // step 2
+  // emergent (step 1): a fractional percentage
   () => {
-    const catalog = createCatalog([{ sku: "pen", name: "Pen", priceCents: 300 }]);
-    const summary = summarizeOrder(catalog, createOrder("o", "a", [{ sku: "pen", quantity: 1 }]), { code: "TEN", kind: "percentage", value: 10 }) as unknown as Record<string, unknown>;
-    const has = (k: string) => k in summary && summary[k] !== undefined;
-    if (["subtotalCents", "discountCents", "totalCents", "coupon"].every(has)) return "Subtotal, discount, total and the coupon";
-    if (has("totalCents") && !has("subtotalCents") && !has("discountCents")) return "Only the total";
-    return `? ${Object.keys(summary).join()}`;
+    const d = discount(1000, 12.5);
+    return d === "rejected" ? "It is rejected as an invalid coupon" : d;
   },
-  // step 3
+  // dependency (step 3): the order applies the rounded discount once, to the subtotal
+  () => String(summarizeOrder(catalog, createOrder("o", "acc", [{ sku: "a", quantity: 1 }, { sku: "b", quantity: 1 }, { sku: "c", quantity: 1 }]), percent(10)).totalCents),
+  // interplay (step 3): an item the catalog does not have
   () => {
-    const catalog = createCatalog([{ sku: "pen", name: "Pen", priceCents: 300 }]);
-    return String(summarizeOrder(catalog, createOrder("o", "a", [{ sku: "pen", quantity: 3 }]), { code: "TEN", kind: "percentage", value: 10 }).totalCents);
+    try {
+      const s = summarizeOrder(catalog, createOrder("o", "acc", [{ sku: "mug", quantity: 1 }, { sku: "nope", quantity: 1 }]));
+      return s.items.length === 1 ? "It skips the item" : "It counts the item as 0 cents";
+    } catch (err) {
+      return err instanceof NotFoundError ? "It throws a NotFoundError (404)" : err instanceof ValidationError ? "It throws a ValidationError (400)" : "? it throws";
+    }
   },
-  // step 4
-  () =>
-    testsNotice("src/lib/pricing/pricing.ts", `import * as orig from "./pricing.orig.ts";
-export * from "./pricing.orig.ts";
-export function discountFor(amountCents, coupon) {
-  return coupon.kind === "fixed" && Number.isInteger(coupon.value) && coupon.value >= 0 ? coupon.value : orig.discountFor(amountCents, coupon);
-}
-`),
 ];
 const out: (string | null)[] = [];
 for (const item of items) {

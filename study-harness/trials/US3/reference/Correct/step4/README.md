@@ -29,8 +29,8 @@ The development server (`npm run dev`) is not available in this environment.
 ## Tenant configuration
 
 Each tenant can customize its feature flags and limits. A tenant only stores the fields it wants to change; its
-effective configuration is the organization defaults in `src/lib/tenants/types.ts` with those overrides applied. A
-limit override can only lower a limit: the organization default is the most any tenant may have.
+effective configuration is the organization defaults in `src/lib/tenants/types.ts` with those overrides applied,
+field by field.
 
 - `src/lib/tenants/types.ts` – `TenantFeatureFlags`, `TenantLimits`, `Tenant`, and `ORGANIZATION_DEFAULTS`
 - `src/lib/tenants/config.ts` – `resolveTenantConfig` (defaults + overrides), plus `isFeatureEnabled` and `limitFor`

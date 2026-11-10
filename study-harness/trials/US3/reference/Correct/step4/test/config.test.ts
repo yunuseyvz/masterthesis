@@ -49,8 +49,12 @@ test("feature and limit reads go through the tenant's effective config", () => {
   assert.equal(limitFor(acme, "maxProducts"), ORGANIZATION_DEFAULTS.limits.maxProducts);
 });
 
-test("a limit override above the organization default is capped at the default", () => {
-  assert.equal(limitFor(tenant({ limits: { maxUsers: 20 } }), "maxUsers"), ORGANIZATION_DEFAULTS.limits.maxUsers);
+test("a tenant can raise a limit above the organization default", () => {
+  assert.equal(limitFor(tenant({ limits: { maxUsers: 20 } }), "maxUsers"), 20);
+});
+
+test("a limit set to null falls back to the organization default", () => {
+  assert.equal(limitFor(tenant({ limits: { maxUsers: null } }), "maxUsers"), ORGANIZATION_DEFAULTS.limits.maxUsers);
 });
 
 test("the quota check allows usage up to the limit", () => {

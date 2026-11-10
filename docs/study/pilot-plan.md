@@ -4,7 +4,7 @@ A small check before data collection.
 
 ## Pilot of the understanding questions (3 to 5 people)
 
-**Goal.** Make sure the four questions per feature measure understanding, are not guessable, and fit the time budget.
+**Goal.** Make sure the five questions per feature measure understanding, are not guessable, and fit the time budget.
 
 **Who.** Three to five people with programming experience who are not in the later sample. Run the full session (`study-harness/scripts/run-session.sh --show-condition` is for you, never for them).
 
@@ -12,7 +12,7 @@ A small check before data collection.
 
 | Check | Look at | Fix if |
 |---|---|---|
-| Too easy / too hard | `u1..u4_correct` per feature | one item is correct for everyone, or for nobody |
+| Too easy / too hard | `u1..u5_correct` per feature | one item is correct for everyone, or for nobody |
 | Guessable | accuracy vs. the 25% chance level, option order | an item is answered above chance without having read the code |
 | All regimes work | the same items in BATCH, MILESTONE and NON_MILESTONE | an item only makes sense after one regime |
 | Time | session length | well over 60 minutes |
@@ -28,10 +28,11 @@ The agent is a real model, so the pilot also checks what it played (from the eve
 
 | Check | Look at | Fix if |
 |---|---|---|
-| Kept to the Drehbuch | `live_checkpoint` after steps 1–3, `live_pause_missed`, the commits | a step was skipped or the pause missed |
+| Kept to the Drehbuch | `live_checkpoint` after steps 1–3, `live_pause_go_on`, `live_pause_missed`, `live_go_on`, `live_incomplete`, the commits | a step was skipped, the pause missed or the feature left unfinished |
 | Flaw landed | in Flawed trials, `live_probe` (and `live_key`) against the variant's expected answer | a flaw does not land; then the outline needs another wording |
 | Questions gradeable | `live_probe`, `live_key`: no outcome starting with `?` or missing | a script cannot describe the agent's code |
-| Mutation items discriminate | item 4 in US0, US3, US4, US6: answered "Yes, a test fails" in every test run so far | everyone gets the same key |
+| Free decision varies | the `emergent` item's key in `live_key`, per feature | the agent decides the same way in every session (then the item is no longer emergent) |
+| Text replaced | `live_text_leak` with `replaced` | a step's announcement is replaced in most sessions (then the outline's wording invites it) |
 | Waiting | `waitedForPlanMs`, `agent_turn` durations | people wait long for the plan or the agent |
 | Rejection | `feedback_*`: the agent's question, the answer, the fix | the agent does not ask, or ignores the answer |
 
@@ -70,7 +71,8 @@ outside `exports/`, so it does not count toward group assignment. Seven trials, 
 **What it exposed.**
 
 - Three of seven plans mentioned the hidden outline ("the outline does not say so", "following the agreed step
-  outline") or "Plan mode". A Drehbuch rule and an `"outline"` entry in `planLeaks` are proposed, not built yet.
+  outline") or "Plan mode". Resolved since: the plan on screen is now a fixed public plan
+  (`docs/harness/technical.md` §4.1).
 - The US3 cap is contestable from the brief's "where they need to". The author rejected it as a participant; that is a
   design disagreement, not the injected flaw. Watch it in the pilot: the Correct condition may collect such
   rejections.
@@ -85,5 +87,6 @@ outside `exports/`, so it does not count toward group assignment. Seven trials, 
 - **No flaw region.** Where the flaw lies in the agent's code is not known, so the flaw-region measures
   (`flawRegionMs*`, `flawRegionSeen*`) stay 0/false.
 - **Isolation.** The sandboxed terminal can reach the model endpoint and the checkpoint server over loopback.
-  Accepted; sessions are supervised.
+  Accepted while a session is supervised (lab, or moderated over a video call); to be closed before unsupervised
+  sessions (`docs/harness/deployment.md`).
 - The model, the Drehbuch and the outlines are frozen before the first participant.

@@ -17,6 +17,13 @@ truth_default <- list(
   confidence_pause = 4      # a pause raises confidence on every item, right or wrong
 )
 
+# The confidence scale (CONFIDENCE_LEVELS in shared/src/schema.ts); an assumed confidence goes to the nearest level.
+confidence_levels <- c(25, 40, 55, 70, 85, 100)
+level_edges <- (head(confidence_levels, -1) + tail(confidence_levels, -1)) / 2
+
+# Understanding items per trial (UNDERSTANDING_ITEMS in shared/src/schema.ts).
+n_items <- 5
+
 # Column order of study-harness/server/src/export.ts.
 csv_columns <- c(
   "participant_id", "study_seed", "group",
@@ -27,13 +34,14 @@ csv_columns <- c(
   "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1", "stage2ProbeLatencyMs",
   "terminalCommandsProbe", "probeAnswer", "probeCorrect", "finalReviewMs", "changesViewMsFinal", "hunksFinal",
   "hunksViewedFinal", "flawRegionMsFinal", "flawRegionSeenFinal", "unfocusedMsFinal", "idleMsFinal",
-  "understandingScore", "paas",
-  as.vector(t(outer(1:4, c("answer", "correct", "confidence", "milestone", "ms", "changes"), function(k, c) paste0("u", k, "_", c))))
+  "featureComplete", "pauseMissed", "understandingScore", "paas",
+  as.vector(t(outer(1:n_items, c("answer", "correct", "confidence", "role", "step", "milestone", "ms", "changes"),
+                    function(k, c) paste0("u", k, "_", c))))
 )
 
 read_design <- function(path) {
   d <- read.csv(path, stringsAsFactors = FALSE)
-  d$flawStepReviewed <- d$flawStepReviewed == "true"
+  for (c in c("flawStepReviewed", paste0("u", 1:n_items, "_milestone"))) d[[c]] <- d[[c]] == "true"
   d
 }
 
@@ -44,25 +52,26 @@ simulate_trials <- function(design, truth = truth_default) {
   stories <- unique(d$story)
   u_p <- setNames(rnorm(length(people), 0, truth$sd_participant), people)
   u_s <- setNames(rnorm(length(stories), 0, truth$sd_story), stories)
-  u_i <- matrix(rnorm(length(stories) * 4, 0, truth$sd_item), ncol = 4, dimnames = list(stories, 1:4))
+  u_i <- matrix(rnorm(length(stories) * n_items, 0, truth$sd_item), ncol = n_items, dimnames = list(stories, 1:n_items))
   conf_p <- setNames(rnorm(length(people), 0, 6), people)
   crit_p <- setNames(rnorm(length(people), truth$criterion, truth$sd_criterion), people)
   paused <- d$regime != "BATCH"
 
   out <- as.data.frame(setNames(replicate(length(csv_columns), rep(NA, n), simplify = FALSE), csv_columns))
   out[names(d)] <- d
-  for (k in 1:4) {
-    milestone <- d$milestoneStep == k
-    reviewed <- paused & d$pauseStep == k
+  for (k in 1:n_items) {
+    milestone <- d[[paste0("u", k, "_milestone")]]
+    reviewed <- paused & d$pauseStep == d[[paste0("u", k, "_step")]]
     eta <- truth$base + truth$milestone_gap * milestone + truth$reviewed * reviewed +
       truth$milestone_pause * (reviewed & milestone) + u_p[d$participant_id] + u_s[d$story] + u_i[cbind(d$story, k)]
     correct <- rbinom(n, 1, plogis(eta)) == 1
     conf <- 70 + 8 * correct + 4 * reviewed + truth$confidence_pause * paused + conf_p[d$participant_id] + rnorm(n, 0, 10)
     out[[paste0("u", k, "_correct")]] <- correct
-    out[[paste0("u", k, "_confidence")]] <- pmin(100, pmax(50, round(conf)))
-    out[[paste0("u", k, "_milestone")]] <- milestone
+    out[[paste0("u", k, "_confidence")]] <- confidence_levels[findInterval(conf, level_edges) + 1]
   }
-  out$understandingScore <- rowSums(out[paste0("u", 1:4, "_correct")])
+  out$featureComplete <- TRUE
+  out$pauseMissed <- FALSE
+  out$understandingScore <- rowSums(out[paste0("u", 1:n_items, "_correct")])
 
   flawed <- d$variant == "Flawed"
   dprime <- ifelse(d$flawStepReviewed, truth$dprime[d$regime], truth$dprime_unseen)

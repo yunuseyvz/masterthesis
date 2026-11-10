@@ -13,6 +13,7 @@
    the provider delivers it again (a `processing` or `processed` event is a duplicate; a `failed` one may run again),
    and retries a temporary failure, 3 attempts in total by default; an `AppError` is permanent and is not retried.
 4. The webhook endpoint: `handleWebhookRequest(request, deps)` in `src/lib/webhooks/webhook.ts` turns a delivery into
-   a response, and a `POST` route in `src/app/api/webhooks/payments/route.ts` calls it; the event log as
+   a response (200 for a duplicate; when processing still fails after all attempts, 500, so that the provider
+   delivers the event again), and a `POST` route in `src/app/api/webhooks/payments/route.ts` calls it; the event log as
    `export function createEventLog(clock)` in `src/lib/db.ts` (not in the types file). Unit tests in
    `test/webhook.test.ts`, a README section, then `npm test`.

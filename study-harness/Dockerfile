@@ -43,13 +43,16 @@ COPY --from=build /opencode /usr/local/bin/opencode
 COPY --from=shopfront /opt/shopfront/node_modules /opt/shopfront/node_modules
 # The server runs as root only so it can start opencode as an unprivileged user. Everything under /app
 # (code, corpus with ground truth) is unreadable to that user; it only owns the trial projects and its own home.
+# A second user runs the trial's code for grading, so the terminal cannot read the grading scripts while they run.
 RUN groupadd --gid 61234 sandbox \
  && useradd --uid 61234 --gid 61234 --no-create-home --shell /usr/sbin/nologin sandbox \
+ && groupadd --gid 61235 probe \
+ && useradd --uid 61235 --gid 61235 --no-create-home --shell /usr/sbin/nologin probe \
  && chmod -R go-rwx /app \
  && chmod 755 /usr/local/bin/opencode \
  && mkdir -p /exports /work /agent-home && chmod 700 /exports \
  && chown sandbox:sandbox /work /agent-home && chmod 755 /work && chmod 700 /agent-home
 # The study page and opencode share one origin: the server hosts opencode's web app and forwards its API.
-ENV NODE_ENV=production SANDBOX_UID=61234 SANDBOX_GID=61234 EXPORT_DIR=/exports LISTEN_SOCKET=/run/study/app.sock \
+ENV NODE_ENV=production SANDBOX_UID=61234 SANDBOX_GID=61234 PROBE_UID=61235 EXPORT_DIR=/exports LISTEN_SOCKET=/run/study/app.sock \
     OPENCODE_BIN=/usr/local/bin/opencode WORK_ROOT=/work AGENT_HOME=/agent-home
 CMD ["npx", "tsx", "study-harness/server/src/main.ts"]

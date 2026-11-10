@@ -38,8 +38,8 @@ const YEARS: Opt[] = [
 const FREQ: Opt[] = [
   { value: "never", label: "Never" }, { value: "rarely", label: "Rarely" }, { value: "monthly", label: "Monthly" }, { value: "weekly", label: "Weekly" }, { value: "daily", label: "Daily" },
 ]
-/** 50 % = guessing between two options, 100 % = certain. */
-const CONFIDENCE = [50, 60, 70, 80, 90, 100]
+/** 25 % = guessing between the four options, 100 % = certain (CONFIDENCE_LEVELS in beacon shared/src/schema.ts). */
+const CONFIDENCE = [25, 40, 55, 70, 85, 100]
 const STYLES = [
   { value: "END", label: "The agent works through everything and I review once, at the very end" },
   { value: "PAUSE", label: "The agent pauses partway through and I review that part before it continues" },
@@ -280,8 +280,8 @@ function Quiz() {
   const [paas, setPaas] = createSignal<number | undefined>()
   const onEffort = () => step() >= items().length
   // Time on each question's screen and answer changes, for the server's per-item measures.
-  const itemMs = [0, 0, 0, 0]
-  const changes = [0, 0, 0, 0]
+  const itemMs = items().map(() => 0)
+  const changes = items().map(() => 0)
   let since = Date.now()
   const go = (next: number) => {
     if (step() < items().length) itemMs[step()]! += Date.now() - since
@@ -306,7 +306,7 @@ function Quiz() {
           <p data-study-lead>A colleague on the support desk asks you about the feature you just reviewed.</p>
           <p data-study-question>{items()[k()]!.question}</p>
           <Options options={items()[k()]!.options} value={answers[k()]} onChange={pick} />
-          <Scale label="How sure are you about your answer?" values={CONFIDENCE} format={(c) => `${c}%`} ends={["Guessing", "Certain"]} value={confs[k()]} onChange={(c) => setConfs(k(), c)} />
+          <Scale label="How sure are you about your answer?" values={CONFIDENCE} format={(c) => `${c}%`} ends={["Guessing (1 in 4)", "Certain"]} value={confs[k()]} onChange={(c) => setConfs(k(), c)} />
         </Show>
         <div data-study-actions>
           <Show when={step() > 0}>
@@ -377,7 +377,8 @@ function Debrief(props: { onDone: () => void }) {
     <Card title="Thank you, and a few things we couldn't tell you earlier">
       <p>
         The agent you worked with was a real AI model, but it followed hidden instructions from the study: how to split each
-        feature into steps, which design decisions to take, and when to stop for your review. In some features these
+        feature into steps, which design decisions to take, and when to stop for your review. The plan you approved was
+        written by the study, not by the model, and left those decisions out. In some features the
         instructions included a deliberately wrong design decision, a defect the happy-path tests do not catch. The study
         compares when the agent pauses for your review, and how well people understand the code and spot such defects.
       </p>

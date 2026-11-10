@@ -49,7 +49,7 @@ Die Studie hat **eine** Forschungsfrage: Verstehen und Beurteilen des Codes. Das
 | Zeit bis zur Antwort | ms | **Sekundärmaß**, Aufwand |
 | Endgültige Entscheidung | bestätigt / umgedreht | **Sekundärmaß**, Reversals |
 | 4 Verständnisfragen | je Antwort, richtig/falsch | **Hauptmaß**, Verständnis |
-| Konfidenz je Frage | 50–100 % in 10er-Schritten | **Sekundärmaß**, Kalibrierung |
+| Konfidenz je Frage | 25, 40, 55, 70, 85 oder 100 % (25 % = geraten bei vier Optionen) | **Sekundärmaß**, Kalibrierung |
 | Zeit je Frage | ms, summiert über Besuche | **Deskriptiv**, Aufwand |
 | Antwortänderungen je Frage | Anzahl | **Deskriptiv**, Unsicherheit |
 | Paas (mentaler Aufwand) | 1–9 | Deskriptiv |

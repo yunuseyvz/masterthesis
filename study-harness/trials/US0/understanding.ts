@@ -1,47 +1,49 @@
-// Runs the story's code and prints the true option text for every understanding item (one per agent step).
+// Runs the story's code and prints the true option text for every understanding item, in the order of trial.json.
 // The harness test compares this output with the item's `correct` index for both variants.
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
-import { formatGreeting } from "./src/lib/greeting/greeting.ts";
-import { greetAll } from "./src/lib/greeting/batch.ts";
 
-/** Whether the agent's unit tests notice a mistake: `module` replaced by `mutant`, which wraps the original (`./<name>.orig.ts`). */
-function testsNotice(module: string, mutant: string): string {
-  const tests = readdirSync("test").filter((f) => f.endsWith(".test.ts")).map((f) => `test/${f}`);
-  const pass = () => spawnSync(process.execPath, ["--test", ...tests], { encoding: "utf8" }).status === 0;
-  if (!pass()) return "? the tests fail without the mistake";
-  const original = readFileSync(module, "utf8");
-  writeFileSync(module.replace(/\.ts$/, ".orig.ts"), original);
-  writeFileSync(module, mutant);
-  try {
-    return pass() ? "No: all unit tests still pass" : "Yes: at least one unit test fails";
-  } finally {
-    writeFileSync(module, original);
-  }
-}
+/** A module of the agent's code, or an empty one if it is missing: then only the items that use it fail. */
+const optional = <T,>(m: Promise<T>): Promise<T> => m.catch(() => ({}) as T);
+const { ValidationError } = await optional(import("./src/lib/errors.ts"));
+const { formatGreeting } = await optional(import("./src/lib/greeting/greeting.ts"));
+const { greetAll } = await optional(import("./src/lib/greeting/batch.ts"));
 
 const items: (() => Promise<string> | string)[] = [
-  // step 1
+  // open case (step 2): a preferred name of only spaces
   () => {
-    // A user with only a name is greeted; a user without a name is not.
-    formatGreeting({ name: "Ada Lovelace" });
-    try {
-      formatGreeting({ preferredName: "Ada", tone: "formal" } as never);
-    } catch {
-      return "name";
-    }
-    return "? a user without a name is greeted";
+    const g = formatGreeting({ name: "Ada Lovelace", preferredName: "   " });
+    return g === "Hello, Ada!" ? "Hello, Ada!" : g === "Hello, Ada Lovelace!" ? "Hello, Ada Lovelace!" : g === "Hello,    !" ? "Hello,    !" : `? ${g}`;
   },
-  // step 2
+  // behaviour (step 2): formal tone with a preferred name
   () => formatGreeting({ name: "Ada Lovelace", preferredName: "Ada", tone: "formal" }),
-  // step 3
-  () => (greetAll([{ name: "Bea B" }, { name: "Al A" }]).join() === "Hello, Bea!,Hello, Al!" ? "In the order the users are given" : "?"),
-  // step 4
-  () =>
-    testsNotice("src/lib/greeting/greeting.ts", `import * as orig from "./greeting.orig.ts";
-export * from "./greeting.orig.ts";
-export function formatGreeting(user) { return orig.formatGreeting({ ...user, tone: undefined }); }
-`),
+  // emergent (step 2): two spaces inside the full name
+  () => {
+    try {
+      const g = formatGreeting({ name: "Ada  Lovelace", tone: "formal" });
+      return g === "Good day, Ada  Lovelace." ? "Good day, Ada  Lovelace. (both spaces kept)" : g === "Good day, Ada Lovelace." ? "Good day, Ada Lovelace. (one space)" : g === "Hello, Ada!" ? "Hello, Ada!" : `? ${g}`;
+    } catch (err) {
+      return err instanceof ValidationError ? "It is rejected as an invalid request" : "? it throws";
+    }
+  },
+  // dependency (step 3): the batch relies on a blank preferred name never failing
+  () => {
+    try {
+      const out = greetAll([{ name: "Al A" }, { name: "Bea B", preferredName: " " }, { name: "Cy C" }]);
+      if (out.length === 2) return "Two greetings: the second user is skipped";
+      return out[1] === "Hello, Bea!" ? "Three greetings, the second by first name" : "Three greetings, the second without a name";
+    } catch {
+      return "An error, and no greetings";
+    }
+  },
+  // interplay (steps 2 and 3): a blank name inside a batch
+  () => {
+    try {
+      const out = greetAll([{ name: "Al A" }, { name: " " }, { name: "Cy C" }]);
+      if (out.length === 2) return "Two greetings: the second user is skipped";
+      return out[1] === "Hello, there!" ? "Three greetings, the second \"Hello, there!\"" : "Three greetings, the second without a name";
+    } catch (err) {
+      return err instanceof ValidationError ? "Nothing: it fails with an invalid-request error" : "? it throws";
+    }
+  },
 ];
 const out: (string | null)[] = [];
 for (const item of items) {

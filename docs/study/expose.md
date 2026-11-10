@@ -97,7 +97,7 @@ were therefore fused; the test blind spot remains a reason for review outside th
 
 ## Study design
 
-Within-participants lab study, 30 people, \~60 minutes. Six features, two per condition: one correct, one with a flaw. Six counterbalancing groups of five people (Williams design): across the groups every feature appears in every condition, and the order is balanced for carry-over.
+Within-participants online study, 30 people, \~60 minutes; the first sessions are moderated over a video call. Six features, two per condition: one correct, one with a flaw. Six counterbalancing groups of five people (Williams design): across the groups every feature appears in every condition, and the order is balanced for carry-over.
 
 ### BATCH
 
@@ -123,26 +123,26 @@ Pause after one of the two other subtasks among 1–3 (about 18–86 changed lin
 
 **Review**Accept or reject, then one behaviour question answered by running the code. Same in all conditions. After a rejection the agent asks what to change and fixes it.
 
-**After**One understanding question per subtask, each with a confidence rating, then one mental-effort item (Paas, 1–9).
+**After**Five understanding questions, each with a confidence rating: how the milestone settled its open case, what later code relies on in it, what the flaw changes, how two subtasks work together, and one decision the agent made on its own. Then one mental-effort item (Paas, 1–9).
 
 **End**Preference, debrief.
 
 ### Materials
 
 - **Corpus:** six features in a Next.js shop, four subtasks each.
-- **Flaws:** in the Flawed variant, the agent's instructions contain one plausible but wrong design decision that contradicts the user story; the agent's own tests do not catch it. Half in the milestone subtask, half elsewhere.
+- **Flaws:** in the Flawed variant, the agent's instructions contain one plausible but wrong design decision that contradicts one acceptance criterion of the user story; the agent's own tests do not catch it. Half in the milestone subtask, half elsewhere.
 - **Milestones:** one per feature, two each at subtask 1, 2 and 3, so position is no cue. In the author's reading, every milestone meets the criterion; a second rater checks this. The criterion justifies where the milestone is; it is not a factor of the study.
 
 | Feature | Milestone | Open case it settles | Flaw in | The wrong decision |
 | --- | --- | --- | --- | --- |
-| US1 Flash-sale reservation | 2 Stock reservation | a reservation the stock cannot fulfil | 2 | sold-out items are removed: 404 instead of 409 |
-| US2 Payment webhook | 3 Deduplication and retry | a failure between the credit and the log entry | 2 | cents by rounding down: "19.99" credits 1998 |
-| US3 Tenant configuration | 2 Defaults merged with overrides | whether an override may raise a limit | 3 | a bulk operation counts as one against the quota |
-| US4 SLA credits | 1 Duration parsing, time helpers | malformed durations | 3 | outages crossing the billing period are skipped |
-| US5 Rate limiter | 3 Sliding-window check | whether rejected requests count | 3 | rejected requests count: a retrying client stays blocked |
-| US6 Coupons | 1 Discount calculation | a discount above the amount | 1 | a 100 % coupon is refused |
-- **Questions:** decision-awareness items, coded as milestone or not, checked by running the code.
-- **Agent:** a real model (DeepSeek V4.1 Flash) in opencode, following hidden instructions per feature: the subtasks, their design decisions, and a review checkpoint to call after each of subtasks 1–3. The study decides at the checkpoint whether the agent waits. Answers are graded on the code the agent actually wrote. Line counts above are from a reference implementation; the agent's code varies.
+| US1 Flash-sale reservation | 2 Stock reservation | an order for more than is left | 2 | sold-out items are removed: 404 instead of 409 |
+| US2 Payment webhook | 3 Deduplication and retry | a redelivery of an event that was given up | 2 | cents by rounding down: "19.99" credits 1998 |
+| US3 Tenant configuration | 2 Defaults merged with overrides | a limit set to `null` | 3 | a bulk operation counts as one against the quota |
+| US4 SLA credits | 1 Duration parsing, time helpers | a duration without a unit | 3 | outages crossing the billing period are skipped |
+| US5 Rate limiter | 3 Sliding-window check | a request exactly one window after the oldest | 3 | rejected requests count: a retrying client stays blocked |
+| US6 Coupons | 1 Discount calculation | a discount of a fraction of a cent | 1 | a 100 % coupon is refused |
+- **Questions:** decision-awareness items, checked by running the code. The item about the milestone's open case is the milestone item; the flaw is a separate decision in its subtask and has an item of its own.
+- **Agent:** a real model (DeepSeek V4.1 Flash) in opencode, following hidden instructions per feature: the subtasks, their design decisions, and a review checkpoint to call after each of subtasks 1–3. The study decides at the checkpoint whether the agent waits. The plan the participant approves is a fixed text per feature, written by the study: it names the subtasks and leaves the decisions out, so it is the same for the correct and the flawed variant. Answers are graded on the code the agent actually wrote. Line counts above are from a reference implementation; the agent's code varies.
 
 ## The study harness
 
@@ -158,7 +158,7 @@ Behaviour question at the review: answered by running the code, before the decis
 
 Preview: a small browser on the running app. The Terminal tab is a real shell where `npm test` and `npm run dev` work.
 
-After each feature: one understanding question per subtask, each with a confidence rating. The code panes are closed.
+After each feature: five understanding questions, each with a confidence rating. The code panes are closed.
 
 ## Measures and analysis
 
@@ -198,7 +198,7 @@ Evaluation needs ground truth beyond the author's labels: multiple raters, real 
 
 - Participants may not perceive a difference between a milestone and a non-milestone pause.
 - The author places the milestones; no second person has checked them.
-- A real but instructed agent: its code varies between sessions, and a flaw it is told to make may not land (checked per trial). Small project, lab participants.
+- A real but instructed agent: its code varies between sessions, and a flaw it is told to make may not land (checked per trial). Small project, a small sample.
 - A pause shows a fifth to a sixth of the code a review at the end shows, so timing and amount of code are confounded for BATCH. MILESTONE and NON-MILESTONE are of similar size.
 - One fused criterion: the study cannot say whether the open case or the dependency matters more.
 

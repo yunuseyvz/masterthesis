@@ -14,7 +14,7 @@ import { referenceSteps } from "./reference.js";
 import { makeStoryLoader } from "./trial.js";
 import { makeEventSink, writeBundle } from "./export.js";
 import { ConflictError, StudySession, type AgentDeps } from "./machine.js";
-import { assertUnreadable, killUserProcesses, type SandboxOptions } from "./sandbox.js";
+import { assertProbeRuns, assertUnreadable, killUserProcesses, type SandboxOptions } from "./sandbox.js";
 
 export interface ServerConfig {
   participantId: string;
@@ -35,6 +35,10 @@ export interface ServerConfig {
   recording?: boolean;
   /** Experimenter aid: show the regime/variant tag in the UI. Never enable for real participants. */
   showCondition?: boolean;
+  /** Where the browser reaches this server, when a study platform puts it under a path of its own (default "/"). */
+  basePath?: string;
+  /** Where the browser goes after Finish, when a study platform wants it back. */
+  completionUrl?: string;
   /** Development: play this story, regime and variant as the practice trial (e.g. to try a live trial first). */
   tryTrial?: { story: string; regime: Regime; variant: Variant };
   sandbox: SandboxOptions;
@@ -72,8 +76,24 @@ const BLOCKED: [string, RegExp][] = [
 ];
 export const isBlocked = (method: string, url: string) => BLOCKED.some(([m, re]) => m === method && re.test(url));
 
+/** The path the agent UI is built for (agent-ui/build.sh); a pod belongs to one participant, so it is set once, at start. */
+const BASE_PLACEHOLDER = "/__STUDY_BASE__/";
+
+/** Puts the app's path into the built agent UI. Nothing to do once it is there (a restarted container). */
+export function setBasePath(dir: string, basePath: string) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) setBasePath(p, basePath);
+    else if (/\.(js|css|html|webmanifest)$/.test(e.name)) {
+      const text = fs.readFileSync(p, "utf8");
+      if (text.includes(BASE_PLACEHOLDER)) fs.writeFileSync(p, text.split(BASE_PLACEHOLDER).join(basePath));
+    }
+  }
+}
+
 export async function buildApp(cfg: ServerConfig) {
   assertUnreadable(cfg.protectedPaths ?? [], cfg.sandbox);
+  assertProbeRuns(cfg.sandbox);
   const loadStory = makeStoryLoader(cfg.trialsDir, cfg.projectDir);
 
   let session!: StudySession;
@@ -87,7 +107,7 @@ export async function buildApp(cfg: ServerConfig) {
   if (cfg.agent.kind === "opencode") {
     const { live } = cfg.agent;
     // Both listen before opencode starts: it connects to the checkpoint tool's MCP server at startup.
-    const endpoint = new LiveEndpoint({ upstream: live.upstream, apiKey: live.apiKey, log });
+    const endpoint = new LiveEndpoint({ upstream: live.upstream, apiKey: live.apiKey, model: live.model, log });
     const checkpoints = new CheckpointServer(log);
     await endpoint.listen(live.port);
     await checkpoints.listen(live.checkpointPort);
@@ -107,7 +127,7 @@ export async function buildApp(cfg: ServerConfig) {
   } else {
     const fake = new FakeAgentHost(referenceSteps(loadStory, () => [plan.practice, ...plan.trials]));
     agent = fake;
-    deps = { endpoint: { load: () => {}, mainTexts: () => [] }, checkpoints: fake.checkpoints };
+    deps = { endpoint: { load: () => {}, endPlanning: () => {} }, checkpoints: fake.checkpoints };
   }
 
   const start = (participantId: string, studySeed: string, group?: number, round?: number) => {
@@ -128,12 +148,17 @@ export async function buildApp(cfg: ServerConfig) {
   app.setErrorHandler((err, _req, reply) => {
     if (err instanceof ConflictError) return reply.code(409).send({ error: err.message });
     if (err instanceof ZodError) return reply.code(400).send({ error: "invalid request", issues: err.issues });
+    // The browser dropped a request before it was read (a page load or a reconnecting tunnel): nothing failed here.
+    if ((err as Error).message === "aborted" || (err as { code?: string }).code === "ECONNRESET") {
+      session?.log("client_aborted", { url: _req.url });
+      return reply.code(499).send({ error: "client closed request" });
+    }
     app.log.error(err);
     session?.log("server_error", { message: String(err) });
     return reply.code(500).send({ error: "internal error" });
   });
 
-  const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}) });
+  const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}), ...(cfg.completionUrl ? { completionUrl: cfg.completionUrl } : {}) });
   // The study's own API. Everything else on this origin is opencode: its web app (study build, agent-ui/) and,
   // forwarded below, its API. One origin means the browser never talks to opencode directly or sees its password.
   app.get("/_study/state", async () => decorate(session.view()));
@@ -199,13 +224,15 @@ export async function buildApp(cfg: ServerConfig) {
             return reply.code(403).send({ error: "not available in this study" });
           }
         },
-        replyOptions: { rewriteRequestHeaders: (_req, headers) => auth(headers) },
+        // The chat is a server-sent event stream; a reverse proxy in front must not hold it back.
+        replyOptions: { rewriteRequestHeaders: (_req, headers) => auth(headers), rewriteHeaders: (headers) => ({ ...headers, "x-accel-buffering": "no" }) },
         wsClientOptions: { rewriteRequestHeaders: (headers: Record<string, unknown>) => auth(headers) },
       });
     }
   }
 
   if (cfg.staticDir && fs.existsSync(cfg.staticDir)) {
+    setBasePath(cfg.staticDir, cfg.basePath ?? "/");
     // opencode's web app installs a service worker that caches the whole app, so a browser would keep showing an
     // older study build (an earlier session on the same address). This one replaces it: it clears the caches,
     // unregisters itself and reloads the open pages, which then load the current build from the server.

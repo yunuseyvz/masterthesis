@@ -12,8 +12,8 @@ analyses of those outcomes, not four research questions.
 - **N = 30**, five per counterbalancing group (0–5), run in that order by `study-harness/scripts/run-session.sh`.
 - Per person: 6 measured features, 2 per regime (BATCH, MILESTONE, NON_MILESTONE), in each regime one Correct and one
   Flawed. The practice feature (`US0`) is not analysed.
-- **180 trials, 720 understanding items** (4 per trial, one per subtask). Of the items, 180 ask about the milestone
-  subtask, **60 per regime**.
+- **180 trials, 900 understanding items** (5 per trial, one per role: open case, dependency, flaw, interplay,
+  emergent; `shared/src/schema.ts`, `ItemRole`). The open-case item is the milestone item: 180, **60 per regime**.
 - Source: `exports/trials.csv`, one row per trial (columns: `docs/harness/telemetry.md` §4).
 
 | Counts at N = 30 | BATCH | MILESTONE | NON_MILESTONE |
@@ -30,7 +30,10 @@ Decided before the data are seen:
 - A person who fails the attention check (pre-survey) is excluded and replaced: the next session gets the same group
   and round again (`--group`, `--round`).
 - A session that does not reach Finish writes no `trials.csv` rows; the slot is re-run automatically.
-- No trial-level exclusions. Times are not trimmed.
+- Two trial-level exclusions, both about the condition actually played: a trial whose feature the agent left
+  unfinished (`featureComplete` false), and a pause regime whose pause the agent never reached (`pauseMissed` true;
+  the review then came at the end of its turn). The harness reminds the agent twice, hidden from the participant,
+  before it gives up. Excluded trials are reported per regime. Times are not trimmed.
 
 ## 3. Hypotheses and models
 
@@ -41,8 +44,8 @@ Holm-corrected; α = .05, two-sided.
 
 ### H1 (primary): understanding of the milestone
 
-> After a pause at the milestone, people answer the item about the milestone subtask more often correctly than after
-> a review at the end (H1a) or a pause elsewhere (H1b).
+> After a pause at the milestone, people answer the milestone item (how the milestone settled the case the story
+> leaves open) more often correctly than after a review at the end (H1a) or a pause elsewhere (H1b).
 
 Item level, binomial (logit):
 
@@ -53,9 +56,15 @@ correct ~ regime * item_type + position + (1 | participant) + (1 | feature) + (1
 `item_type` is milestone / other, with milestone as reference. Then `regimeBATCH` and `regimeNON_MILESTONE` are the
 two contrasts on milestone items. Reported as odds ratios with 95 % CIs and as shares correct.
 
-**Exploratory: the milestone, or just having looked at it?** A pause also helps the item about the paused subtask
-when that subtask is not the milestone (NON_MILESTONE). `correct ~ reviewed * item_type + …` separates the
-"reviewed this subtask" effect from the "milestone" effect.
+**Exploratory: the milestone, or just having looked at it?** A pause also helps an item about the paused subtask
+when that subtask is not the milestone (NON_MILESTONE). An item's subtask is the one whose code decides its answer
+(`uK_step`). `correct ~ reviewed * item_type + …` separates the "reviewed this subtask" effect from the "milestone"
+effect.
+
+**Exploratory: what builds on the milestone.** The dependency item asks what later code relies on in the milestone's
+decision. It is not part of H1: the code that decides its answer is usually written after the milestone, so a
+NON_MILESTONE pause after that subtask shows it, and a MILESTONE pause cannot. Reported as shares correct per regime
+and role, and as `correct ~ regime + position + (1 | participant) + (1 | feature)` on the dependency items alone.
 
 ### H2 (secondary): fault detection
 
@@ -81,8 +90,14 @@ real effect and misses a real one; unless the design changes, H2 is reported as 
 
 > A pause elsewhere raises confidence without raising understanding.
 
-Per item, overconfidence = confidence (50–100) − 100 × correct. Linear mixed model with the same terms as H1
-(`lmerTest`, Satterthwaite df). Also reported: mean confidence and share correct per regime × item type.
+Per item, overconfidence = confidence − 100 × correct. Confidence runs from 25 % to 100 % (25, 40, 55, 70, 85, 100):
+with four options per item 25 % is guessing, so someone who guesses and says so scores about 0. Linear mixed model with
+the same terms as H1 (`lmerTest`, Satterthwaite df). Also reported: mean confidence and share correct per regime × item
+type.
+
+**Exploratory: calibration beyond the mean.** Overconfidence only shows the level of confidence, not whether people know
+when they have not understood something. Per regime: the Brier score and the resolution (AUROC of confidence for a
+correct answer, pooled over people).
 
 ### H4 (secondary): reversals
 

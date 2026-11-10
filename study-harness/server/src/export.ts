@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { UNDERSTANDING_ITEMS, type SessionBundle, type TrialResult } from "@beacon/shared";
+import { MILESTONE_ROLES, UNDERSTANDING_ITEMS, type SessionBundle, type TrialResult } from "@beacon/shared";
 import type { StudyEvent } from "./machine.js";
 
 /** Appends each event to a JSONL file with fsync, so a crash loses at most the in-flight event. */
@@ -20,15 +20,19 @@ const CSV_COLUMNS: (keyof TrialResult)[] = [
   "flawRegionMsStage1", "flawRegionSeenStage1", "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1",
   "stage2ProbeLatencyMs", "terminalCommandsProbe", "probeAnswer", "probeCorrect", "finalReviewMs", "changesViewMsFinal",
   "hunksFinal", "hunksViewedFinal", "flawRegionMsFinal", "flawRegionSeenFinal", "unfocusedMsFinal", "idleMsFinal",
-  "understandingScore", "paas",
+  "featureComplete", "pauseMissed", "understandingScore", "paas",
 ];
 
-/** Per-item understanding columns (item k asks about agent step k): u1_answer, u1_correct, u1_confidence, u1_milestone, u1_ms, u1_changes, ... */
+/**
+ * Per-item understanding columns, in the order the items were asked: u1_answer, u1_correct, u1_confidence, u1_role,
+ * u1_step (the agent step whose code decides it), u1_milestone (a milestone item, see MILESTONE_ROLES), u1_ms, u1_changes, ...
+ */
 const ITEM_COLUMNS = (n: number) =>
-  Array.from({ length: n }, (_, k) => ["answer", "correct", "confidence", "milestone", "ms", "changes"].map((c) => `u${k + 1}_${c}`)).flat();
+  Array.from({ length: n }, (_, k) => ["answer", "correct", "confidence", "role", "step", "milestone", "ms", "changes"].map((c) => `u${k + 1}_${c}`)).flat();
 const itemValues = (t: TrialResult) =>
   t.understandingAnswers.flatMap((a, k) => [
-    a, t.understandingCorrects[k], t.understandingConfidences[k], k + 1 === t.milestoneStep, t.understandingItemMs[k], t.understandingAnswerChanges[k],
+    a, t.understandingCorrects[k], t.understandingConfidences[k], t.understandingRoles[k], t.understandingSteps[k],
+    MILESTONE_ROLES.includes(t.understandingRoles[k]!), t.understandingItemMs[k], t.understandingAnswerChanges[k],
   ]);
 
 export function writeBundle(exportDir: string, bundle: SessionBundle) {

@@ -107,6 +107,12 @@ const gradeable = (outcome: string | null | undefined): outcome is string => typ
 const RESUME = "The user has reviewed this step. Continue with the next step.";
 /** The held checkpoint's answer after a rejection: the agent asks, the participant answers in the composer. */
 const RESUME_REJECTED = "The user has rejected this step. Ask them in one short sentence what they want changed, then end your turn and wait for their answer.";
+/** Hidden from the participant: sent when the agent ended its turn with files of the feature still unwritten. */
+const GO_ON = "The feature is not finished yet. Do not ask anything: continue with the remaining steps as planned, then end your turn as usual.";
+/** Hidden from the participant: sent when the agent ended its turn before the step the review pauses at was done. */
+const GO_ON_TO_PAUSE = "You stopped before the feature is finished. Do not ask anything: go on where you stopped, with the review_checkpoint call after each of steps 1 to 3 as planned.";
+/** How often the agent is sent one of the two for one trial before the review shows the feature as it is. */
+const GO_ON_TRIES = 2;
 /** When the agent has already finished (BATCH): the participant's rejection, sent for them like the approval. */
 const REJECT_MESSAGE = "I'm rejecting this.";
 
@@ -116,7 +122,7 @@ export interface AgentDeps {
   workRoot: string;
   sandbox: SandboxOptions;
   /** The model endpoint (it adds each trial's Drehbuch) and the agent's checkpoint tool. */
-  endpoint: Pick<LiveEndpoint, "load" | "mainTexts">;
+  endpoint: Pick<LiveEndpoint, "load" | "endPlanning">;
   checkpoints: Pick<CheckpointServer, "setHandler">;
 }
 
@@ -147,6 +153,10 @@ interface CurrentTrial {
   reviewed?: boolean;
   /** The agent is fixing the scored step after feedback; its next checkpoint call for that step ends the fix. */
   fixing?: boolean;
+  /** Whether the agent wrote every file of the feature (see complete); false: the trial is flagged. */
+  complete?: boolean;
+  /** The agent ended its turn before the pause the regime asks for (see approvePlan). */
+  pauseMissed?: boolean;
   /** Feedback phase: the one composer message has been sent. */
   answered?: boolean;
   /** The project at the last accepted checkpoint (at first: as the trial started); a step's changes are measured from it. */
@@ -157,8 +167,6 @@ interface CurrentTrial {
 
 /** Failed step checks after which a step is accepted anyway, so that a session never hangs on it. */
 const STEP_CHECK_TRIES = 2;
-/** Plans in which a design decision shows (see StudySession.setUp) before the last one is kept anyway. */
-const PLAN_TRIES = 3;
 
 /**
  * Server-authoritative study flow. The client renders `view()` and posts actions; variant, regime and ground truth
@@ -327,15 +335,16 @@ export class StudySession {
 
   /**
    * One agent turn: the agent works until its turn ends or it reaches the scored checkpoint (then the turn stays open
-   * in `running`); then `after` sets the next phase.
+   * in `running`); then `after` sets the next phase. `hidden`: the message that starts the turn is one the participant
+   * does not see (AgentHost.nudge).
    */
-  private async turn(text: string, agent: string | undefined, after: () => void) {
+  private async turn(text: string, agent: string | undefined, after: () => void, hidden = false) {
     const c = this.current!;
     this.phase = "working";
     const started = this.now();
     // Listening for the pause before the turn starts: the agent may reach the checkpoint right away.
     const paused = new Promise<"paused">((resolve) => (c.onPause = () => resolve("paused")));
-    const run = this.deps.agent.runTurn(c.sessionId, text, agent);
+    const run = hidden ? this.deps.agent.nudge(c.sessionId, text) : this.deps.agent.runTurn(c.sessionId, text, agent);
     const outcome = await Promise.race([run.then(() => "done" as const), paused]);
     c.onPause = undefined;
     c.running = outcome === "paused" ? run : undefined;
@@ -361,7 +370,7 @@ export class StudySession {
    * What the agent's checkpoint call does. Steps before the scored review are committed (so the changes view
    * shows only the step under review); the scored step's call is held until the participant has reviewed it.
    */
-  private async checkpoint(c: CurrentTrial, step: number, summary: string): Promise<string> {
+  private async checkpoint(c: CurrentTrial, step: number): Promise<string> {
     // A step must be complete before it counts (see checkStep). Not the fix after a rejection: it changes what the
     // participant asked for, not the step's files.
     if (this.current === c && c.building === true && this.phase === "working" && step >= 1 && step <= 3 && !(c.reviewed && step === c.pauseStep)) {
@@ -369,10 +378,7 @@ export class StudySession {
       if (failed) return failed;
     }
     const ok = this.current === c && c.building === true && this.phase === "working";
-    // The summary is shown in the chat: one that states a design decision is logged (it cannot be taken back).
-    const leaked = this.story.def.planLeaks.map((p) => summary.match(new RegExp(p, "i"))?.[0]).filter((m): m is string => !!m);
-    if (ok && leaked.length) this.log("live_summary_leak", { trial: this.trial.position, step, found: leaked });
-    this.log("live_checkpoint", { trial: ok ? this.trial.position : null, step, summary, pauseStep: c.pauseStep, held: ok && this.trial.regime !== "BATCH" && step === c.pauseStep && !c.reviewed && c.release === undefined && !c.finished });
+    this.log("live_checkpoint", { trial: ok ? this.trial.position : null, step, pauseStep: c.pauseStep, held: ok && this.trial.regime !== "BATCH" && step === c.pauseStep && !c.reviewed && c.release === undefined && !c.finished });
     if (!ok || this.trial.regime === "BATCH") return CONTINUE;
     if (step > c.pauseStep) {
       if (c.fixing) this.log("live_fix_unmarked", { trial: this.trial.position, step }); // the fix went on without its checkpoint call
@@ -412,7 +418,7 @@ export class StudySession {
     const owners = story.fileSteps();
     const missing = [...owners].filter(([f, n]) => n === step && !changed(f)).map(([f]) => f);
     const early = [...owners].filter(([f, n]) => n > step && now.get(f) !== story.files().get(f)).map(([f]) => f);
-    const outcome = await runProbe(now, story.probeScript(story.def.probes[step - 1]!));
+    const outcome = await runProbe(now, story.probeScript(story.def.probes[step - 1]!), undefined, this.deps.sandbox);
     const runs = gradeable(outcome);
     const passed = missing.length === 0 && early.length === 0 && runs;
     const fails = (c.stepFails ??= new Map()).get(step) ?? 0;
@@ -432,13 +438,58 @@ export class StudySession {
   }
 
   /**
+   * A pause regime whose agent ended its turn before the scored checkpoint (it stopped between two steps, or did not
+   * call the checkpoint): as long as no later step has been written, the pause can still happen where it belongs, so
+   * the agent is sent GO_ON_TO_PAUSE, which the participant does not see, up to GO_ON_TRIES times. Otherwise, and if
+   * that does not help, the pause is missed (`pauseMissed`).
+   */
+  private async toPause(c: CurrentTrial) {
+    const story = this.story;
+    for (let tries = 0; !c.running && tries < GO_ON_TRIES; tries++) {
+      const now = readWorkspace(c.dir, this.deps.sandbox);
+      const later = [...story.fileSteps()].filter(([f, n]) => n > c.pauseStep && now.get(f) !== story.files().get(f)).map(([f]) => f);
+      if (later.length > 0) return;
+      this.log("live_pause_go_on", { trial: this.trial.position, pauseStep: c.pauseStep, attempt: tries + 1 });
+      await this.turn(GO_ON_TO_PAUSE, undefined, () => {}, true);
+    }
+  }
+
+  /**
+   * Makes sure the agent finished the feature before it is shown as finished: every file the reference
+   * implementation writes has changed. An agent that stopped early (for example by asking again after the
+   * participant's one answer) is sent GO_ON, which the participant does not see, up to GO_ON_TRIES times; if files
+   * are still missing, the trial is flagged (`featureComplete` false, `live_incomplete`).
+   */
+  private async complete(c: CurrentTrial) {
+    const original = this.story.files();
+    for (let tries = 0; ; tries++) {
+      const now = readWorkspace(c.dir, this.deps.sandbox);
+      const missing = [...this.story.fileSteps().keys()].filter((f) => now.get(f) === undefined || now.get(f) === original.get(f));
+      if (missing.length === 0) {
+        c.complete = true;
+        return;
+      }
+      if (tries >= GO_ON_TRIES) {
+        c.complete = false;
+        this.log("live_incomplete", { trial: this.trial.position, missing });
+        return;
+      }
+      this.log("live_go_on", { trial: this.trial.position, missing, attempt: tries + 1 });
+      this.phase = "working";
+      const started = this.now();
+      await this.deps.agent.nudge(c.sessionId, GO_ON);
+      this.log("agent_turn", { trial: this.trial.position, text: GO_ON, ms: this.now() - started, outcome: "done" });
+    }
+  }
+
+  /**
    * The understanding items' answer key, from running their script on the code as the agent finished it (fix
    * included); the items are answered about that code.
    */
   private async key() {
     const c = this.current!;
     // Some items run the agent's own tests (twice), hence the longer limit.
-    const raw = await runProbe(readWorkspace(c.dir, this.deps.sandbox), this.story.understandingScript(), 60_000);
+    const raw = await runProbe(readWorkspace(c.dir, this.deps.sandbox), this.story.understandingScript(), 60_000, this.deps.sandbox);
     let key: (string | null)[] = [];
     try {
       key = raw === null ? [] : (JSON.parse(raw) as (string | null)[]);
@@ -475,29 +526,20 @@ export class StudySession {
   private async setUp(idx: number): Promise<CurrentTrial> {
     const t = this.allTrials[idx]!;
     const story = this.loadStory(t.story);
-    const leaks = story.def.planLeaks.map((p) => new RegExp(p, "i"));
-    for (let attempt = 1; ; attempt++) {
-      const dir = createTrialWorkspace(this.deps.workRoot, `${String(t.position).padStart(2, "0")}-${t.story}`, story.files(), this.deps.sandbox);
-      // The real model plays the agent from the Drehbuch; its checkpoint calls make the steps and the pause.
-      const c: CurrentTrial = { sessionId: "", dir, pauseStep: story.pauseStep(t.regime, t.pauseDraw), planMs: 0, finished: false };
-      const mainThread = threadKey({ messages: [{ role: "user", content: story.brief }], tools: [{}] }, dir);
-      this.deps.endpoint.load({ workspaceDir: dir, mainThread, drehbuch: story.drehbuch(t.variant), trial: t.position });
-      this.deps.checkpoints.setHandler((step, summary) => this.checkpoint(c, step, summary));
-      const started = this.now();
-      this.log("trial_prepare", { position: t.position, story: t.story, attempt });
-      c.sessionId = (await this.deps.agent.startSession({ dir, title: story.def.title, agent: "plan" })).id;
-      // The participant's request, as if already sent; the agent answers in plan mode with its plan.
-      await this.deps.agent.runTurn(c.sessionId, story.brief, "plan");
-      this.log("agent_turn", { trial: t.position, text: story.brief, ms: this.now() - started, outcome: "done", prepared: true });
-      // The plan must not state a design decision: the participant would see it before the code. Planning runs in the
-      // background, so planning again costs the participant nothing (unless they are faster than the agent).
-      const plan = this.deps.endpoint.mainTexts().join("\n");
-      const found = leaks.filter((re) => re.test(plan)).map((re) => plan.match(re)![0]);
-      if (found.length === 0) return c;
-      this.log("live_plan_leak", { trial: t.position, attempt, found, kept: attempt >= PLAN_TRIES });
-      if (attempt >= PLAN_TRIES) return c;
-      await this.deps.agent.deleteSession(c.sessionId);
-    }
+    const dir = createTrialWorkspace(this.deps.workRoot, `${String(t.position).padStart(2, "0")}-${t.story}`, story.files(), this.deps.sandbox);
+    // The real model plays the agent from the Drehbuch; its checkpoint calls make the steps and the pause.
+    const c: CurrentTrial = { sessionId: "", dir, pauseStep: story.pauseStep(t.regime, t.pauseDraw), planMs: 0, finished: false };
+    const mainThread = threadKey({ messages: [{ role: "user", content: story.brief }], tools: [{}] }, dir);
+    this.deps.endpoint.load({ workspaceDir: dir, mainThread, drehbuch: story.drehbuch(t.variant), publicPlan: story.publicPlan, leaks: story.def.planLeaks, steps: story.def.steps.map((s) => s.summary), trial: t.position });
+    this.deps.checkpoints.setHandler((step) => this.checkpoint(c, step));
+    const started = this.now();
+    this.log("trial_prepare", { position: t.position, story: t.story });
+    c.sessionId = (await this.deps.agent.startSession({ dir, title: story.def.title, agent: "plan" })).id;
+    // The participant's request, as if already sent; the agent looks through the project in plan mode, and the plan it
+    // answers with is the story's public plan (see LiveEndpoint).
+    await this.deps.agent.runTurn(c.sessionId, story.brief, "plan");
+    this.log("agent_turn", { trial: t.position, text: story.brief, ms: this.now() - started, outcome: "done", prepared: true });
+    return c;
   }
 
   private async startTrial() {
@@ -538,7 +580,7 @@ export class StudySession {
 
     const story = this.story;
     if (this.showCondition) base.debugTag = `${REGIME_LETTER[this.trial.regime]}·${this.trial.variant === "Flawed" ? "F" : "C"}`;
-    base.story = { title: story.def.title, brief: story.brief, project: story.def.project, plan: story.def.steps.map((s) => ({ n: s.n, summary: s.summary })) };
+    base.story = { title: story.def.title, brief: story.brief, project: story.def.project };
     base.agentSessionId = this.current.sessionId;
     base.finished = this.current.finished;
 
@@ -592,15 +634,19 @@ export class StudySession {
         c.planMs = this.now() - this.shownAt;
         this.log("plan_approved", { trial: this.trial.position, ms: c.planMs });
         c.building = true;
-        await this.turn(APPROVE, "build", () => {
-          c.finished = this.trial.regime === "BATCH" || !c.running;
-          // The agent ended its turn without reaching the scored checkpoint; the review shows what it did.
-          if (!c.running && this.trial.regime !== "BATCH") this.log("live_pause_missed", { trial: this.trial.position, pauseStep: c.pauseStep });
-          this.phase = "stage1";
-          this.shownAt = this.now();
-          this.log("review_shown", { trial: this.trial.position, pauseStep: c.pauseStep });
-          this.openWindow("stage1", true);
-        });
+        this.deps.endpoint.endPlanning();
+        await this.turn(APPROVE, "build", () => {});
+        if (this.trial.regime !== "BATCH") await this.toPause(c);
+        c.finished = this.trial.regime === "BATCH" || !c.running;
+        // The agent ended its turn without reaching the scored checkpoint; the review shows what it did.
+        c.pauseMissed = !c.running && this.trial.regime !== "BATCH";
+        if (c.pauseMissed) this.log("live_pause_missed", { trial: this.trial.position, pauseStep: c.pauseStep });
+        // BATCH reviews the finished feature, so it must be finished.
+        if (this.trial.regime === "BATCH") await this.complete(c);
+        this.phase = "stage1";
+        this.shownAt = this.now();
+        this.log("review_shown", { trial: this.trial.position, pauseStep: c.pauseStep });
+        this.openWindow("stage1", true);
         break;
       }
 
@@ -612,7 +658,7 @@ export class StudySession {
         // The behaviour question is about the code under review as it is now; its options must contain what this
         // code does, so the outcome is computed before the question is shown.
         const probe = this.probe;
-        c.probeOutcome = await runProbe(readWorkspace(c.dir, this.deps.sandbox), this.story.probeScript(probe));
+        c.probeOutcome = await runProbe(readWorkspace(c.dir, this.deps.sandbox), this.story.probeScript(probe), undefined, this.deps.sandbox);
         c.probeOptions = adaptOptions(probe.options, [probe.options.indexOf(probe.expected.Correct), probe.options.indexOf(probe.expected.Flawed)], c.probeOutcome);
         this.log("live_probe", { trial: this.trial.position, outcome: c.probeOutcome, options: c.probeOptions });
         this.openWindow("probe", false); // the behaviour question: running the code to check is expected here
@@ -689,6 +735,7 @@ export class StudySession {
             commitWorkspace(c.dir, story.def.steps[c.pauseStep - 1]!.summary, this.deps.sandbox);
             await this.resume(RESUME);
           }
+          await this.complete(c);
           await this.key();
           this.toReviewing();
         }
@@ -723,7 +770,11 @@ export class StudySession {
         const options = this.current!.understandingOptions!;
         const corrects = canonical.map((c, k) => gradeable(key![k]) && options[k]![c] === key![k]);
         const result: TrialResult = {
-          ...(this.pending as Omit<TrialResult, "understandingAnswers" | "understandingCorrects" | "understandingConfidences" | "understandingScore" | "paas" | "understandingItemMs" | "understandingAnswerChanges">),
+          ...(this.pending as Omit<TrialResult, "featureComplete" | "understandingRoles" | "understandingSteps" | "understandingAnswers" | "understandingCorrects" | "understandingConfidences" | "understandingScore" | "paas" | "understandingItemMs" | "understandingAnswerChanges">),
+          featureComplete: this.current!.complete !== false,
+          pauseMissed: this.current!.pauseMissed === true,
+          understandingRoles: this.story.def.understanding.items.map((it) => it.role),
+          understandingSteps: this.story.def.understanding.items.map((it) => it.step),
           understandingAnswers: canonical,
           understandingCorrects: corrects,
           understandingConfidences: action.confidences,
@@ -797,6 +848,7 @@ export class StudySession {
     void (async () => {
       await this.deps.agent.waitIdle(c.sessionId);
       this.log("agent_turn", { trial: this.trial.position, text, ms: this.now() - started, outcome: "done" });
+      await this.complete(c);
       await this.key();
       this.toReviewing();
     })().catch((err) => this.log("server_error", { message: String(err) }));

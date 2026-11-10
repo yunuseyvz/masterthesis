@@ -1,0 +1,22 @@
+model_list:
+  - model_name: study-chat
+    litellm_params:
+      model: openai/deepseek-v4.1-flash
+      api_base: https://opencode.ai/zen/go/v1
+      api_key: os.environ/STUDY_UPSTREAM_KEY
+      # OpenCode Go, DeepSeek V4.1 Flash, peak prices. Without them spend stays 0 and no budget ever applies.
+      input_cost_per_token: 0.0000003
+      output_cost_per_token: 0.0000012
+      cache_read_input_token_cost: 0.000000006
+      extra_headers:
+        User-Agent: beacon-study-agent/1.0
+litellm_settings:
+  drop_params: true
+  model_group_settings:
+    forward_client_headers_to_llm_api:
+      - study-chat
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/LITELLM_DATABASE_URL
+  # true keeps every prompt in LiteLLM's database: the Drehbuch and the participants' text. Only for debugging.
+  store_prompts_in_spend_logs: false

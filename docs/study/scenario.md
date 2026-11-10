@@ -20,19 +20,19 @@ group 0 (6 mod 6) and round 1 (one earlier group-0 session, P01's). Group 0
 fixes the order and conditions; round 1 makes their NON_MILESTONE pauses the other candidate subtask than P01's.
 
 **Before (≈ 8 min).** Consent, demographics, NCS-6 with the attention check, S-TIAS. Then the practice feature
-(`US0`, greeting formatter): plan, approve, pause after subtask 2, accept, behaviour question, the rest, four
+(`US0`, greeting formatter): plan, approve, pause after subtask 2, accept, behaviour question, the rest, five
 understanding questions. Nothing of it is analysed.
 
 **Six features (≈ 7 min each).**
 
 | # | Feature | Condition | What P07 reviews before deciding | Decision (→ after the behaviour question) | Understanding |
 |---|---|---|---|---|---|
-| 1 | US1 Flash-sale reservation | BATCH · correct | all four subtasks, 162 lines | accept | 3/4 |
-| 2 | US2 Payment webhook | MILESTONE · correct | subtask 3, deduplication and retry | reject (a false alarm) | 4/4 |
-| 3 | US6 Coupons | NON_MILESTONE · **flawed** | subtask 3, the order summary; the flaw is in subtask 1 | reject | 3/4 |
-| 4 | US3 Tenant configuration | NON_MILESTONE · correct | subtask 3, the quota checks | accept | 4/4 |
-| 5 | US5 Rate limiter | MILESTONE · **flawed** | subtask 3, the sliding-window check, with the flaw in it | reject | 4/4 |
-| 6 | US4 SLA credits | BATCH · **flawed** | all four subtasks, 352 lines | accept → **reject** | 3/4 |
+| 1 | US1 Flash-sale reservation | BATCH · correct | all four subtasks, 162 lines | accept | 5/5 |
+| 2 | US2 Payment webhook | MILESTONE · correct | subtask 3, deduplication and retry | accept | 4/5 |
+| 3 | US6 Coupons | NON_MILESTONE · **flawed** | subtask 3, the order summary; the flaw is in subtask 1 | reject | 4/5 |
+| 4 | US3 Tenant configuration | NON_MILESTONE · correct | subtask 3, the quota checks | accept | 4/5 |
+| 5 | US5 Rate limiter | MILESTONE · **flawed** | subtask 3, the sliding-window check, with the flaw in it | reject | 4/5 |
+| 6 | US4 SLA credits | BATCH · **flawed** | all four subtasks, 352 lines | accept → **reject** | 4/5 |
 
 Things to notice:
 
@@ -40,8 +40,9 @@ Things to notice:
   the flaw; `flawStepReviewed = false` marks this.
 - In trial 6 the behaviour question asks about the flaw subtask (BATCH always does), and running the code changes
   the decision. That is one reversal.
-- The milestone item in trial 5 (subtask 3) is right and answered with 93 % confidence; in trial 6 (BATCH, milestone
-  subtask 1) it is wrong at 50 %.
+- Each feature has one milestone item, about the case its milestone settled. P07 gets all six right, with 55 % to
+  85 % confidence. The other four items per feature (what builds on the milestone, the flaw, how two subtasks work
+  together, a decision the agent made on its own) are not part of H1.
 
 **After (≈ 3 min).** Ranking of "review at the end" vs. "pause partway", debrief, Finish. P07 leaves one JSON bundle,
 an event log, a screen recording and six rows in `trials.csv`:
@@ -73,20 +74,42 @@ such study (seed 7):
 ```
 == Understanding: share correct (regime x item type)
               milestone other
-MILESTONE            58    71
-BATCH                60    72
-NON_MILESTONE        60    74
+MILESTONE            77    72
+BATCH                63    67
+NON_MILESTONE        67    72
 
 == H1 (primary): milestone items
-                    contrast log_odds odds_ratio      z     p p_holm
-1         MILESTONE vs BATCH  -0.0775      0.925 -0.198 0.843      1
-2 MILESTONE vs NON_MILESTONE  -0.0765      0.926 -0.195 0.845      1
+                    contrast log_odds odds_ratio    z      p p_holm
+1         MILESTONE vs BATCH    0.729       2.07 1.70 0.0894  0.179
+2 MILESTONE vs NON_MILESTONE    0.573       1.77 1.33 0.1850  0.185
+
+== Exploratory: milestone or just reviewed? (items, all regimes)
+                        Estimate Std. Error z value Pr(>|z|)
+reviewed                 0.65503     0.3802   1.723   0.0849
+item_typeother           0.19866     0.2925   0.679   0.4970
+position_c              -0.00798     0.0452  -0.177   0.8599
+reviewed:item_typeother -0.21279     0.4490  -0.474   0.6356
+
+== Exploratory: share correct by item role
+              dependency emergent flaw interplay open-case
+MILESTONE             68       78   65        75        77
+BATCH                 67       55   68        77        63
+NON_MILESTONE         75       72   70        72        67
+
+== Exploratory: what builds on the milestone (dependency items)
+                    Estimate Std. Error z value Pr(>|z|)
+regimeBATCH          -0.0789      0.421  -0.187    0.851
+regimeNON_MILESTONE   0.3655      0.434   0.843    0.399
+position_c           -0.0650      0.103  -0.631    0.528
 
 == H2: fault detection (initial decision)
          regime dprime criterion
-1     MILESTONE  0.465     0.559
-2         BATCH  0.925     1.198
-3 NON_MILESTONE  1.404     1.401
+1     MILESTONE  1.444     1.052
+2         BATCH  0.929     1.036
+3 NON_MILESTONE  0.547     0.654
+                       contrast difference     z      p p_holm
+1         d' MILESTONE vs BATCH      0.514 0.969 0.3324  0.332
+2 d' MILESTONE vs NON_MILESTONE      0.897 1.727 0.0841  0.168
 
 Only reviews that contained the flaw subtask:
                variant
@@ -94,39 +117,66 @@ regime          Correct Flawed
   MILESTONE          15     15
   BATCH              30     30
   NON_MILESTONE       8      7
+         regime dprime criterion
+1     MILESTONE  1.635     0.933
+2         BATCH  0.869     0.979
+3 NON_MILESTONE  0.867     0.668
+
+== H3: confidence vs correctness (overconfidence = confidence - correct, in points)
+              milestone other
+MILESTONE           5.1   9.1
+BATCH              11.9   6.9
+NON_MILESTONE      12.1   8.3
+                    Estimate Std. Error  df t value Pr(>|t|)
+regimeBATCH             6.83       7.61 859   0.898    0.369
+regimeNON_MILESTONE     7.00       7.61 859   0.920    0.358
+
+Exploratory: Brier score (0 is best) and resolution (AUROC of confidence for a correct answer, .5 = none)
+              brier resolution
+MILESTONE     0.203      0.591
+BATCH         0.211      0.666
+NON_MILESTONE 0.195      0.681
 
 == H4: reversals after the behaviour question
               Correct Flawed
-MILESTONE     "0/30"  "5/30"
-BATCH         "2/30"  "4/30"
-NON_MILESTONE "0/30"  "4/30"
+MILESTONE     "0/30"  "3/30"
+BATCH         "1/30"  "7/30"
+NON_MILESTONE "1/30"  "4/30"
+                    Estimate Std. Error z value Pr(>|z|)
+regimeBATCH            1.073      0.704   1.524    0.127
+regimeNON_MILESTONE    0.547      0.754   0.725    0.469
 
 == Descriptive: time (median minutes) and mental effort (Paas, mean)
               review_before_decision final_review paas
-MILESTONE                        1.9          2.1    5
-BATCH                            3.6          1.1    5
-NON_MILESTONE                    1.6          2.2    5
+MILESTONE                        1.6          2.2    5
+BATCH                            3.7          1.1    5
+NON_MILESTONE                    1.7          2.1    5
+
+Final decision correct (reject flawed, accept correct): MILESTONE 72 %, BATCH 72 %, NON_MILESTONE 62 %
 ```
 
-**This study finds nothing, although the effect is there.** Milestone items come out at 58 % after a milestone pause
-and 60 % otherwise. With 600 instead of 30 people the same simulation gives 71 % vs. 56 % and 53 %, the assumed
-values. At N = 30, 60 milestone items per regime from 30 people and six features are too few to see an 18-point
-effect reliably; §3 says how often.
+**This study finds nothing significant, although the effect is there.** The milestone item comes out at 77 % after a
+milestone pause, against 63 % after a review at the end and 67 % after a pause elsewhere; the estimated contrasts
+have p = .09 and .19 (Holm: .18). With 600 instead of 30 people the same simulation gives 71 % vs. 56 % and 55 %, the
+assumed values. At N = 30, 60 milestone items per regime from 30 people and six features are too few to see an
+18-point effect reliably; §3 says how often.
 
 What else the run shows:
 
 - **d′ is noisy and confounded with exposure.** MILESTONE has the *lowest* d′ here although the assumed d′ is the
   highest, because half of its flawed reviews do not contain the flaw. Only the subset with `flawStepReviewed` is
   interpretable, and it has 7 flawed NON_MILESTONE trials.
-- **Reversals are rare:** 15 in 180 trials, nearly all on flawed code.
+- **Reversals are rare:** 12 in 180 trials, nearly all on flawed code.
 - **Time:** a pause halves the time before the decision but moves time to the end, as the design implies.
 - Several fits are singular (`isSingular` messages in the full output): six features are too few to estimate a
   feature variance. Expected; see `docs/study/analysis-plan.md` §4.
 
 ## 3. Power: how often does a study of this size find the effect?
 
-250 fictitious studies per row, each analysed as planned; the share with Holm-corrected p < .05
-(`analysis/scenario/power.txt`). The effect is the one on milestone items, as in §2; "none" has no effect at all.
+250 fictitious studies per row, each analysed as planned; the share with Holm-corrected p < .05. The effect is the
+one on the milestone item, as in §2; "none" has no effect at all. **The table predates the split into five items per
+trial** (it was simulated with four, one per subtask); the direction holds, the exact shares are to be re-run with the
+pilot's variances.
 
 | N | Effect on milestone items | H1a M vs B | H1b M vs N | H1 both | H2 d′ M vs B | H2 d′ M vs N |
 |---|---|---|---|---|---|---|

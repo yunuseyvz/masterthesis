@@ -8,6 +8,6 @@
    `value`), `OrderItem` and `OrderSummary` (`items`, `subtotalCents`, `discountCents`, `totalCents`, `coupon?`);
    `discountFor` takes a `Coupon`.
 3. The order summary calculator in `src/lib/pricing/order.ts`: `summarizeOrder(catalog, order, coupon?)` totals the
-   order's items (with `getProduct` and `orderSubtotal` from the existing modules) and applies the coupon to the
-   subtotal.
+   order's items (with `getProduct` and `orderSubtotal` from the existing modules) and applies the coupon once, to the
+   subtotal, not to each item.
 4. Unit tests in `test/pricing.test.ts`, a README section, then `npm test`.

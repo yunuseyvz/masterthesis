@@ -28,7 +28,7 @@ export interface ViewState {
   debugTag?: string;
   /** Features started so far (the sidebar). */
   sessions: { trial: number; title: string; project: string }[];
-  story?: { title: string; brief: string; project: string; plan: { n: number; summary: string }[] };
+  story?: { title: string; brief: string; project: string };
   /** This trial's session in opencode; the agent UI opens it (the study page and opencode share one origin). */
   agentSessionId?: string;
   /** True once the agent has written the whole feature (after the scored review, or at the review for BATCH). */
@@ -83,7 +83,7 @@ export const Action = z.discriminatedUnion("type", [
     type: z.literal("understanding"),
     /** Index into the displayed options, one entry per item. */
     answers: z.array(z.number().int().min(0).max(3)).length(UNDERSTANDING_ITEMS),
-    /** Confidence in each answer, 50-100 %. */
+    /** Confidence in each answer, 25-100 %. */
     confidences: z.array(Confidence).length(UNDERSTANDING_ITEMS),
     /** Paas mental-effort scale for this feature, 1-9. */
     paas: Scale(9),

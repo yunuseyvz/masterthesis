@@ -1,7 +1,20 @@
 import { z } from "zod";
 
-/** Understanding questions per story (the main outcome): one per agent step, in step order. */
-export const UNDERSTANDING_ITEMS = 4;
+/** Understanding questions per story (the main outcome), one per role (ItemRole), listed in the order of their steps. */
+export const UNDERSTANDING_ITEMS = 5;
+
+/**
+ * What an understanding item asks about. open-case: how the milestone settled the case the story leaves open, the
+ * milestone item of H1; dependency: what code written later relies on in that decision; flaw: the behaviour the flaw
+ * changes (behaviour in the practice story, which has none); interplay: how two steps work together; emergent: a case
+ * neither the story nor the agent's script decides, so its answer can differ between sessions.
+ *
+ * The dependency item is not a milestone item: the code that decides its answer is usually written in a later step,
+ * so a pause after that step (NON_MILESTONE) shows it and a pause at the milestone cannot. It is analysed on its own.
+ */
+export const ItemRole = z.enum(["open-case", "dependency", "flaw", "behaviour", "interplay", "emergent"]);
+export type ItemRole = z.infer<typeof ItemRole>;
+export const MILESTONE_ROLES: readonly ItemRole[] = ["open-case"];
 
 /**
  * BATCH: review once at the end (reference). MILESTONE: pause after the step that meets the milestone criterion.
@@ -19,8 +32,12 @@ export type StoryId = z.infer<typeof StoryId>;
 export const Decision = z.enum(["accept", "reject"]);
 export type Decision = z.infer<typeof Decision>;
 
-/** Confidence that an answer is right, 50 % (guessing between two) to 100 %, in steps of 10. */
-export const Confidence = z.number().int().min(50).max(100).refine((n) => n % 10 === 0, "steps of 10");
+/**
+ * Confidence that an answer is right, from 25 % (guessing: every question has four options) to 100 %. A scale that
+ * starts above chance would count guessing as overconfidence.
+ */
+export const CONFIDENCE_LEVELS: readonly number[] = [25, 40, 55, 70, 85, 100];
+export const Confidence = z.number().int().refine((n) => CONFIDENCE_LEVELS.includes(n), "a level of the confidence scale");
 
 /** Oversight styles participants can tell apart; MILESTONE and NON_MILESTONE both look like a pause. */
 export const Style = z.enum(["END", "PAUSE"]);
@@ -115,10 +132,20 @@ export const TrialResult = z.object({
   /** Live trials with a final rejection: what the participant told the agent to change, and how long writing it took. */
   feedback: z.string().optional(),
   feedbackMs: z.number().nonnegative().optional(),
+  /**
+   * Whether the agent wrote the whole feature before the final review (after up to two hidden reminders). False: the
+   * understanding items were asked about an unfinished feature, and the trial is excluded (analysis plan).
+   */
+  featureComplete: z.boolean(),
+  /** A pause regime whose pause the agent never reached: the review came at the end of its turn instead. */
+  pauseMissed: z.boolean(),
+  /** Each understanding item's role, and the agent step (1-4) whose code decides its answer (from the trial). */
+  understandingRoles: z.array(ItemRole).length(UNDERSTANDING_ITEMS),
+  understandingSteps: z.array(z.number().int().min(1).max(4)).length(UNDERSTANDING_ITEMS),
   /** Canonical option index chosen for each understanding item. */
   understandingAnswers: z.array(z.number().int().min(0).max(3)).length(UNDERSTANDING_ITEMS),
   understandingCorrects: z.array(z.boolean()).length(UNDERSTANDING_ITEMS),
-  /** Confidence in each understanding answer, 50-100 % in steps of 10. */
+  /** Confidence in each understanding answer, 25-100 % (CONFIDENCE_LEVELS). */
   understandingConfidences: z.array(Confidence).length(UNDERSTANDING_ITEMS),
   /** Number of correct understanding items, 0..UNDERSTANDING_ITEMS. */
   understandingScore: z.number().int().min(0).max(UNDERSTANDING_ITEMS),

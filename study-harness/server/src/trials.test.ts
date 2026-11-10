@@ -58,8 +58,8 @@ describe.each(ALL)("trial %s", (id) => {
       expect(new Set(it.options).size).toBe(4);
       expect(probeQuestions).not.toContain(it.question); // the understanding items must not repeat a stage-2 question
     }
-    // exactly the item about the flaw step depends on the defect
-    if (flawedDiffers) for (const it of items) expect(it.correct.Correct !== it.correct.Flawed).toBe(it.step === story.flawStep);
+    // exactly the flaw item depends on the defect
+    if (flawedDiffers) for (const it of items) expect(it.correct.Correct !== it.correct.Flawed, `${it.role} item`).toBe(it.role === "flaw");
   });
 
   it("understanding answers are what the code does, in both variants (verified by running it)", async () => {
@@ -94,6 +94,19 @@ describe.each(ALL)("trial %s", (id) => {
     const diff = ref.diff("Correct", 1, 4);
     expect(diff.some((d) => d.before === "")).toBe(true);
     expect(diff.some((d) => d.before !== "" && d.path === "README.md")).toBe(true);
+  });
+
+  it("the public plan names each step's files and states none of the story's design decisions", () => {
+    const plan = story.publicPlan;
+    const steps = [1, 2, 3, 4].map((n) => plan.slice(plan.indexOf(`\n${n}. `), n < 4 ? plan.indexOf(`\n${n + 1}. `) : undefined));
+    for (const [file, n] of story.fileSteps()) expect(steps[n - 1], `${file} in step ${n}`).toContain(file);
+    for (const leak of [...story.def.planLeaks, "outline", "plan mode"]) expect(plan).not.toMatch(new RegExp(leak, "i"));
+  });
+
+  // The participant reads them: as commit messages, and in place of a step's announcement that gives a decision away.
+  it("the step summaries and the title state none of the story's design decisions", () => {
+    for (const text of [story.def.title, ...story.def.steps.map((s) => s.summary)])
+      for (const leak of story.def.planLeaks) expect(text, text).not.toMatch(new RegExp(leak, "i"));
   });
 
   it("every step does something to the project", () => {

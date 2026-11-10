@@ -7,7 +7,7 @@ export const CHECKPOINT_TOOL = "review_checkpoint";
 export const CONTINUE = "Noted. Continue with the next step.";
 
 /** What the study does when the agent reports a finished step; resolves with the tool's answer to the agent. */
-export type CheckpointHandler = (step: number, summary: string) => Promise<string> | string;
+export type CheckpointHandler = (step: number) => Promise<string> | string;
 
 const TOOL = {
   name: "checkpoint",
@@ -17,9 +17,8 @@ const TOOL = {
     type: "object",
     properties: {
       step: { type: "integer", minimum: 1, maximum: 4, description: "Number of the step that is finished" },
-      summary: { type: "string", description: "One sentence: what the step changed" },
     },
-    required: ["step", "summary"],
+    required: ["step"],
   },
 };
 
@@ -90,9 +89,8 @@ export class CheckpointServer {
   private async call(msg: Rpc, res: http.ServerResponse) {
     const args = msg.params?.arguments ?? {};
     const step = Number(args.step);
-    const summary = String(args.summary ?? "");
     const started = Date.now();
-    this.log("checkpoint_call", { step, summary });
+    this.log("checkpoint_call", { step });
     res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
     const send = (m: object) => res.write(`event: message\ndata: ${JSON.stringify({ jsonrpc: "2.0", ...m })}\n\n`);
     const token = msg.params?._meta?.progressToken;
@@ -104,7 +102,7 @@ export class CheckpointServer {
     let closed = false;
     res.on("close", () => (closed = true));
     try {
-      const text = msg.params?.name !== TOOL.name ? null : Number.isInteger(step) ? await this.handler(step, summary) : "Give the step number as an integer.";
+      const text = msg.params?.name !== TOOL.name ? null : Number.isInteger(step) ? await this.handler(step) : "Give the step number as an integer.";
       if (closed) {
         this.log("checkpoint_dropped", { step, ms: Date.now() - started });
         return;

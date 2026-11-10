@@ -1,8 +1,8 @@
 {
   "id": "US2",
-  "title": "Webhook Payment Idempotency & Retry",
+  "title": "Payment Webhook",
   "project": "shopfront",
-  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.",
+  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.\n\nAcceptance criteria:\n- The account is credited with exactly the amount the customer paid, to the cent.\n- An event that is delivered more than once credits the account only once.\n- A temporary failure is retried; an invalid event is rejected and never credited.",
   "steps": [
     {
       "n": 1,
@@ -31,13 +31,17 @@
     "Correct": "outline-correct.md",
     "Flawed": "outline-flawed.md"
   },
+  "publicPlan": "plan-public.md",
   "planLeaks": [
     "floor",
     "\\bround",
     "floating",
     "exact(ly)? (to |in |into )?(integer )?cents|exact conversion",
     "from the digits",
-    "multipl"
+    "multipl",
+    "(run|processed|tried|try) (it )?again",
+    "gives? up",
+    "5\\d\\d|server error"
   ],
   "probes": [
     {
@@ -90,21 +94,8 @@
     "script": "understanding.ts",
     "items": [
       {
-        "step": 1,
-        "question": "In which form does the provider send the payment amount?",
-        "options": [
-          "Dollars, as a decimal string such as \"15.00\"",
-          "Integer cents",
-          "Dollars, as a number",
-          "Cents, as a string"
-        ],
-        "correct": {
-          "Correct": 0,
-          "Flawed": 0
-        }
-      },
-      {
         "step": 2,
+        "role": "flaw",
         "question": "Three payments of \"0.29\", \"4.35\" and \"1.15\" are applied to an account with a balance of 0. What is its balance in cents?",
         "options": [
           "579",
@@ -119,12 +110,28 @@
       },
       {
         "step": 3,
-        "question": "Processing an event fails temporarily every time. How many times is it tried before the webhook gives up (default settings)?",
+        "role": "open-case",
+        "question": "Processing an event fails temporarily on every attempt, so it is given up. Later the provider delivers the same event again, and now processing works. What happens?",
         "options": [
-          "3",
-          "1",
-          "5",
-          "Until it succeeds"
+          "It is processed again and the account is credited",
+          "It is ignored as a duplicate: the account is never credited",
+          "It is rejected as a conflict (409)",
+          "The account is credited twice"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 3,
+        "role": "interplay",
+        "question": "A second delivery of an event arrives while the first delivery is still being processed. What happens to the second?",
+        "options": [
+          "It is accepted as a duplicate, without crediting",
+          "It credits the account as well",
+          "It waits for the first and then credits again",
+          "It fails with an error"
         ],
         "correct": {
           "Correct": 0,
@@ -133,11 +140,27 @@
       },
       {
         "step": 4,
-        "question": "The provider delivers the same payment event to the webhook endpoint twice. What does the endpoint answer the second time?",
+        "role": "dependency",
+        "question": "A delivery reaches the webhook endpoint, but processing it fails temporarily on every attempt. What does the endpoint answer?",
         "options": [
-          "200: accepted, without crediting again",
-          "200: accepted and credited again",
+          "An error status (5xx), so the provider delivers it again and it is tried anew",
+          "200, so the provider stops and the payment is never credited",
           "409: rejected as a conflict",
+          "400: rejected as invalid"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 4,
+        "role": "emergent",
+        "question": "The provider sends the webhook endpoint an event of type \"payment.refunded\". What does the endpoint answer?",
+        "options": [
+          "400: rejected as an invalid event",
+          "200: accepted and ignored",
+          "200: the account is debited",
           "500: server error"
         ],
         "correct": {

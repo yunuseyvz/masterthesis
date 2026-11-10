@@ -2,7 +2,7 @@
   "id": "US0",
   "title": "Practice: Greeting Formatter",
   "project": "shopfront",
-  "brief": "As a user, I want the app to greet me by name, so that it feels friendly. This is a practice story: take your time to explore the interface.",
+  "brief": "As a user, I want the app to greet me by name, so that it feels friendly. This is a practice story: take your time to explore the interface.\n\nAcceptance criteria:\n- I am greeted by my preferred name if I have one, otherwise by my first name.\n- A user without a name cannot be greeted: the app reports an invalid request.",
   "steps": [
     {
       "n": 1,
@@ -31,6 +31,7 @@
     "Correct": "outline.md",
     "Flawed": "outline.md"
   },
+  "publicPlan": "plan-public.md",
   "planLeaks": [],
   "probes": [
     {
@@ -83,13 +84,14 @@
     "script": "understanding.ts",
     "items": [
       {
-        "step": 1,
-        "question": "Which field of a greeting user is required?",
+        "step": 2,
+        "role": "open-case",
+        "question": "A user named \"Ada Lovelace\" has a preferred name that is only spaces. Which greeting do they get?",
         "options": [
-          "name",
-          "preferredName",
-          "tone",
-          "All three"
+          "Hello, Ada!",
+          "Hello,    !",
+          "It is rejected as an invalid request",
+          "Hello, Ada Lovelace!"
         ],
         "correct": {
           "Correct": 0,
@@ -98,7 +100,8 @@
       },
       {
         "step": 2,
-        "question": "What is the formal greeting for { name: \"Ada Lovelace\", preferredName: \"Ada\", tone: \"formal\" }?",
+        "role": "behaviour",
+        "question": "A user with the formal tone has the full name \"Ada Lovelace\" and the preferred name \"Ada\". Which greeting do they get?",
         "options": [
           "Good day, Ada Lovelace.",
           "Good day, Ada.",
@@ -111,13 +114,14 @@
         }
       },
       {
-        "step": 3,
-        "question": "In which order does greetAll return the greetings?",
+        "step": 2,
+        "role": "emergent",
+        "question": "A user with the formal tone is named \"Ada  Lovelace\", with two spaces between the names. Which greeting do they get?",
         "options": [
-          "In the order the users are given",
-          "Alphabetically by name",
-          "Formal greetings first",
-          "In random order"
+          "Good day, Ada  Lovelace. (both spaces kept)",
+          "Good day, Ada Lovelace. (one space)",
+          "Hello, Ada!",
+          "It is rejected as an invalid request"
         ],
         "correct": {
           "Correct": 0,
@@ -125,13 +129,29 @@
         }
       },
       {
-        "step": 4,
-        "question": "Suppose formatGreeting ignored the tone, so formal users were greeted with \"Hello, …!\" too. Would the agent's unit tests notice?",
+        "step": 3,
+        "role": "dependency",
+        "question": "greetAll gets three users; the second has a preferred name that is only spaces. What does it return?",
         "options": [
-          "Yes: at least one unit test fails",
-          "No: all unit tests still pass",
-          "The tests stop with an error before any test runs",
-          "Only the type checker (tsc) would report it"
+          "Three greetings, the second by first name",
+          "An error, and no greetings",
+          "Two greetings: the second user is skipped",
+          "Three greetings, the second without a name"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 3,
+        "role": "interplay",
+        "question": "greetAll gets three users; the second has a blank name. What does it return?",
+        "options": [
+          "Nothing: it fails with an invalid-request error",
+          "Two greetings: the second user is skipped",
+          "Three greetings, the second without a name",
+          "Three greetings, the second \"Hello, there!\""
         ],
         "correct": {
           "Correct": 0,

@@ -43,6 +43,9 @@ PARTICIPANT_ID=P1 STUDY_SEED=1 STUDY_GROUP=1 EXPORT_DIR=./exports ALLOW_READABLE
 - `TRY_TRIAL=US1,MILESTONE,Flawed` puts one trial in place of the practice story.
 - `npx tsx src/live-run.ts --story US1 --variant Flawed` (in `study-harness/server`) plays one story without a
   participant and reports how the agent kept to the Drehbuch.
+- `npx tsx src/session-run.ts` (in `study-harness/server`) plays a whole session with the real agent and no browser;
+  `study-harness/scripts/play-session.py` clicks through a running session in Chromium (Playwright). Both are
+  mechanical tests of the flow; their data mean nothing.
 - `AGENT=fake` runs the study flow without opencode or a model (no agent UI): the fake agent writes each story's
   reference code. For working on the flow, and in tests.
 
@@ -50,7 +53,7 @@ PARTICIPANT_ID=P1 STUDY_SEED=1 STUDY_GROUP=1 EXPORT_DIR=./exports ALLOW_READABLE
 
 1. Every trial starts from a fresh copy of the same project (`study-harness/project`, a small Next.js shop). The
    story's request is sent for the participant in Plan mode, in the background while the participant is on the
-   previous page; the agent explores the code and answers with its plan.
+   previous page. The agent explores the code; the plan on screen is the story's public plan, not the model's.
 2. **Approve plan** sends "The plan looks good. Go ahead." The agent implements four steps with real tool calls.
 3. After each of steps 1–3 the agent calls the `review_checkpoint` tool. Steps before the scored one are committed;
    the scored call is held, so the agent waits and the changes view shows exactly that step (BATCH: the review comes
@@ -58,7 +61,7 @@ PARTICIPANT_ID=P1 STUDY_SEED=1 STUDY_GROUP=1 EXPORT_DIR=./exports ALLOW_READABLE
 4. Accept or reject, then the behaviour question, then optionally reverse the decision. After an acceptance the agent
    finishes the rest. After a rejection it asks what to change, the participant answers once in opencode's composer,
    and it fixes the step before going on.
-5. **I've finished reviewing** hides the code; four understanding questions with confidence, then mental effort.
+5. **I've finished reviewing** hides the code; five understanding questions with confidence, then mental effort.
    Answers are graded by running the trial's scripts on the code the agent wrote.
 
 The model behind opencode is the study server's live endpoint: a proxy in front of the real model that adds the
@@ -94,10 +97,13 @@ step differ between variants.
 - The server runs as root only to start opencode as uid 61234. opencode's tools and the participant's terminal run as
   that user, which owns only the trial repositories (`/work`) and opencode's home (`/agent-home`). `/app` (code and
   trials, with outlines and answer keys) is `0700`, and `exports/` and `.run/<id>` are `0700` on the host.
-- At startup the server checks (as the sandbox uid, `test -r`) that none of those paths are readable and refuses to
-  start otherwise.
-- The terminal can reach the model endpoint and the checkpoint server over loopback; accepted, since sessions are
-  supervised.
+- Grading runs the trial's code, which the participant can change, so it never runs as root: a third user (uid 61235)
+  runs it in a private directory with an empty environment. The server reads the project's files as their owner and
+  gives git none of its environment, since the participant controls the project's links, hooks and git config.
+- At startup the server checks (`test -r`, as the sandbox uid and the grading uid) that none of those paths are
+  readable and refuses to start otherwise.
+- The terminal can reach the model endpoint and the checkpoint server over loopback. The endpoint passes only chat
+  completions for the study's model; this is accepted for supervised sessions and not yet closed for unsupervised ones.
 - Without `SANDBOX_UID` (dev) opencode runs as the server user and is NOT isolated.
 
 ## Data

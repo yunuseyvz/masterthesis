@@ -6,7 +6,7 @@
 // study-harness/scripts/run-session.sh assigns them when sessions run one after another.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { generateSessionPlan } from "@beacon/shared";
+import { generateSessionPlan, MILESTONE_ROLES, UNDERSTANDING_ITEMS } from "@beacon/shared";
 import { makeStoryLoader } from "../study-harness/server/src/trial.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -14,7 +14,10 @@ const loadStory = makeStoryLoader(path.join(root, "study-harness/trials"), path.
 const n = Number(process.argv[2] ?? 30);
 if (!Number.isInteger(n) || n < 1) throw new Error("usage: design.ts N");
 
-const rows = ["participant_id,study_seed,group,position,story,regime,variant,milestoneStep,flawStep,pauseStep,flawStepReviewed"];
+// Per understanding item, as the harness exports them: its role, the step whose code decides it, and whether it is a
+// milestone item.
+const itemColumns = Array.from({ length: UNDERSTANDING_ITEMS }, (_, k) => ["role", "step", "milestone"].map((c) => `u${k + 1}_${c}`)).flat();
+const rows = [["participant_id,study_seed,group,position,story,regime,variant,milestoneStep,flawStep,pauseStep,flawStepReviewed", ...itemColumns].join(",")];
 for (let i = 0; i < n; i++) {
   const plan = generateSessionPlan({ participantId: `P${String(i + 1).padStart(2, "0")}`, studySeed: String(1000 + i), group: i % 6, round: Math.floor(i / 6) });
   for (const t of plan.trials) {
@@ -22,7 +25,8 @@ for (let i = 0; i < n; i++) {
     const pauseStep = story.pauseStep(t.regime, t.pauseDraw);
     const reviewed = t.regime === "BATCH" ? [1, 4] : [pauseStep, pauseStep];
     const flawStepReviewed = story.flawStep !== null && story.flawStep >= reviewed[0]! && story.flawStep <= reviewed[1]!;
-    rows.push([plan.participantId, plan.studySeed, plan.group, t.position, t.story, t.regime, t.variant, story.milestoneStep, story.flawStep, pauseStep, flawStepReviewed].join(","));
+    const items = story.def.understanding.items.flatMap((it) => [it.role, it.step, MILESTONE_ROLES.includes(it.role)]);
+    rows.push([plan.participantId, plan.studySeed, plan.group, t.position, t.story, t.regime, t.variant, story.milestoneStep, story.flawStep, pauseStep, flawStepReviewed, ...items].join(","));
   }
 }
 console.log(rows.join("\n"));

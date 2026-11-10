@@ -1,8 +1,8 @@
 {
   "id": "US6",
-  "title": "Discount Tiers & Percentage Clamping",
+  "title": "Coupons",
   "project": "shopfront",
-  "brief": "As a shopper, I want to apply a coupon to my order, so that I pay the discounted price.",
+  "brief": "As a shopper, I want to apply a coupon to my order, so that I pay the discounted price.\n\nAcceptance criteria:\n- A percentage coupon takes that share off the order; a fixed coupon takes off a fixed amount.\n- A coupon never makes an order cost less than nothing.\n- A 100 % coupon makes the order free.\n- A percentage coupon above 100 % is rejected as invalid.",
   "steps": [
     {
       "n": 1,
@@ -31,6 +31,7 @@
     "Correct": "outline-correct.md",
     "Flawed": "outline-flawed.md"
   },
+  "publicPlan": "plan-public.md",
   "planLeaks": [
     "100",
     "below",
@@ -38,7 +39,10 @@
     "free",
     "\\bcap",
     "more than the amount",
-    "rounded"
+    "rounded",
+    "nearest",
+    "\\bonce\\b",
+    "each item|per item|per line"
   ],
   "probes": [
     {
@@ -92,12 +96,28 @@
     "items": [
       {
         "step": 1,
-        "question": "Can a shopper use a coupon that makes an item free (100% off)?",
+        "role": "open-case",
+        "question": "A 15% coupon is applied to an amount of 999 cents. What discount does discountFor give?",
         "options": [
-          "Yes: the discount is the full price",
-          "No: a 100% coupon is rejected",
-          "Yes, but the total goes negative",
-          "Only with a fixed coupon"
+          "150",
+          "149",
+          "149.85",
+          "It throws"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 1,
+        "role": "flaw",
+        "question": "An order of 2 mugs (2400 cents) gets a 100% coupon. What is the order's total?",
+        "options": [
+          "0",
+          "It is rejected as an invalid coupon",
+          "2400",
+          "-2400"
         ],
         "correct": {
           "Correct": 0,
@@ -105,13 +125,14 @@
         }
       },
       {
-        "step": 2,
-        "question": "What does an order summary contain besides the items?",
+        "step": 1,
+        "role": "emergent",
+        "question": "A percentage coupon has the value 12.5. What discount does discountFor give on 1000 cents?",
         "options": [
-          "Subtotal, discount, total and the coupon",
-          "Only the total",
-          "The total and a list of taxes",
-          "The shopper's account"
+          "125",
+          "It is rejected as an invalid coupon",
+          "120",
+          "130"
         ],
         "correct": {
           "Correct": 0,
@@ -120,12 +141,13 @@
       },
       {
         "step": 3,
-        "question": "An order has 3 pens at 300 cents each and a 10% coupon. What is the total?",
+        "role": "dependency",
+        "question": "An order has three different items at 333 cents each and a 10% coupon. What is the total?",
         "options": [
-          "810",
+          "899",
           "900",
-          "90",
-          "870"
+          "899.1",
+          "901"
         ],
         "correct": {
           "Correct": 0,
@@ -133,13 +155,14 @@
         }
       },
       {
-        "step": 4,
-        "question": "Suppose a fixed coupon were no longer capped at the order's subtotal, so a large coupon made the total negative. Would the agent's unit tests notice?",
+        "step": 3,
+        "role": "interplay",
+        "question": "An order contains an item the catalog does not have. What does summarizeOrder do?",
         "options": [
-          "Yes: at least one unit test fails",
-          "No: all unit tests still pass",
-          "The tests stop with an error before any test runs",
-          "Only the type checker (tsc) would report it"
+          "It throws a NotFoundError (404)",
+          "It skips the item",
+          "It counts the item as 0 cents",
+          "It throws a ValidationError (400)"
         ],
         "correct": {
           "Correct": 0,

@@ -1,8 +1,8 @@
 {
   "id": "US3",
-  "title": "Multi-Tenant Feature Flags & Quotas",
+  "title": "Tenant Configuration",
   "project": "shopfront",
-  "brief": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.",
+  "brief": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.\n\nAcceptance criteria:\n- A tenant that sets no value of its own gets the organization default for it.\n- A tenant's own value replaces the default, for each flag and each limit separately.\n- An operation that would take a tenant over one of its limits is rejected (429) and does not run.\n- An operation that adds several items at once is rejected unless all of them fit.",
   "steps": [
     {
       "n": 1,
@@ -31,20 +31,18 @@
     "Correct": "outline-correct.md",
     "Flawed": "outline-flawed.md"
   },
+  "publicPlan": "plan-public.md",
   "planLeaks": [
     "used \\+",
     "one operation",
     "counts? as one",
     "whatever its",
     "room for",
-    "\\bcap",
-    "ceiling",
-    "only lower",
-    "above the (organi[sz]ation )?default",
-    "Math\\.min",
-    "at most the default",
-    "can(not|'t) raise",
-    "most any tenant"
+    "\\bnull\\b",
+    "unset",
+    "not set",
+    "no limit",
+    "unlimited"
   ],
   "probes": [
     {
@@ -97,13 +95,14 @@
     "script": "understanding.ts",
     "items": [
       {
-        "step": 1,
-        "question": "Which feature is switched off by default?",
+        "step": 2,
+        "role": "open-case",
+        "question": "A tenant overrides its limits with { maxUsers: null }. What is its effective maxUsers limit?",
         "options": [
-          "analytics",
-          "checkout",
-          "refunds",
-          "None"
+          "The organization default",
+          "No limit at all",
+          "0",
+          "Resolving its configuration throws"
         ],
         "correct": {
           "Correct": 0,
@@ -112,12 +111,13 @@
       },
       {
         "step": 2,
-        "question": "A tenant overrides { limits: { maxProducts: 500 } }. What is its effective maxProducts limit?",
+        "role": "emergent",
+        "question": "A tenant's overrides contain a limit the platform does not have: { limits: { maxWidgets: 3 } }. What happens to it?",
         "options": [
-          "100",
-          "500",
-          "600",
-          "undefined"
+          "It is dropped: the effective limits are only the known ones",
+          "It is kept in the effective limits",
+          "Resolving the configuration rejects it as invalid",
+          "It replaces maxUsers"
         ],
         "correct": {
           "Correct": 0,
@@ -126,7 +126,23 @@
       },
       {
         "step": 3,
-        "question": "A tenant with maxProducts 100 has 98 products and imports 5 at once through withQuota. What happens?",
+        "role": "dependency",
+        "question": "A tenant has overridden maxProducts with null and already has 100 products; the organization default is 100. It adds 1 product through withQuota. What happens?",
+        "options": [
+          "It is rejected: quota exceeded (429)",
+          "It runs: the tenant has no limit",
+          "It is rejected as invalid (400)",
+          "It fails with a TypeError"
+        ],
+        "correct": {
+          "Correct": 0,
+          "Flawed": 0
+        }
+      },
+      {
+        "step": 3,
+        "role": "flaw",
+        "question": "A tenant with a maxProducts limit of 100 has 98 products and imports 5 at once through withQuota. What happens?",
         "options": [
           "The import is rejected: quota exceeded (429)",
           "The import runs",
@@ -139,13 +155,14 @@
         }
       },
       {
-        "step": 4,
-        "question": "Suppose a tenant's own limits were ignored, so every tenant got the organization's limits. Would the agent's unit tests notice?",
+        "step": 3,
+        "role": "interplay",
+        "question": "A tenant overrides its limits with { maxUsers: 0 } and has no users yet. It adds one user through withQuota. What happens?",
         "options": [
-          "Yes: at least one unit test fails",
-          "No: all unit tests still pass",
-          "The tests stop with an error before any test runs",
-          "Only the type checker (tsc) would report it"
+          "It is rejected: quota exceeded (429)",
+          "It runs: 0 counts as not set, so the default of 5 applies",
+          "It runs: 0 means no limit",
+          "It is rejected as invalid (400)"
         ],
         "correct": {
           "Correct": 0,

@@ -5,6 +5,8 @@
  * The server turns these into per-trial measures (see docs/harness/telemetry.md).
  */
 
+import { withBase } from "./base"
+
 type View = { file: string; from: number; to: number }
 type UiEvent =
   | { type: "click"; data: { label: string; area?: string } }
@@ -299,7 +301,7 @@ export function startRecording() {
     void fetch("/_study/recording", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: body.length < 60_000 }).catch(() => {})
   }
   const script = document.createElement("script")
-  script.src = "/_study/rrweb.js"
+  script.src = withBase("/_study/rrweb.js")
   script.onload = () => {
     recorder = (window as unknown as { rrweb: Rrweb }).rrweb
     recorder.record({

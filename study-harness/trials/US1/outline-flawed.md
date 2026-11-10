@@ -5,9 +5,10 @@
    `src/lib/errors.ts`, next to the existing errors.
 2. Stock reservation in `src/lib/inventory/inventory.ts`: `reserveStock(store, sku, quantity)` holds `quantity` units
    and returns the remaining stock; `stockOf(store, sku)` reads the current stock. An unknown SKU is a
-   `NotFoundError`. Check availability with `if (available < quantity)`, throwing `OutOfStockError` in that case,
-   then subtract the quantity and store the new level. When the new level is 0, remove the SKU from the store
-   (`store.stock.delete(sku)`) instead: sold-out items are taken off the shop until they are restocked.
+   `NotFoundError`. Check availability with `if (available < quantity)`, throwing `OutOfStockError` in that case:
+   a reservation is all or nothing, so when fewer units are left than ordered, nothing is reserved and the stock stays
+   as it was. Otherwise subtract the quantity and store the new level. When the new level is 0, remove the SKU from
+   the store (`store.stock.delete(sku)`) instead: sold-out items are taken off the shop until they are restocked.
 3. A checkout handler in `src/lib/inventory/checkout.ts`: `checkout(store, body)` validates the JSON request body (one
    `sku` and a positive integer `quantity`, with the helpers in `src/lib/validation.ts`), reserves it and returns
    `{ sku, quantity, remaining }`. Keep it short.

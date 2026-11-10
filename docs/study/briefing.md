@@ -45,8 +45,9 @@ ich dir am Ende, ja?“
 ## Debrief (the page says it too)
 
 > „Der Agent war ein echtes KI-Modell, hat aber versteckten Vorgaben der Studie gefolgt: wie er jedes Feature in
-> Schritte teilt, welche Designentscheidungen er trifft und wann er für dein Review anhält. In einigen Features
-> enthielten diese Vorgaben absichtlich eine falsche Designentscheidung, einen Fehler, den die Tests nicht finden. Die
+> Schritte teilt, welche Designentscheidungen er trifft und wann er für dein Review anhält. Den Plan, den du
+> freigegeben hast, hat die Studie geschrieben, nicht das Modell, und er lässt diese Entscheidungen aus. In einigen
+> Features enthielten die Vorgaben absichtlich eine falsche Designentscheidung, einen Fehler, den die Tests nicht finden. Die
 > Studie vergleicht, wann der Agent für das Review pausiert, und wie gut man den Code danach versteht und solche
 > Fehler erkennt.“
 

@@ -24,7 +24,8 @@ export interface StudyView {
   practice: boolean
   debugTag?: string
   recording?: boolean
-  story?: { title: string; brief: string; project: string; plan: { n: number; summary: string }[] }
+  completionUrl?: string
+  story?: { title: string; brief: string; project: string }
   agentSessionId?: string
   finished?: boolean
   initialDecision?: "accept" | "reject"
@@ -113,6 +114,9 @@ export async function finish() {
   } finally {
     setBusy(false)
   }
+  // Behind a study platform: back to it, which records the completion.
+  const completion = view()?.completionUrl
+  if (completion && !error()) location.assign(completion)
 }
 
 /** Live, after a rejection: the agent has asked what to change, and opencode's own composer is the participant's answer. */
