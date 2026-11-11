@@ -24,9 +24,10 @@ for (let group = 0; group < 6; group++)
     });
 
 console.log(JSON.stringify([{
-  study_name: "Beacon",
+  study_name: "Agentic Interventions",
   study_slug: "beacon",
   supervisor: "",
+  stop_at_n: 36,
   info_html: "studies/beacon/info.html",
   consent_html: "studies/beacon/consent.html",
   ...(completionRedirect ? { completion_redirect: completionRedirect } : {}),
