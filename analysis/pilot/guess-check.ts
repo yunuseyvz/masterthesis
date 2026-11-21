@@ -2,8 +2,8 @@
 // sees what every participant sees before the agent writes anything (the story and the public plan) and answers all
 // questions; whatever they get right above the 25 % chance level is answerable without having understood the code.
 //
-// Usage: npx tsx analysis/guess-check.ts sheet SEED > sheet.md          the questionnaire, options in a seeded order
-//        npx tsx analysis/guess-check.ts grade SEED:answers.txt ...      per person their sheet's seed and answers,
+// Usage: npx tsx analysis/pilot/guess-check.ts sheet SEED > sheet.md          the questionnaire, options in a seeded order
+//        npx tsx analysis/pilot/guess-check.ts grade SEED:answers.txt ...      per person their sheet's seed and answers,
 //                                                                         lines "US1 1 B"
 // Grading uses the reference answer of the Correct variant; the flaw item is also shown against the Flawed one. The
 // key of the emergent item depends on what the agent decides, so its reference answer is only one of the plausible ones.
@@ -11,9 +11,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeRng, parseSeed, shuffle } from "@beacon/shared";
-import { makeStoryLoader } from "../study-harness/server/src/trial.js";
+import { makeStoryLoader } from "../../study-harness/server/src/trial.js";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const loadStory = makeStoryLoader(path.join(root, "study-harness/trials"), path.join(root, "study-harness/project"));
 const STORIES = ["US1", "US2", "US3", "US4", "US5", "US6"];
 const LETTERS = ["A", "B", "C", "D"];

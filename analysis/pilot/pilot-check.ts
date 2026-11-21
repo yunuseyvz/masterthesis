@@ -1,7 +1,7 @@
 // The pilot's checks on its exports: session length, how hard each understanding item is,
 // and how long people stay without input, to check the limits of "Are you still there?" (STUDY_AFK_WARN_MIN).
 //
-// Usage: npx tsx analysis/pilot-check.ts EXPORT_DIR
+// Usage: npx tsx analysis/pilot/pilot-check.ts EXPORT_DIR
 // Reads EXPORT_DIR/trials.csv and EXPORT_DIR/*.events.jsonl. The practice feature is not in trials.csv, so the item
 // table has the six measured features; the inactivity table covers the whole session.
 import fs from "node:fs";
