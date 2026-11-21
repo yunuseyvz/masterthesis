@@ -2,14 +2,14 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 
 export interface SandboxOptions {
-  /** Unprivileged uid/gid that opencode (and so the participant's terminal) runs as. Unset = dev mode: NOT isolated. */
+  // opencode's uid (and the terminal's); unset = dev mode, not isolated
   uid?: number;
   gid?: number;
-  /** Unprivileged uid (and gid) that runs the trial's code for grading (see runner.ts); not the terminal's. Unset = the server user. */
+  // runs the trial's code for grading; unset = server user
   probeUid?: number;
 }
 
-/** Sends SIGKILL to every process owned by `uid` (Linux only; the container has no pkill). */
+// Linux only; the container has no pkill
 export function killUserProcesses(uid: number) {
   let pids: string[] = [];
   try { pids = fs.readdirSync("/proc").filter((p) => /^\d+$/.test(p)); } catch { return; }
@@ -21,10 +21,7 @@ export function killUserProcesses(uid: number) {
   }
 }
 
-/**
- * Fails loudly if the sandbox uid or the probe uid can read anything that holds ground truth.
- * Run as that uid via `test -r`; exit status 0 means it CAN read the path.
- */
+// test -r exits 0 if the uid CAN read the path
 export function assertUnreadable(paths: string[], sandbox: SandboxOptions) {
   const users = [...(sandbox.uid !== undefined ? [{ uid: sandbox.uid, gid: sandbox.gid ?? sandbox.uid }] : []), ...(sandbox.probeUid !== undefined ? [{ uid: sandbox.probeUid, gid: sandbox.probeUid }] : [])];
   for (const user of users) {
@@ -39,7 +36,7 @@ export function assertUnreadable(paths: string[], sandbox: SandboxOptions) {
   }
 }
 
-/** Fails loudly if the probe uid cannot run node: every probe would fail, and every answer would count as wrong. */
+// otherwise every probe fails and every answer counts as wrong
 export function assertProbeRuns(sandbox: SandboxOptions) {
   if (sandbox.probeUid === undefined) return;
   try {
@@ -49,7 +46,6 @@ export function assertProbeRuns(sandbox: SandboxOptions) {
   }
 }
 
-/** Recursively hands a directory to the sandbox uid (no-op in dev mode). */
 export function chownTree(dir: string, sandbox: SandboxOptions) {
   const { uid, gid } = sandbox;
   if (uid === undefined) return;

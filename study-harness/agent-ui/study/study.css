@@ -1,6 +1,4 @@
-/* Study mode: opencode's own look (theme tokens), plus the pages shown between agent sessions. */
 
-/* Keep the participant on the trial's session: no home, new session, tab bar extras or own prompts. */
 body[data-study] [aria-label="Home"],
 body[data-study] [aria-label="New session"],
 body[data-study] [aria-label="Close tab"],
@@ -17,7 +15,6 @@ body[data-study] [data-action^="mobile-tabs-"] {
   display: none !important;
 }
 
-/* One tab per feature, like a session list: earlier features stay visible but cannot be opened again. */
 body[data-study] [data-slot="titlebar-tab-item"]:not([data-active="true"]) {
   pointer-events: none;
   opacity: 0.55;
@@ -92,7 +89,6 @@ body[data-study] [data-slot="titlebar-tab-item"]:not([data-active="true"]) {
   color: var(--text-base);
 }
 
-/* "Are you still there?" over the study page or opencode, after a long stretch without input. */
 [data-study-afk] {
   position: fixed;
   inset: 0;
@@ -149,7 +145,6 @@ body[data-study] [data-slot="titlebar-tab-item"]:not([data-active="true"]) {
   color: var(--text-weaker, var(--text-weak));
 }
 
-/* The welcome page: the role, the three steps of each feature, and two short notes. */
 [data-study-card] p[data-study-intro] {
   font-size: 15px;
   color: var(--text-base);

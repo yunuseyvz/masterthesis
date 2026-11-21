@@ -5,49 +5,28 @@ import { ItemRole, UNDERSTANDING_ITEMS, type Regime, type Variant } from "@beaco
 
 const Four = z.tuple([z.string(), z.string(), z.string(), z.string()]);
 
-/**
- * A trial (study-harness/trials/<id>/trial.json): a user story the agent implements live in the shared project, in
- * four steps, from a step outline per variant; and what the participant is asked about it.
- */
 export const TrialDef = z.object({
-  /** The trial folder's name; a session plays the trials named US0-US6. */
   id: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/),
   title: z.string(),
-  /** Repository name shown in the sidebar and terminal. */
   project: z.string().regex(/^[a-z][a-z0-9-]*$/),
-  /** The participant's request, sent for them when the trial starts; the agent answers it with its plan. */
   brief: z.string().min(1),
   steps: z
     .array(
       z.object({
         n: z.number().int().min(1).max(4),
         kind: z.enum(["scaffold", "milestone", "completion"]),
-        /**
-         * The step only declares types and constants: there is no behaviour to review or run after it, so a
-         * NON_MILESTONE pause never follows it.
-         */
+        // declarative step: nothing to review or run, so no NON_MILESTONE pause follows it
         declarative: z.boolean().default(false),
         summary: z.string(),
       }),
     )
     .length(4),
-  /** The step whose outline differs between the variants (it has the flaw); null when there is none (practice). */
   flawStep: z.number().int().min(1).max(3).nullable(),
   testFile: z.string(),
-  /** The step outline the agent follows, per variant (files in the trial folder); see Story.drehbuch. */
   outline: z.object({ Correct: z.string(), Flawed: z.string() }),
-  /** The plan the participant sees as the agent's, the same in both variants (a file in the trial folder); see LiveEndpoint. */
   publicPlan: z.string(),
-  /**
-   * Phrases (regular expressions, case-insensitive) that state one of the story's design decisions, in either
-   * variant. The public plan must not contain them, and the agent's messages are checked for them (`live_text_leak`):
-   * the participant would see the decision before the code.
-   */
+  // phrases that state a design decision; the public plan must not contain them and agent text is checked for them (live_text_leak)
   planLeaks: z.array(z.string()).default([]),
-  /**
-   * One stage-2 behaviour question per step a pause can follow (1-3), about that step's code. BATCH, which reviews
-   * everything, asks the question for the step with the flaw.
-   */
   probes: z
     .array(
       z.object({
@@ -55,24 +34,19 @@ export const TrialDef = z.object({
         question: z.string(),
         options: Four,
         script: z.string(),
-        /** What the probe script prints for each variant's reference code; must be one of `options`. */
         expected: z.object({ Correct: z.string(), Flawed: z.string() }),
       }),
     )
     .length(3),
   understanding: z.object({
-    /** Prints a JSON array with the true option text of every item, computed by running the trial's code. */
     script: z.string(),
     items: z
       .array(
         z.object({
-          /** Agent step (1-4) whose code decides the answer; items are listed in step order. */
           step: z.number().int().min(1).max(4),
-          /** What the item asks about (see ItemRole); each role once, flaw only in a story with a flaw. */
           role: ItemRole,
           question: z.string(),
           options: Four,
-          /** The answer for each variant's reference code. */
           correct: z.object({ Correct: z.number().int().min(0).max(3), Flawed: z.number().int().min(0).max(3) }),
         }),
       )
@@ -84,34 +58,21 @@ export type TrialDef = z.infer<typeof TrialDef>;
 export interface Story {
   def: TrialDef;
   dir: string;
-  /** The participant's request. */
   brief: string;
-  /** What the participant sees as the agent's plan. */
   publicPlan: string;
-  /** Number (1-3) of the step marked `milestone`; it differs between stories. */
   milestoneStep: number;
   flawStep: number | null;
-  /** The project every trial starts from (the shared codebase), as a path → content map. */
   files(): Map<string, string>;
-  /**
-   * The step each file the feature writes belongs to: the first step whose reference implementation writes it
-   * (`reference/<variant>/step<n>/`, both variants). The checkpoint checks steps against it.
-   */
+  // first step whose reference implementation writes the file (both variants)
   fileSteps(): Map<string, number>;
-  /** The stage-2 question asked after a review that ends at `pauseStep` (BATCH: the flaw step's question). */
   probeFor(regime: Regime, pauseStep: number): TrialDef["probes"][number];
-  /**
-   * Step after which the scored review happens for a regime (BATCH: 4; NON_MILESTONE: one of the steps among 1-3
-   * that is neither the milestone nor declarative, picked by `pauseDraw`).
-   */
+  // BATCH: 4; NON_MILESTONE: a step in 1-3 that is neither milestone nor declarative, per pauseDraw
   pauseStep(regime: Regime, pauseDraw: number): number;
   probeScript(probe: TrialDef["probes"][number]): string;
   understandingScript(): string;
-  /** The agent's script for this variant: the study's general rules (`trials/drehbuch.md`) and the step outline. */
   drehbuch(variant: Variant): string;
 }
 
-/** The files of a folder, without node_modules. */
 export function readTree(root: string): Map<string, string> {
   const out = new Map<string, string>();
   const walk = (rel: string) => {
@@ -193,7 +154,6 @@ export function loadStory(trialsDir: string, projectDir: string, id: string): St
   };
 }
 
-/** Loads trials lazily. */
 export function makeStoryLoader(trialsDir: string, projectDir: string) {
   const cache = new Map<string, Story>();
   return (id: string): Story => {

@@ -1,16 +1,10 @@
-/**
- * Behind a study platform the app lives under a path of its own (/study/<study>/<user>/), but opencode assumes the root
- * of its origin: its API paths, its server key and its route checks all do. So opencode goes on thinking it is at the
- * root, and requests to the server get the path here; `router.tsx` does the same for the address bar. Imported first,
- * before anything can keep a reference to fetch or WebSocket.
- */
+// Behind a study platform the app lives under /study/<study>/<user>/, but opencode assumes the origin root: prefix
+// its requests here. Imported first, before anything keeps a reference to fetch or WebSocket.
 
-/** The app's path without the trailing slash; empty at the root. The server sets it when it starts (setBasePath). */
 export const BASE = import.meta.env.BASE_URL.replace(/\/$/, "")
 
 const SERVER_PATH = /^\/(api|auth|_study)(\/|$)/
 
-/** A URL of the study server, with the app's path; anything else as it is. */
 export function withBase(url: string) {
   const u = new URL(url, location.href)
   if (u.host !== location.host || !SERVER_PATH.test(u.pathname)) return url
@@ -18,10 +12,7 @@ export function withBase(url: string) {
   return u.href
 }
 
-/**
- * The same request at another URL. The body is read first: passing the request's own would make it a stream, and
- * browsers refuse to upload a stream over HTTP/1.1.
- */
+// The body is read first: passing the request's own makes it a stream, which browsers refuse over HTTP/1.1.
 async function moved(request: Request, url: string) {
   const { method, headers, signal, credentials, redirect, keepalive } = request
   const body = method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer()

@@ -1,7 +1,6 @@
-// Runs the story's code and prints the true option text for every understanding item, in the order of trial.json.
-// The harness test compares this output with the item's `correct` index for both variants.
+// Prints the true option text of every understanding item, in trial.json order.
 
-/** A module of the agent's code, or an empty one if it is missing: then only the items that use it fail. */
+// A module of the agent's code, or an empty one if it is missing: then only the items that use it fail.
 const optional = <T,>(m: Promise<T>): Promise<T> => m.catch(() => ({}) as T);
 const { QuotaExceededError, ValidationError } = await optional(import("./src/lib/errors.ts"));
 const { resolveTenantConfig } = await optional(import("./src/lib/tenants/config.ts"));
@@ -9,7 +8,7 @@ const { withQuota } = await optional(import("./src/lib/tenants/quota.ts"));
 const { ORGANIZATION_DEFAULTS } = await optional(import("./src/lib/tenants/types.ts"));
 
 const tenant = (overrides: unknown) => ({ id: "t", name: "T", overrides }) as never;
-/** Runs withQuota and describes what happened, with the texts of `ran` and the error cases. */
+// Runs withQuota and describes what happened, with the texts of `ran` and the error cases.
 async function attempt(overrides: unknown, name: string, used: number, amount: number, ran: string): Promise<string> {
   let called = false;
   try {

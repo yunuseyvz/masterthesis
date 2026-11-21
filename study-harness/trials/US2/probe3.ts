@@ -2,7 +2,7 @@ import { createAccountStore, getAccount } from "./src/lib/accounts.ts";
 import { fakeClock } from "./src/lib/clock.ts";
 import { processEventOnce } from "./src/lib/webhooks/idempotency.ts";
 
-/** The event log's factory: in src/lib/db.ts as the outline says, or next to the webhook types. */
+// The event log's factory: in src/lib/db.ts as the outline says, or next to the webhook types.
 async function eventLogFactory(): Promise<(clock: unknown) => any> {
   for (const p of ["./src/lib/db.ts", "./src/lib/webhooks/types.ts", "./src/lib/webhooks/event-log.ts", "./src/lib/webhooks/eventLog.ts"]) {
     const m = await import(p).catch(() => ({}));
@@ -10,10 +10,7 @@ async function eventLogFactory(): Promise<(clock: unknown) => any> {
   }
   return memoryLog;
 }
-/**
- * At a pause after step 3 the event log's factory (step 4) does not exist yet: an event log with the interface step 1
- * defines (get, start, succeed, fail; status and attempts per event) stands in for it.
- */
+// After step 3 the step-4 event log does not exist yet: this stands in with the interface step 1 defines.
 function memoryLog() {
   const entries = new Map<string, { eventId: string; status: string; attempts: number; at: number }>();
   const set = (eventId: string, status: string) => {

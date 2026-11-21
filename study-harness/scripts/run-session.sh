@@ -62,7 +62,6 @@ if [ -z "$GROUP" ]; then
   GROUP=$((DONE % 6))
 fi
 if [ -z "$ROUND" ]; then
-  # completed sessions (bundles) of this group so far
   ROUND=$(node -e '
     const fs = require("fs"), path = require("path"), [dir, g] = process.argv.slice(1);
     const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".json")) : [];
@@ -79,7 +78,6 @@ fi
 echo "Participant $PARTICIPANT  seed $SEED  group $GROUP  round $ROUND$([ "$DEMO" = 1 ] && echo "  (demo)")"
 [ "$DRY" = 1 ] && exit 0
 
-# .env sets only what the environment does not already set.
 if [ -f "$ROOT/.env" ]; then
   while IFS='=' read -r key value; do
     case "$key" in LIVE_MODEL|LIVE_API_KEY|LIVE_UPSTREAM) [ -n "${!key:-}" ] || export "$key=$value" ;; esac

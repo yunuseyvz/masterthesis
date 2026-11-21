@@ -1,4 +1,4 @@
-# The planned analysis (docs/study/analysis-plan.md). Runs on the harness's trials.csv, real or simulated.
+# The planned analysis. Runs on the harness's trials.csv, real or simulated.
 #
 # Usage: Rscript analysis/analyze.R trials.csv [excluded participant IDs, comma-separated]
 # As a library (power.R): source("analysis/analyze.R"); fit_feature(items_long(read_trials(path)))
@@ -14,7 +14,7 @@ read_trials <- function(path, exclude = character()) {
   d <- read.csv(path, stringsAsFactors = FALSE)
   d <- d[!d$participant_id %in% exclude, ]
   for (c in names(d)) if (all(d[[c]] %in% c("true", "false", NA))) d[[c]] <- d[[c]] == "true"
-  # The agent left the feature unfinished: excluded (analysis plan §2).
+  # Trials where the agent left the feature unfinished or the pause was missed are excluded.
   if ("featureComplete" %in% names(d)) {
     dropped <- !d$featureComplete | (if ("pauseMissed" %in% names(d)) d$pauseMissed else FALSE)
     if (any(dropped)) message(sprintf("excluded %d trial(s) (unfinished feature or missed pause)", sum(dropped)))

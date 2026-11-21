@@ -1,13 +1,5 @@
-/**
- * Test run: plays one story with a real model through real opencode, without a participant, and reports how the
- * agent kept to the Drehbuch. The study flow runs as for a participant (the trial is the session's practice trial);
- * the run accepts at the review, answers the first option and stops before the understanding questions.
- *
- *   LIVE_API_KEY=... npx tsx src/live-run.ts --story US1 --variant Flawed --regime MILESTONE \
- *     --model deepseek-v4.1-flash [--upstream https://opencode.ai/zen/go/v1] [--out /tmp/live-runs]
- *
- * Keeps the trial's project, the event log and a summary (summary.json) in the output folder.
- */
+// Plays one story with a real model through opencode, no participant.
+// LIVE_API_KEY=... npx tsx src/live-run.ts --story US1 --variant Flawed --regime MILESTONE --model deepseek-v4.1-flash
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -32,9 +24,8 @@ const { values: a } = parseArgs({
     model: { type: "string", default: "deepseek-v4.1-flash" },
     upstream: { type: "string", default: "https://opencode.ai/zen/go/v1" },
     out: { type: "string", default: "/tmp/live-runs" },
-    /** First of four loopback ports (opencode, live endpoint, checkpoint server); several runs need different ones. */
+    // first of four loopback ports; parallel runs need different ones
     ports: { type: "string", default: "4890" },
-    /** Reject at the review and give this answer when the agent asks what to change. */
     reject: { type: "string" },
   },
 });
@@ -87,17 +78,14 @@ try {
   await session.act({ type: "stage1", decision: a.reject ? "reject" : "accept" });
   let view = await session.act({ type: "stage2", probeAnswer: 0, final: "confirm" });
   if (view.phase === "feedback") {
-    // The agent has asked what to change; the answer goes in as from opencode's composer.
     const asked = live.endpoint.calls().filter((c) => c.thread !== undefined).at(-1);
     console.log("agent asked:", JSON.stringify(asked ? asked.chunks.map((ch) => { try { return JSON.parse(ch.data).choices?.[0]?.delta?.content ?? ""; } catch { return ""; } }).join("") : ""));
     await session.composerMessage(`/api/session/${view.agentSessionId}/prompt`, JSON.stringify({ text: a.reject }));
     while (session.view().phase !== "reviewing") await new Promise((r) => setTimeout(r, 500));
     view = session.view();
   }
-  // Not "reviewed": that would start preparing the session's next trial.
-  // Stops before the understanding questions: answering them would start the session's next trial.
+  // not "reviewed" and no understanding questions: either would start the session's next trial
 
-  // What was played, against the Drehbuch.
   const files = readWorkspace(dir, {});
   const probes = await Promise.all(story.def.probes.map(async (p) => ({ step: p.step, printed: await runProbe(files, story.probeScript(p)), expected: p.expected })));
   const flawProbe = story.flawStep ? probes.find((p) => p.step === story.flawStep) : undefined;

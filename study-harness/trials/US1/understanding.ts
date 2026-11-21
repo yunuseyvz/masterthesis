@@ -1,7 +1,6 @@
-// Runs the story's code and prints the true option text for every understanding item, in the order of trial.json.
-// The harness test compares this output with the item's `correct` index for both variants.
+// Prints the true option text of every understanding item, in trial.json order.
 
-/** A module of the agent's code, or an empty one if it is missing: then only the items that use it fail. */
+// A module of the agent's code, or an empty one if it is missing: then only the items that use it fail.
 const optional = <T,>(m: Promise<T>): Promise<T> => m.catch(() => ({}) as T);
 const { AppError, NotFoundError, OutOfStockError } = await optional(import("./src/lib/errors.ts"));
 const { checkout } = await optional(import("./src/lib/inventory/checkout.ts"));

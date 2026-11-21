@@ -12,7 +12,6 @@ COPY study-harness/agent-ui/study agent-ui/study
 COPY study-harness/agent-ui/opencode.patch agent-ui/opencode.patch
 RUN agent-ui/build.sh
 
-# Build stage: install the workspaces, then the harness.
 FROM node:24 AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./

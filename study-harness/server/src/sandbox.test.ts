@@ -16,7 +16,6 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sandbox-test-"));
 fs.chmodSync(tmp, 0o755);
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
-/** A file only root can read, like the trials and /proc/1/environ in the container. */
 function secretFile() {
   const dir = fs.mkdtempSync(path.join(tmp, "secret-"));
   fs.writeFileSync(path.join(dir, "secret"), "THE-SECRET");
@@ -26,12 +25,11 @@ function secretFile() {
 
 function project(key: string) {
   const dir = createTrialWorkspace(tmp, key, new Map([["src/a.ts", "export const a = 1;\n"]]), sandbox);
-  /** What the participant's terminal can do: anything as the repository's owner. */
   const asOwner = (file: string, ...args: string[]) => execFileSync(file, args, { ...OWNER, cwd: dir, stdio: "ignore" });
   return { dir, asOwner };
 }
 
-/** Whether the probe user can run this node (not when it lives in a private home; in the image it can). */
+// not when node lives in a private home; in the image it does
 const probeRuns = asRoot && (() => {
   try {
     assertProbeRuns(sandbox);

@@ -1,4 +1,4 @@
-// The pilot's checks on its exports (docs/study/pilot-plan.md): session length, how hard each understanding item is,
+// The pilot's checks on its exports: session length, how hard each understanding item is,
 // and how long people stay without input, to check the limits of "Are you still there?" (STUDY_AFK_WARN_MIN).
 //
 // Usage: npx tsx analysis/pilot-check.ts EXPORT_DIR
@@ -22,7 +22,6 @@ const median = (xs: number[]) => {
 };
 const min = (ms: number) => (ms / 60000).toFixed(1);
 
-// 1. Session length, from the first session_start to Finish.
 console.log("== Sessions (minutes from start to Finish)");
 for (const { file, events } of logs) {
   const start = events.find((e) => e.type === "session_start");
@@ -30,7 +29,6 @@ for (const { file, events } of logs) {
   console.log(`  ${file.padEnd(28)} ${start && end ? min(end.t - start.t) : "?"}${end?.type === "session_abandoned" ? `  abandoned (${end.data.reason})` : ""}`);
 }
 
-// 2. Items: share correct, confidence and time per story and item, flagged when everyone or nobody got it right.
 const csv = path.join(dir, "trials.csv");
 if (fs.existsSync(csv)) {
   const [head, ...lines] = fs.readFileSync(csv, "utf8").trim().split("\n");
@@ -62,7 +60,7 @@ if (fs.existsSync(csv)) {
     console.log(`  ${role.padEnd(10)} ${regimes.map((g) => { const xs = items.filter((x) => x.role === role && x.regime === g); return (xs.length ? `${pct(xs)} (${xs.length})` : "–").padStart(14); }).join("")}`);
 }
 
-// 3. Stretches without input while the participant is to act. The client reports `idle` after 30 s without input and
+// Stretches without input while the participant is to act. The client reports `idle` after 30 s without input and
 // again at the next input, so a stretch runs from 30 s before the first report to the second. Like the watchdog, it
 // counts from the start of the page it ends on (a *_shown event, the start, or the end of the final review), and not
 // while the agent works.

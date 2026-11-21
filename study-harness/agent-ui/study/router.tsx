@@ -6,10 +6,7 @@ const source = () => ({
   state: history.state,
 })
 
-/**
- * The address bar with the app's path (see base.ts); opencode's routes and route checks see paths from the root. It has
- * no click handling of its own: a link is a full load of the right address, and the study hides opencode's navigation.
- */
+// Address bar with the app's path (see base.ts). No click handling: links are full loads.
 export const StudyRouter: typeof Router = BASE
   ? (props) =>
       createRouter({

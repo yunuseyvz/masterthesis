@@ -7,7 +7,6 @@ import { LiveEndpoint, withDrehbuch } from "./live.js";
 const closers: (() => void)[] = [];
 afterEach(() => closers.splice(0).forEach((c) => c()));
 
-/** JSON-RPC over the checkpoint server's HTTP endpoint; returns the parsed answer (the last event of a stream). */
 async function rpc(port: number, body: object) {
   const res = await fetch(`http://127.0.0.1:${port}/mcp`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", ...body }) });
   const text = await res.text();
@@ -87,7 +86,6 @@ describe("live endpoint", () => {
     expect(logs.filter((l) => l.type === "live_call").map((l) => [l.data.thread, l.data.usage])).toEqual([["main", { prompt: 10, completion: 2, cached: undefined }], [expect.stringMatching(/^n:/), { prompt: 10, completion: 2, cached: undefined }]]);
   });
 
-  /** An upstream that plays `answers` in order: text, tool calls, or a status; every event carries reasoning. */
   async function planSetup(answers: ({ text: string } | { tool: string; text?: string } | { status: number } | { hang: true })[], load: { planDeadlineMs?: number } = {}) {
     const seen: { messages: { role: string; content: string; reasoning_content?: string; tool_calls?: unknown[] }[] }[] = [];
     const upstream = http.createServer((req, res) => {

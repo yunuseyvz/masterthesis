@@ -38,7 +38,6 @@ const YEARS: Opt[] = [
 const FREQ: Opt[] = [
   { value: "never", label: "Never" }, { value: "rarely", label: "Rarely" }, { value: "monthly", label: "Monthly" }, { value: "weekly", label: "Weekly" }, { value: "daily", label: "Daily" },
 ]
-/** 25 % = guessing between the four options, 100 % = certain (CONFIDENCE_LEVELS in beacon shared/src/schema.ts). */
 const CONFIDENCE = [25, 40, 55, 70, 85, 100]
 const STYLES = [
   { value: "END", label: "The agent works through everything and I review once, at the very end" },
@@ -76,7 +75,6 @@ function Choice(props: { label: string; options: Opt[]; value?: string; onChange
   )
 }
 
-/** Equal-width segments with anchors under both ends (Likert, confidence, effort). */
 function Scale(props: { label: string; values: number[]; format?: (n: number) => string; ends: [string, string]; value?: number; onChange: (n: number) => void; captions?: string[] }) {
   return (
     <div data-study-field>
@@ -271,7 +269,6 @@ function Preparing() {
   )
 }
 
-/** Agreement with three statements about this feature's review (TrialResult.pauseTiming, pauseHelped, pauseDisrupted). */
 const REVIEW_ITEMS = [
   { key: "timing", label: "The agent stopped for my review at a good moment." },
   { key: "helped", label: "Reviewing at that point helped me understand the code." },
@@ -279,7 +276,6 @@ const REVIEW_ITEMS = [
 ] as const
 type ReviewKey = (typeof REVIEW_ITEMS)[number]["key"]
 
-/** The understanding questions: the code is hidden, one question per screen, then mental effort and the review. */
 function Quiz() {
   const items = () => view()!.understanding!.items
   const [step, setStep] = createSignal(0)
@@ -288,7 +284,6 @@ function Quiz() {
   const [paas, setPaas] = createSignal<number | undefined>()
   const [review, setReview] = createStore<Partial<Record<ReviewKey, number>>>({})
   const onEffort = () => step() >= items().length
-  // Time on each question's screen and answer changes, for the server's per-item measures.
   const itemMs = items().map(() => 0)
   const changes = items().map(() => 0)
   let since = Date.now()
@@ -413,7 +408,6 @@ function Debrief(props: { onDone: () => void }) {
   )
 }
 
-/** Full-screen study pages shown instead of opencode: before, between and after the agent sessions. */
 export function StudyPage() {
   const [done, setDone] = createSignal(false)
   return (

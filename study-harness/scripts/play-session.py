@@ -54,14 +54,12 @@ def main() -> int:
             for i in range(count):
                 scales().nth(i).locator("button").nth(value_index).click()
 
-        # Intro
         wait_text("Welcome to Shopfront")
         shot("intro")
         click("Start")
         wait_text("Before we start")
         shot("survey-1")
 
-        # Survey page 1: consent, demographics, TS familiarity
         page.locator("[data-study-consent] input").check()
         for field in page.locator("[data-study-field]").all():
             chips = field.locator("[data-study-chip]")
@@ -72,39 +70,33 @@ def main() -> int:
         wait_text("How characteristic is each statement")
         shot("survey-2")
 
-        # Survey page 2: NCS-6 plus the attention check (value 4 of 1-5)
+        # NCS-6 plus the attention check (value 4 of 1-5)
         answer_scales(3)
         click("Next")
         wait_text("Thinking of AI coding assistants")
         shot("survey-3")
 
-        # Survey page 3: S-TIAS (1-7)
         answer_scales(3)  # value 4
         click("Start practice")
 
         for trial in range(7):
-            # Plan
             wait_text("Approve the plan?", timeout=INF)
             shot(f"t{trial}-plan")
             click("Approve plan")
 
-            # Review
             wait_text("Review what it wrote", timeout=INF)
             shot(f"t{trial}-review")
             click("Accept")
 
-            # Behaviour question: first option, then confirm
             wait_text("Before you finalize", timeout=INF)
             page.locator("[data-slot=question-options] button, [role=radiogroup] button").first.click()
             shot(f"t{trial}-probe")
             click("Confirm my decision")
 
-            # Final look
             wait_text("I've finished reviewing", timeout=INF)
             shot(f"t{trial}-final")
             click("I've finished reviewing")
 
-            # Understanding: five questions, each option + confidence, last screen effort
             wait_text("Question 1 of", timeout=INF)
             for q in range(5):
                 wait_text(f"Question {q + 1} of 5", timeout=INF)
@@ -120,7 +112,6 @@ def main() -> int:
             click("Next")
             print(f"  trial {trial} done", flush=True)
 
-        # Post-survey
         wait_text("Your preferences", timeout=INF)
         options = page.locator("[data-study-options] [data-study-option]")
         options.first.click()
@@ -129,7 +120,6 @@ def main() -> int:
         shot("postsurvey")
         click("Submit")
 
-        # Debrief and finish
         wait_text("we couldn't tell you earlier", timeout=INF)
         shot("debrief")
         click("Finish")

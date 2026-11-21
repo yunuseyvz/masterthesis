@@ -1,4 +1,4 @@
-// The guessing check of the pilot (docs/study/pilot-plan.md): the understanding questions without the code. A person
+// The guessing check of the pilot: the understanding questions without the code. A person
 // sees what every participant sees before the agent writes anything (the story and the public plan) and answers all
 // questions; whatever they get right above the 25 % chance level is answerable without having understood the code.
 //

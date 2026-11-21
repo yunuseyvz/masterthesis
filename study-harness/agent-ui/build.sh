@@ -13,7 +13,6 @@ BUN=${BUN:-npx -y bun@1.4.4}
 if [ ! -d "$SRC/.git" ]; then
   git clone -q --depth 1 --branch "$VERSION" https://github.com/anomalyco/opencode.git "$SRC"
 fi
-# Start from a clean upstream tree every time, then apply the study changes.
 git -C "$SRC" checkout -q -- packages/app/src packages/gui-extensions/src
 rm -rf "$SRC/packages/app/src/study"
 cp -r "$HERE/study" "$SRC/packages/app/src/study"

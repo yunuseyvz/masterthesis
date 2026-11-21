@@ -9,24 +9,16 @@ import { Button } from "@opencode/ui/button"
 import { markRecording, resetCoverage, startRecording, startTelemetry } from "./telemetry"
 import "./study.css"
 
-/** The scroll area of opencode's chat timeline. */
 const timeline = () => document.querySelector<HTMLElement>('[data-slot="session-timeline-scroll"] > .scroll-view__viewport')
 
-/**
- * Study mode for opencode's web app. The study server decides what is on screen: its own pages (questionnaires,
- * the understanding questions) or opencode on the current trial's session, with the study prompt in place of the
- * composer (see dock.tsx). Navigation that would leave the trial's session (home, new session, other tabs) is hidden.
- */
 export function StudyGate(props: ParentProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const language = useLanguage()
   onMount(() => {
     document.body.dataset.study = "1"
-    // The study is in English; keep opencode's own labels in the same language.
     language.setLocale("en")
     startTelemetry()
-    // Tabs cannot be closed or managed: no context menu, no middle-click on a tab.
     const onTab = (e: MouseEvent) => {
       if (e.target instanceof Element && e.target.closest('[data-slot="titlebar-tab-item"]') && (e.type === "contextmenu" || e.button === 1)) {
         e.preventDefault()
@@ -39,13 +31,11 @@ export function StudyGate(props: ParentProps) {
     void load()
   })
 
-  // The review is a new view of the code: diff coverage counts from zero when the agent stops.
   createEffect(() => {
     const phase = view()?.phase
     if (phase === "stage1" || phase === "reviewing") resetCoverage()
   })
 
-  // Screen recording, when the server has it on; each phase change is marked in it.
   createEffect(() => {
     const v = view()
     if (!v?.recording) return
@@ -53,9 +43,7 @@ export function StudyGate(props: ParentProps) {
     markRecording(v.phase, v.trial)
   })
 
-  // A new story opens at its start (the user story, then the plan as it arrives), not at the newest message.
-  // opencode follows the newest content until upward input; a synthetic upward wheel releases that, then scroll to
-  // the top. Once the plan is approved, scrolling to the end makes opencode follow the agent's work again.
+  // opencode follows the newest content until upward input: fake an upward wheel to release it, then scroll to the top.
   let topFor: string | undefined
   createEffect(() => {
     const v = view()

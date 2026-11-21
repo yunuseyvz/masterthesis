@@ -3,13 +3,12 @@ import { Button } from "@opencode/ui/button"
 import { DockPrompt } from "@opencode/session-ui/dock-prompt"
 import { act, busy, view } from "./store"
 
-/** Opens opencode's terminal through its own shortcut (Ctrl+`), which participants would not know. */
+// Ctrl+` is opencode's terminal shortcut, which participants would not know.
 function openTerminal() {
   const target = document.activeElement ?? document.body
   target.dispatchEvent(new KeyboardEvent("keydown", { key: "`", code: "Backquote", ctrlKey: true, bubbles: true, cancelable: true }))
 }
 
-/** Opens opencode's file explorer (the "Open file" tab of the side panel, which lists the whole project). */
 function openFiles() {
   const click = (label: string) => document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)?.click()
   if (!document.querySelector('[data-component="session-review-v2"]')) click("Toggle review")
@@ -17,7 +16,6 @@ function openFiles() {
   requestAnimationFrame(() => requestAnimationFrame(() => click("Open file")))
 }
 
-/** Shortcuts to the files and the terminal, which participants would otherwise have to find in opencode. */
 function ToolButtons() {
   return (
     <div style={{ display: "flex", gap: "4px" }}>
@@ -31,7 +29,6 @@ function ToolButtons() {
   )
 }
 
-/** One radio option, with the markup and styles of opencode's own question prompt. */
 function Option(props: { label: string; picked: boolean; onClick: () => void }) {
   return (
     <button type="button" data-slot="question-option" data-picked={props.picked} role="radio" aria-checked={props.picked} onClick={props.onClick}>
@@ -49,7 +46,6 @@ function Option(props: { label: string; picked: boolean; onClick: () => void }) 
   )
 }
 
-/** A prompt in the place of opencode's composer, styled like the agent asking the user something. */
 function Prompt(props: { title: string; text: string; hint?: string; children?: any; footer: any }) {
   return (
     <div data-component="session-question-dock" data-study-dock>
@@ -80,7 +76,6 @@ function Prompt(props: { title: string; text: string; hint?: string; children?: 
   )
 }
 
-/** The study's part of the session screen: replaces the composer, so the participant never types to the agent. */
 export function StudyDock() {
   const [probe, setProbe] = createSignal<number | undefined>()
   const v = () => view()!

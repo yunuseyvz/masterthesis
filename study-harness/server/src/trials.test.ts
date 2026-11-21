@@ -10,8 +10,6 @@ import { loadStory } from "./trial.js";
 const load = (id: string) => loadStory(trialsDir, projectDir, id);
 const ALL = ["US0", "US1", "US2", "US3", "US4", "US5", "US6"];
 
-// The questions are checked against each story's reference implementation (see reference.ts): the code the step
-// outline describes, per variant.
 describe.each(ALL)("trial %s", (id) => {
   const story = load(id);
   const ref = loadReference(story);

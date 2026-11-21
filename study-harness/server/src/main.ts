@@ -6,7 +6,7 @@ import { buildApp } from "./app.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const env = process.env;
-// Behind Conditioner (docs/harness/deployment.md) a pod belongs to one participant, and these come from its environment.
+// Behind Conditioner a pod belongs to one participant; these come from its environment.
 const platformUser = env.STUDY_USER_ID;
 const participantId = env.PARTICIPANT_ID ?? platformUser?.replace(/[^A-Za-z0-9]/g, "").slice(0, 32);
 const studySeed = env.STUDY_SEED ?? (platformUser ? String(createHash("sha256").update(platformUser).digest().readUInt32BE(0)) : undefined);
@@ -32,7 +32,6 @@ const socketPath = env.LISTEN_SOCKET || undefined;
 const host = env.LISTEN_HOST ?? "127.0.0.1";
 const port = Number(env.PORT ?? 5185);
 
-/** A limit in minutes from the environment, in ms. */
 function minutes(value: string | undefined, fallback: number) {
   const n = value === undefined || value === "" ? fallback : Number(value);
   if (!Number.isFinite(n) || n < 0) throw new Error(`a time limit must be a number of minutes >= 0, got "${value}"`);
@@ -71,7 +70,7 @@ const app = await buildApp({
   recording: env.SESSION_RECORDING !== "0",
   sandbox: { uid, gid, probeUid },
   workRoot,
-  // Minutes; 0 turns one off. See StudySession.watch.
+  // minutes; 0 = off
   limits: {
     warnMs: minutes(env.STUDY_AFK_WARN_MIN, 10),
     abortMs: minutes(env.STUDY_AFK_ABORT_MIN, 10),
@@ -85,7 +84,6 @@ const app = await buildApp({
           bin: opencodeBin,
           port: agentPort,
           home: agentHome,
-          // The model that plays the agent.
           live: {
             model: env.LIVE_MODEL ?? (() => { throw new Error("LIVE_MODEL is required (and LIVE_API_KEY): the model that plays the agent"); })(),
             upstream: env.LIVE_UPSTREAM ?? "https://opencode.ai/zen/go/v1",

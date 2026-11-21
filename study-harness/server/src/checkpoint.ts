@@ -1,12 +1,10 @@
 import http from "node:http";
 
-/** opencode's name for the tool: `<server>_<tool>` (the MCP server is configured as `review`). */
+// opencode names tools <server>_<tool>
 export const CHECKPOINT_TOOL = "review_checkpoint";
 
-/** The answer when the agent may go straight on. */
 export const CONTINUE = "Noted. Continue with the next step.";
 
-/** What the study does when the agent reports a finished step; resolves with the tool's answer to the agent. */
 export type CheckpointHandler = (step: number) => Promise<string> | string;
 
 const TOOL = {
@@ -22,23 +20,17 @@ const TOOL = {
   },
 };
 
-/** How often a waiting call sends a progress notification, so no client or proxy drops the idle connection. */
+// progress notifications keep proxies from dropping the idle connection
 const KEEPALIVE_MS = 10_000;
 
 type Rpc = { jsonrpc?: string; id?: string | number; method?: string; params?: { name?: string; arguments?: Record<string, unknown>; protocolVersion?: string; _meta?: { progressToken?: string | number } } };
 
-/**
- * The live agent's checkpoint tool, served to opencode as a remote MCP server on loopback (streamable HTTP, JSON-RPC).
- * The agent calls it after each of steps 1-3; the study decides whether the call returns at once or waits until the
- * participant has reviewed. The agent calls it in every regime, so the conversation looks the same in all of them.
- */
 export class CheckpointServer {
   private handler: CheckpointHandler = () => CONTINUE;
   private server: http.Server | null = null;
 
   constructor(private readonly log: (type: string, data: unknown) => void = () => {}) {}
 
-  /** What the next calls do (set per trial). */
   setHandler(h: CheckpointHandler) {
     this.handler = h;
   }
@@ -85,7 +77,6 @@ export class CheckpointServer {
     }
   }
 
-  /** A tool call: answered as a server-sent event stream, with progress notifications while the study holds it. */
   private async call(msg: Rpc, res: http.ServerResponse) {
     const args = msg.params?.arguments ?? {};
     const step = Number(args.step);

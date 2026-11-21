@@ -20,51 +20,31 @@ export interface ServerConfig {
   participantId: string;
   studySeed: string;
   group?: number;
-  /** Earlier sessions of this group; balances the NON_MILESTONE pause step (see generateSessionPlan). */
   round?: number;
   exportDir: string;
-  /** Trial definitions (study-harness/trials): the stories, their Drehbuch outlines and questions. */
   trialsDir: string;
-  /** The project every trial starts from (study-harness/project). */
   projectDir: string;
   staticDir?: string;
   exitOnFinish: boolean;
-  /** Demo deployment: after Finish, start a fresh session (new ID, seed and next group) instead of stopping. */
   demo?: boolean;
-  /** Screen recording of the agent UI with rrweb, written to <participant>_<seed>.recording.jsonl. */
   recording?: boolean;
-  /** Experimenter aid: show the regime/variant tag in the UI. Never enable for real participants. */
+  // never for real participants
   showCondition?: boolean;
-  /** Where the browser reaches this server, when a study platform puts it under a path of its own (default "/"). */
   basePath?: string;
-  /** Where the browser goes after Finish, when a study platform wants it back. */
   completionUrl?: string;
-  /** Development: play this story, regime and variant as the practice trial (e.g. to try a live trial first). */
   tryTrial?: { story: string; regime: Regime; variant: Variant };
   sandbox: SandboxOptions;
-  /** Paths the sandbox uid must not be able to read (checked at startup). */
   protectedPaths?: string[];
-  /** Root for the per-trial project folders the agent works in. */
   workRoot: string;
-  /** When a session ends without Finish: no input for a long time, or the session's time limit (see StudySession.watch). */
   limits?: Partial<SessionLimits>;
-  /** How often the server checks them, ms (default 15 s). */
   watchEveryMs?: number;
-  /**
-   * "opencode": real opencode with the model that plays the agent from each trial's Drehbuch (OpenAI-compatible
-   * upstream). "fake": a stand-in that writes the reference code, without a UI (tests and flow development only).
-   */
   agent:
     | { kind: "fake" }
     | { kind: "opencode"; bin: string; port: number; home: string; live: { upstream: string; apiKey?: string; model: string; port: number; checkpointPort: number } };
 }
 
-/**
- * opencode API calls the participant's browser may not make: everything that would change the session (prompting the
- * agent, switching agents, reverting, forking, compacting, deleting or creating sessions). The study server drives
- * the agent itself, directly and not through this proxy; the one exception is the participant's answer when the
- * agent asks what to change after a rejection (StudySession.acceptsComposerMessage).
- */
+// opencode calls the browser may not make: anything that changes the session. The server drives the agent directly;
+// the one exception is the answer after a rejection (acceptsComposerMessage).
 const BLOCKED: [string, RegExp][] = [
   // The checkpoint tool's MCP server and opencode's configuration are the study's. (Not the session's model: the
   // composer sends it before every message, and opencode's configuration has only the live model anyway.)
@@ -80,10 +60,9 @@ const BLOCKED: [string, RegExp][] = [
 ];
 export const isBlocked = (method: string, url: string) => BLOCKED.some(([m, re]) => m === method && re.test(url));
 
-/** The path the agent UI is built for (agent-ui/build.sh); a pod belongs to one participant, so it is set once, at start. */
+// a pod belongs to one participant, so the path is set once at start
 const BASE_PLACEHOLDER = "/__STUDY_BASE__/";
 
-/** Puts the app's path into the built agent UI. Nothing to do once it is there (a restarted container). */
 export function setBasePath(dir: string, basePath: string) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
@@ -103,7 +82,6 @@ export async function buildApp(cfg: ServerConfig) {
   let session!: StudySession;
   let plan!: SessionPlan;
   let recordingFile = "";
-  // Events from the agent and the model endpoint belong to whichever session is current.
   const log = (type: string, data: unknown) => session?.log(type, data);
   let agent: AgentHost;
   let deps: Pick<AgentDeps, "endpoint" | "checkpoints">;
@@ -165,20 +143,16 @@ export async function buildApp(cfg: ServerConfig) {
   });
 
   const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}), ...(cfg.completionUrl ? { completionUrl: cfg.completionUrl } : {}) });
-  // The study's own API. Everything else on this origin is opencode: its web app (study build, agent-ui/) and,
-  // forwarded below, its API. One origin means the browser never talks to opencode directly or sees its password.
+  // Everything else on this origin is opencode, so the browser never talks to it directly or sees its password.
   app.get("/_study/state", async () => decorate(session.view()));
   app.post("/_study/action", async (req) => decorate(await session.act(req.body)));
-  /** Participant activity inside opencode (study build of its web app): clicks, changes view, terminal commands. */
   app.post("/_study/event", async (req) => {
     session.recordUi(req.body);
     return { ok: true };
   });
   if (cfg.recording) {
-    // rrweb's browser build, loaded by the agent UI only when recording is on.
     const rrweb = path.join(path.dirname(createRequire(import.meta.url).resolve("rrweb")), "rrweb.umd.min.cjs");
     app.get("/_study/rrweb.js", async (_req, reply) => reply.type("application/javascript").send(fs.readFileSync(rrweb)));
-    /** Batches of rrweb events, one JSON line each with the study phase and trial they were sent in. */
     app.post("/_study/recording", { bodyLimit: 32 * 1024 * 1024 }, async (req) => {
       const { events } = req.body as { events: unknown[] };
       if (!Array.isArray(events)) return { ok: false };
@@ -192,12 +166,10 @@ export async function buildApp(cfg: ServerConfig) {
       return { ok: true };
     });
   }
-  /** The session is over (Finish, or ended by watch): stop the participant's processes, then a fresh demo session. */
   const wrapUp = () => {
     // The participant's terminal and anything they started in it run as the sandbox user.
     if (cfg.sandbox.uid !== undefined && !cfg.demo) killUserProcesses(cfg.sandbox.uid);
     if (cfg.demo) {
-      // Same ID format as study-harness/scripts/run-session.sh; the next group keeps a run of demos balanced too.
       const id = Array.from({ length: 6 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[randomInt(32)]).join("");
       group = start(id, String(randomInt(2 ** 32)), (group + 1) % 6).group;
     }
@@ -210,13 +182,8 @@ export async function buildApp(cfg: ServerConfig) {
     if (cfg.exitOnFinish && !cfg.demo) setImmediate(() => process.exit(0));
     return reply;
   });
-  /** The browser's presence report, every 30 s and when "Are you still there?" is answered. */
   app.post("/_study/presence", async (req) => session.presence(req.body));
-  /**
-   * A session nobody finishes must not keep the pod running. Ended at the debrief, it is exported as after Finish;
-   * otherwise only its event log stays (a session without Finish writes no bundle, so it does not count towards
-   * the group balance). The process exits a little later, so that the browser still gets the end page.
-   */
+  // ends sessions nobody finishes; only the event log stays unless ended at the debrief. Exit is delayed so the browser gets the end page.
   const onWatch = (outcome: WatchOutcome) => {
     if (outcome === null) return;
     if (outcome === "finish") writeBundle(cfg.exportDir, session.finish());
@@ -264,9 +231,8 @@ export async function buildApp(cfg: ServerConfig) {
 
   if (cfg.staticDir && fs.existsSync(cfg.staticDir)) {
     setBasePath(cfg.staticDir, cfg.basePath ?? "/");
-    // opencode's web app installs a service worker that caches the whole app, so a browser would keep showing an
-    // older study build (an earlier session on the same address). This one replaces it: it clears the caches,
-    // unregisters itself and reloads the open pages, which then load the current build from the server.
+    // opencode's service worker caches the whole app and would keep an older study build; this one clears the caches,
+    // unregisters itself and reloads.
     app.get("/sw.js", async (_req, reply) =>
       reply
         .type("application/javascript")

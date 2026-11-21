@@ -17,15 +17,10 @@ import { loadStory } from "./trial.js";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const bin = path.resolve(here, "../../../node_modules/.bin/opencode");
 
-/** The scripted agent's question after a rejection. */
 const ASK = "What would you like me to change?";
 
 type Body = { stream?: boolean; tools?: { function?: { name?: string } }[]; messages?: { role?: string; content?: unknown }[] };
 
-/**
- * A model that plays the practice story as the Drehbuch asks: the plan, then per step one response that writes the
- * step's files (the reference implementation's), and after steps 1-3 a call of the checkpoint tool.
- */
 function scriptedModel(brief: string, approval: string, steps: Map<string, string>[], feedback?: { text: string; fix: Map<string, string> }) {
   const requests: Body[] = [];
   const script: ({ text: string } | { tools: { name: string; args: object }[] })[] = [];
@@ -72,7 +67,6 @@ function scriptedModel(brief: string, approval: string, steps: Map<string, strin
   );
 }
 
-/** The study server on the repository's trials, with a Drehbuch for the practice story and the scripted model behind it. */
 async function setup(name: string, port: number, feedback?: { text: string; fix: (steps: Map<string, string>[]) => Map<string, string> }) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "oc-live-"));
   const trials = path.join(tmp, "trials");
@@ -99,7 +93,6 @@ async function setup(name: string, port: number, feedback?: { text: string; fix:
   return {
     tmp, story, steps, fix, model, dir, post, view, app,
     git: (...args: string[]) => execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim(),
-    /** Paths not committed yet. */
     open: () => execFileSync("git", ["status", "--porcelain", "--untracked-files=all"], { cwd: dir, encoding: "utf8" }).split("\n").filter(Boolean).map((l) => l.slice(3)).sort(),
     events: () => fs.readFileSync(path.join(tmp, "exports", `${name}_3.events.jsonl`), "utf8").trim().split("\n").map((l) => JSON.parse(l) as { type: string; data: any }),
     close: async () => {

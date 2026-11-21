@@ -1,14 +1,13 @@
-// Runs the story's code and prints the true option text for every understanding item, in the order of trial.json.
-// The harness test compares this output with the item's `correct` index for both variants.
+// Prints the true option text of every understanding item, in trial.json order.
 
-/** A module of the agent's code, or an empty one if it is missing: then only the items that use it fail. */
+// A module of the agent's code, or an empty one if it is missing: then only the items that use it fail.
 const optional = <T,>(m: Promise<T>): Promise<T> => m.catch(() => ({}) as T);
 const { createAccountStore, getAccount } = await optional(import("./src/lib/accounts.ts"));
 const { fakeClock } = await optional(import("./src/lib/clock.ts"));
 const { applyPayment, parsePaymentEvent } = await optional(import("./src/lib/webhooks/handlers.ts"));
 const { processEventOnce } = await optional(import("./src/lib/webhooks/idempotency.ts"));
 
-/** The event log's factory: in src/lib/db.ts as the outline says, or next to the webhook types. */
+// The event log's factory: in src/lib/db.ts as the outline says, or next to the webhook types.
 async function eventLogFactory(): Promise<(clock: unknown) => any> {
   for (const p of ["./src/lib/db.ts", "./src/lib/webhooks/types.ts", "./src/lib/webhooks/event-log.ts", "./src/lib/webhooks/eventLog.ts"]) {
     const m = await import(p).catch(() => ({}));
@@ -18,7 +17,7 @@ async function eventLogFactory(): Promise<(clock: unknown) => any> {
 }
 const createEventLog = await eventLogFactory();
 
-/** An account store whose lookups fail with a non-AppError (a temporary failure) while `down` is set. */
+// An account store whose lookups fail with a non-AppError (a temporary failure) while `down` is set.
 function flakyAccounts() {
   const real = createAccountStore([{ id: "a", name: "A", balanceCents: 0 }]);
   const state = { down: true };

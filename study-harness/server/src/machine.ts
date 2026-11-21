@@ -31,16 +31,11 @@ type Phase = ViewState["phase"];
 
 const TEST_COMMAND = /\b(npm\s+(run\s+)?test|npm\s+t\b|node\s+(--\S+\s+)*--test|node\s+.*\.test\.ts)/;
 
-/** Code on screen for at least this long counts as seen. */
+// code on screen at least this long counts as seen
 const SEEN_MS = 1000;
 
-/** Participant states the client reports as on/off; the server times them. */
 type State = "review" | "unfocused" | "idle";
 
-/**
- * What happened inside opencode during one stretch of reviewing (before the decision, during the probe, at the end).
- * `hunks` and `flaw` are the regions of code this stretch is about; their time on screen comes from `diff_view` events.
- */
 class Window {
   ms: Record<State, number> = { review: 0, unfocused: 0, idle: 0 };
   coverage = 0;
@@ -85,14 +80,9 @@ type WindowSummary = ReturnType<Window["summary"]>;
 
 const REGIME_LETTER = { BATCH: "B", MILESTONE: "M", NON_MILESTONE: "N" } as const;
 
-/** The participant's approval of the plan, sent for them; the agent then builds (opencode's build agent). */
 export const APPROVE = "The plan looks good. Go ahead.";
 
-/**
- * A question's options for the code as played. The question and its options are fixed; when the code does
- * something none of them says (the printed outcome is not an option), that outcome replaces a distractor: the last
- * option that is neither variant's answer. An outcome the script cannot describe ("?...", or no output) leaves them.
- */
+// the printed outcome replaces the last option that is neither variant's answer, if no option states it
 export function adaptOptions(options: readonly string[], answers: readonly number[], outcome: string | null): string[] {
   const out = [...options];
   if (outcome === null || outcome.startsWith("?") || out.includes(outcome)) return out;
@@ -101,28 +91,19 @@ export function adaptOptions(options: readonly string[], answers: readonly numbe
   return out;
 }
 
-/** An outcome that can be graded (the script ran and described it). */
 const gradeable = (outcome: string | null | undefined): outcome is string => typeof outcome === "string" && !outcome.startsWith("?");
 
-/** The held checkpoint's answer once the participant has reviewed and accepted. */
 const RESUME = "The user has reviewed this step. Continue with the next step.";
-/** The held checkpoint's answer after a rejection: the agent asks, the participant answers in the composer. */
 const RESUME_REJECTED = "The user has rejected this step. Ask them in one short sentence what they want changed, then end your turn and wait for their answer.";
-/** Hidden from the participant: sent when the agent ended its turn with files of the feature still unwritten. */
 const GO_ON = "The feature is not finished yet. Do not ask anything: continue with the remaining steps as planned, then end your turn as usual.";
-/** Hidden from the participant: sent when the agent ended its turn before the step the review pauses at was done. */
 const GO_ON_TO_PAUSE = "You stopped before the feature is finished. Do not ask anything: go on where you stopped, with the review_checkpoint call after each of steps 1 to 3 as planned.";
-/** How often the agent is sent one of the two for one trial before the review shows the feature as it is. */
 const GO_ON_TRIES = 2;
-/** When the agent has already finished (BATCH): the participant's rejection, sent for them like the approval. */
 const REJECT_MESSAGE = "I'm rejecting this.";
 
 export interface AgentDeps {
   agent: AgentHost;
-  /** Where the per-trial project folders are created. */
   workRoot: string;
   sandbox: SandboxOptions;
-  /** The model endpoint (it adds each trial's Drehbuch) and the agent's checkpoint tool. */
   endpoint: Pick<LiveEndpoint, "load" | "endPlanning">;
   checkpoints: Pick<CheckpointServer, "setHandler">;
 }
@@ -133,48 +114,30 @@ interface CurrentTrial {
   pauseStep: number;
   planMs: number;
   finished: boolean;
-  /** The plan is approved, so checkpoint calls are the agent's steps. */
   building?: boolean;
-  /** The agent's turn that is still running while the scored checkpoint holds it. */
   running?: Promise<void>;
-  /** Answers the held checkpoint, and so lets the agent go on. */
   release?: (text: string) => void;
-  /** Called when the agent reaches the scored checkpoint. */
   onPause?: () => void;
-  /** Lines under review in the scored review, measured when it opens. */
   reviewedLines?: number;
-  /** The true option text of every understanding item, from running the code as the agent left it. */
   understandingKey?: (string | null)[];
-  /** Every understanding item's options for this code (see adaptOptions), in their canonical order. */
   understandingOptions?: string[][];
-  /** What the behaviour question's script printed for the code under review, and the options for it. */
   probeOutcome?: string | null;
   probeOptions?: string[];
-  /** The scored step has been reviewed (a later checkpoint call for it is the agent's fix after feedback). */
+  // a later checkpoint call for the step is then the agent's fix after feedback
   reviewed?: boolean;
-  /** The agent is fixing the scored step after feedback; its next checkpoint call for that step ends the fix. */
   fixing?: boolean;
-  /** Whether the agent wrote every file of the feature (see complete); false: the trial is flagged. */
   complete?: boolean;
-  /** The agent ended its turn before the pause the regime asks for (see approvePlan). */
   pauseMissed?: boolean;
-  /** Feedback phase: the one composer message has been sent. */
   answered?: boolean;
-  /** The project at the last accepted checkpoint (at first: as the trial started); a step's changes are measured from it. */
+  // a step's changes are measured from it
   lastStep?: Map<string, string>;
-  /** Failed step checks so far, per step. */
   stepFails?: Map<number, number>;
 }
 
-/** Failed step checks after which a step is accepted anyway, so that a session never hangs on it. */
+// a step is accepted anyway after this many failed checks, so a session never hangs
 const STEP_CHECK_TRIES = 2;
 
-/**
- * Protects the server, not the measures: a pod must not run on when the participant has gone. 0 turns a limit off.
- * warnMs: time without input, in a phase that waits for the participant, before "Are you still there?" appears.
- * abortMs: time after that prompt without an answer before the session ends. maxSessionMs: the session ends then
- * in any phase.
- */
+// protects the server, not the measures; 0 turns a limit off
 export interface SessionLimits {
   warnMs: number;
   abortMs: number;
@@ -182,17 +145,11 @@ export interface SessionLimits {
 }
 export const DEFAULT_LIMITS: SessionLimits = { warnMs: 10 * 60_000, abortMs: 10 * 60_000, maxSessionMs: 120 * 60_000 };
 
-/** What the server does after StudySession.watch: write the bundle as after Finish, or end without one. */
 export type WatchOutcome = "finish" | "abandoned" | null;
 
-/**
- * Server-authoritative study flow. The client renders `view()` and posts actions; variant, regime and ground truth
- * never leave this class. In each trial a real model plays the agent in opencode from the trial's Drehbuch; the
- * server sends the participant's request and approval, and holds the agent at the scored checkpoint (see checkpoint).
- */
 export class StudySession {
   private _phase: Phase = "intro";
-  /** Once abandoned, an agent turn that ends later does not bring the session back. */
+  // an agent turn that ends after abandonment must not revive the session
   private get phase(): Phase {
     return this._phase;
   }
@@ -209,21 +166,16 @@ export class StudySession {
   private results: TrialResult[] = [];
   private practiceResult: TrialResult | null = null;
   private preSurvey: Record<string, unknown> | null = null;
-  /** The next trial, being set up while the participant is on a full-screen page. */
   private prepared: { idx: number; ready: Promise<CurrentTrial> } | null = null;
-  /** Telemetry: the stretch being measured, since when each state is on (null: off), and the code on screen. */
   private window: Window | null = null;
   private since: Record<State, number | null> = { review: null, unfocused: null, idle: null };
   private onScreen: { views: Region[]; since: number } | null = null;
   private postSurvey: Record<string, unknown> | null = null;
-  /** Practice trial first, then the six measured trials. */
   private readonly allTrials: TrialPlan[];
   readonly events: StudyEvent[] = [];
-  /** Presence (see watch): session start, the participant's last input, and since when the phase is the current one. */
   private readonly startedAt: number;
   private lastInput: number;
   private phaseSince: number;
-  /** When "Are you still there?" appeared; null while it is not shown. */
   private afkPromptAt: number | null = null;
   private readonly limits: SessionLimits;
 
@@ -233,7 +185,7 @@ export class StudySession {
     private readonly deps: AgentDeps,
     private readonly sink: (e: StudyEvent) => void = () => {},
     private readonly now: () => number = Date.now,
-    /** Experimenter aid: expose a "B·F"-style condition tag in the view. Off in real sessions. */
+    // experimenter aid; off in real sessions
     private readonly showCondition = false,
     limits: Partial<SessionLimits> = {},
   ) {
@@ -243,10 +195,6 @@ export class StudySession {
     this.log("session_start", { participantId: plan.participantId, studySeed: plan.studySeed, group: plan.group, plan });
   }
 
-  /**
-   * The browser's presence report (see Presence). Answers whether "Are you still there?" is to be shown, and whether
-   * the session has ended (the browser then fetches the end page).
-   */
   presence(raw: unknown): { prompt: boolean; ended: boolean } {
     const p = Presence.parse(raw);
     this.lastInput = Math.max(this.lastInput, this.now() - p.inputAgoMs);
@@ -257,12 +205,7 @@ export class StudySession {
     return { prompt: this.afkPromptAt !== null, ended: this.phase === "finished" || this.phase === "abandoned" };
   }
 
-  /**
-   * Called every few seconds by the server. While the participant is to act (any phase but the agent working), a
-   * stretch of SessionLimits.warnMs without input shows "Are you still there?"; no answer for abortMs more ends the
-   * session. A closed browser sends no presence reports, so it ends the same way. At maxSessionMs it ends in any
-   * phase. Ending at the debrief is a normal Finish: everything is recorded by then.
-   */
+  // ending at the debrief is a normal Finish: everything is recorded by then
   watch(): WatchOutcome {
     if (this.phase === "finished" || this.phase === "abandoned") return null;
     const now = this.now();
@@ -315,10 +258,6 @@ export class StudySession {
     return this.story.probeFor(this.trial.regime, this.current!.pauseStep);
   }
 
-  /**
-   * Starts measuring a stretch of reviewing, about the code under review (`withCode`) or none of its own (the probe).
-   * A state that is already on (changes view open, window unfocused) counts from now.
-   */
   private openWindow(name: string, withCode: boolean) {
     if (!withCode) {
       this.window = new Window(name, this.now());
@@ -332,12 +271,10 @@ export class StudySession {
     this.window = new Window(name, this.now(), hunks);
   }
 
-  /** Time since `since` that falls into window `w`. */
   private credit(w: Window, since: number) {
     return this.now() - Math.max(since, w.start);
   }
 
-  /** Credits the code on screen since the last change to the window's files, hunks and flaw region. */
   private flushScreen(w: Window | null) {
     if (!w || !this.onScreen) return;
     const dt = this.credit(w, this.onScreen.since);
@@ -356,7 +293,6 @@ export class StudySession {
     }
   }
 
-  /** Ends the current stretch, counting states and code still on screen up to now, and logs its details. */
   private closeWindow(): WindowSummary {
     const w = this.window ?? new Window("none", this.now());
     for (const key of Object.keys(this.since) as State[]) {
@@ -378,7 +314,6 @@ export class StudySession {
     return summary;
   }
 
-  /** One event from the participant's opencode UI. */
   recordUi(raw: unknown) {
     const e = UiEvent.parse(raw);
     this.log(`ui_${e.type}`, { phase: this.phase, trial: this.current ? this.trial.position : null, ...e.data });
@@ -425,11 +360,7 @@ export class StudySession {
     if (!allowed.includes(this.phase)) throw new ConflictError(`action not allowed in phase "${this.phase}"`);
   }
 
-  /**
-   * One agent turn: the agent works until its turn ends or it reaches the scored checkpoint (then the turn stays open
-   * in `running`); then `after` sets the next phase. `hidden`: the message that starts the turn is one the participant
-   * does not see (AgentHost.nudge).
-   */
+  // `hidden`: the message that starts the turn is one the participant does not see
   private async turn(text: string, agent: string | undefined, after: () => void, hidden = false) {
     const c = this.current!;
     this.phase = "working";
@@ -444,7 +375,6 @@ export class StudySession {
     after();
   }
 
-  /** Answers the held checkpoint and waits until the agent's turn is over. */
   private async resume(answer: string) {
     const c = this.current!;
     this.phase = "working";
@@ -458,10 +388,7 @@ export class StudySession {
     this.log("agent_turn", { trial: this.trial.position, text: answer, ms: this.now() - started, outcome: "done" });
   }
 
-  /**
-   * What the agent's checkpoint call does. Steps before the scored review are committed (so the changes view
-   * shows only the step under review); the scored step's call is held until the participant has reviewed it.
-   */
+  // steps before the scored review are committed so the changes view shows only the step under review; the scored step is held
   private async checkpoint(c: CurrentTrial, step: number): Promise<string> {
     // A step must be complete before it counts (see checkStep). Not the fix after a rejection: it changes what the
     // participant asked for, not the step's files.
@@ -494,14 +421,8 @@ export class StudySession {
     });
   }
 
-  /**
-   * Checks the step the agent reports as done, so that the step the review pauses at holds what the step outline puts
-   * there: every file that first appears in this step's reference implementation has changed since the last step,
-   * no file of a later step has changed yet, and the step's behaviour question can be answered on the code (its script
-   * describes what the code does). Which variant the code implements is never checked: the answer is shown in the chat.
-   * Returns the message for the agent if the step is not complete, null if it is (or is accepted after
-   * STEP_CHECK_TRIES failures).
-   */
+  // A step counts only if its reference files changed, no later step's did, and its behaviour script describes the code.
+  // The variant is never checked: the chat shows the answer.
   private async checkStep(c: CurrentTrial, step: number): Promise<string | null> {
     const story = this.story;
     const now = readWorkspace(c.dir, this.deps.sandbox);
@@ -529,12 +450,7 @@ export class StudySession {
     return `Step ${step} check failed: ${problems.join("; ")}. Complete step ${step} as planned, then call review_checkpoint for step ${step} again.`;
   }
 
-  /**
-   * A pause regime whose agent ended its turn before the scored checkpoint (it stopped between two steps, or did not
-   * call the checkpoint): as long as no later step has been written, the pause can still happen where it belongs, so
-   * the agent is sent GO_ON_TO_PAUSE, which the participant does not see, up to GO_ON_TRIES times. Otherwise, and if
-   * that does not help, the pause is missed (`pauseMissed`).
-   */
+  // agent stopped before the scored checkpoint: nudge it (hidden) with GO_ON_TO_PAUSE up to GO_ON_TRIES times, else pauseMissed
   private async toPause(c: CurrentTrial) {
     const story = this.story;
     for (let tries = 0; !c.running && tries < GO_ON_TRIES; tries++) {
@@ -546,12 +462,7 @@ export class StudySession {
     }
   }
 
-  /**
-   * Makes sure the agent finished the feature before it is shown as finished: every file the reference
-   * implementation writes has changed. An agent that stopped early (for example by asking again after the
-   * participant's one answer) is sent GO_ON, which the participant does not see, up to GO_ON_TRIES times; if files
-   * are still missing, the trial is flagged (`featureComplete` false, `live_incomplete`).
-   */
+  // agent stopped early: nudge it (hidden) with GO_ON up to GO_ON_TRIES times, else flag the trial (live_incomplete)
   private async complete(c: CurrentTrial) {
     const original = this.story.files();
     for (let tries = 0; ; tries++) {
@@ -574,10 +485,6 @@ export class StudySession {
     }
   }
 
-  /**
-   * The understanding items' answer key, from running their script on the code as the agent finished it (fix
-   * included); the items are answered about that code.
-   */
   private async key() {
     const c = this.current!;
     // Some items run the agent's own tests (twice), hence the longer limit.
@@ -592,7 +499,6 @@ export class StudySession {
     this.log("live_key", { trial: this.trial.position, understanding: c.understandingKey, options: c.understandingOptions });
   }
 
-  /** The finished feature is on screen until the participant is done looking. */
   private toReviewing() {
     const c = this.current!;
     c.finished = true;
@@ -603,11 +509,7 @@ export class StudySession {
     this.openWindow("final", true);
   }
 
-  /**
-   * Sets up trial `idx` and lets the agent explore and plan, in the background. It runs while the participant
-   * is on a full-screen page (the questionnaire, or the previous trial's understanding questions), so the plan is
-   * usually ready when the trial starts. The previous trial's agent has finished by then.
-   */
+  // Runs in the background while the participant is on a full-screen page, so the plan is usually ready at trial start.
   private prepare(idx: number) {
     if (idx >= this.allTrials.length || this.prepared?.idx === idx) return;
     const ready = this.setUp(idx);
@@ -619,7 +521,6 @@ export class StudySession {
     const t = this.allTrials[idx]!;
     const story = this.loadStory(t.story);
     const dir = createTrialWorkspace(this.deps.workRoot, `${String(t.position).padStart(2, "0")}-${t.story}`, story.files(), this.deps.sandbox);
-    // The real model plays the agent from the Drehbuch; its checkpoint calls make the steps and the pause.
     const c: CurrentTrial = { sessionId: "", dir, pauseStep: story.pauseStep(t.regime, t.pauseDraw), planMs: 0, finished: false };
     const mainThread = threadKey({ messages: [{ role: "user", content: story.brief }], tools: [{}] }, dir);
     this.deps.endpoint.load({ workspaceDir: dir, mainThread, drehbuch: story.drehbuch(t.variant), publicPlan: story.publicPlan, leaks: story.def.planLeaks, steps: story.def.steps.map((s) => s.summary), trial: t.position });
@@ -637,7 +538,6 @@ export class StudySession {
   private async startTrial() {
     const t = this.trial;
     const story = this.story;
-    // Prepared in the background (see prepare); if not started yet, now, and the participant waits for it.
     this.prepare(this.trialIdx);
     const waitFrom = this.now();
     const c = await this.prepared!.ready;
@@ -907,20 +807,12 @@ export class StudySession {
     return this.view();
   }
 
-  /**
-   * Feedback phase: whether a request from the participant's browser is their one answer to the agent (the
-   * proxy blocks every other prompt).
-   */
   acceptsComposerMessage(method: string, url: string): boolean {
     const c = this.current;
     if (this.phase !== "feedback" || !c || c.answered || method !== "POST") return false;
     return new RegExp(`^/api/session/${c.sessionId}/prompt(\\?|$)`).test(url);
   }
 
-  /**
-   * The participant's answer from opencode's composer. It goes to opencode as sent; the agent fixes the step (or
-   * the feature) and finishes, then the final review opens. Resolves with opencode's answer to the request.
-   */
   async composerMessage(url: string, body: string): Promise<{ status: number; body: string }> {
     this.require("feedback");
     const c = this.current!;
@@ -951,7 +843,6 @@ export class StudySession {
     return res;
   }
 
-  /** Builds and validates the bundle. Only valid once the debrief is reached. */
   finish() {
     this.require("debrief");
     this.log("finish", {});

@@ -5,46 +5,30 @@ import path from "node:path";
 import { CHECKPOINT_TOOL, CONTINUE, type CheckpointHandler } from "./checkpoint.js";
 import { chownTree, type SandboxOptions } from "./sandbox.js";
 
-/** The coding agent the participant watches. The study server starts every turn and waits for it to finish. */
 export interface AgentHost {
-  /** Opens an agent session for a trial whose project lives in `dir`, starting with opencode agent `agent` ("plan"). */
   startSession(opts: { dir: string; title: string; agent: string }): Promise<{ id: string }>;
-  /** Sends a user message (switching to opencode agent `agent` first) and resolves once the agent's turn is over. */
   runTurn(sessionId: string, text: string, agent?: string): Promise<void>;
-  /** Resolves once the session's turn is over. */
   waitIdle(sessionId: string): Promise<void>;
-  /**
-   * Sends the agent a message the participant does not see (an opencode synthetic message, which the chat does not
-   * show) and resolves once the turn it starts is over.
-   */
+  // synthetic opencode message: the chat does not show it
   nudge(sessionId: string, text: string): Promise<void>;
-  /** Passes a prompt request from the participant's composer to opencode unchanged (body and query as sent). */
   forwardPrompt(sessionId: string, query: string, body: string): Promise<{ status: number; body: string }>;
-  /** Where the study server forwards the agent's API (/api, /auth), with the credentials to add; undefined: no agent UI. */
   proxy(): { url: string; authorization: string } | undefined;
   close(): void;
 }
 
 export interface OpencodeOptions {
-  /** opencode binary (v2, @opencode/cli). */
   bin: string;
-  /** Port opencode listens on (loopback only; the study server forwards to it). */
   port: number;
-  /** The model endpoint (the recording proxy in front of the real model), its model id, and the checkpoint tool's MCP server. */
   live: { url: string; model: string; checkpointUrl: string };
-  /** Home directory for opencode's config, data and state (owned by the sandbox uid). */
   home: string;
   sandbox: SandboxOptions;
   log: (type: string, data: unknown) => void;
 }
 
-/** Event types that are only streaming noise; everything else from opencode goes into the study's event log. */
+// streaming noise; everything else goes into the event log
 const NOISY = /delta|\.part\.|heartbeat|stream/i;
 
-/**
- * Real opencode v2 (`opencode serve`) whose model is the live endpoint. It runs as the sandbox uid, so its tools and
- * the participant's terminal cannot read the trials or the exports.
- */
+// runs as the sandbox uid, so its tools and the participant's terminal cannot read trials or exports
 export class OpencodeHost implements AgentHost {
   private proc: ChildProcess | null = null;
   private password = "";
@@ -57,10 +41,9 @@ export class OpencodeHost implements AgentHost {
     const { home, sandbox } = this.o;
     const config = path.join(home, ".config", "opencode");
     fs.mkdirSync(config, { recursive: true });
-    // Global config, so that no opencode file shows up in the participant's project. Nothing in it may give the
-    // condition away: the sandbox uid can read it (the Drehbuch is added by the live endpoint, not here).
+    // Global config so no opencode file lands in the project; the sandbox uid can read it, so nothing here may reveal the condition.
     const live = this.o.live;
-    // The agent may not ask the participant multiple-choice questions; the plan agent allows them, so deny per agent too.
+    // the plan agent allows questions, so deny per agent too
     const permissions = [
       { action: "question", resource: "*", effect: "deny" },
       { action: CHECKPOINT_TOOL, resource: "*", effect: "allow" },
@@ -73,7 +56,7 @@ export class OpencodeHost implements AgentHost {
           model: `live/${live.model}`,
           permissions,
           agents: { plan: { permissions }, build: { permissions } },
-          // The checkpoint tool as a direct tool (not through Code Mode); a held call may wait as long as a review takes.
+          // direct tool, not via Code Mode; a held call may wait as long as a review takes
           mcp: { servers: { review: { type: "remote", url: live.checkpointUrl, oauth: false, codemode: false, timeout: { execution: 4 * 60 * 60 * 1000 } } } },
         },
         null,
@@ -127,7 +110,6 @@ export class OpencodeHost implements AgentHost {
     return res.status === 204 ? null : res.json();
   }
 
-  /** Copies opencode's own event stream into the study log (participant activity inside the agent UI). */
   private async followEvents() {
     try {
       const res = await fetch(`${this.local}/api/event`, {
@@ -208,23 +190,15 @@ export class OpencodeHost implements AgentHost {
   }
 }
 
-/**
- * Stand-in for opencode and the model, for tests and flow development (AGENT=fake; no agent UI). It plays the agent
- * as the Drehbuch asks: no code while planning; after the approval each step's reference files (see reference.ts),
- * with the checkpoint call after steps 1-3; after a rejection it ends its turn (it "asks"), and the participant's
- * answer makes it call the checkpoint for that step again and go on. Its fix changes nothing. An answer of three
- * characters or fewer makes it ask again instead (the agent stopping early); a nudge then makes it go on.
- */
+// Stand-in for opencode and the model (AGENT=fake): plays the Drehbuch from the reference files, no agent UI.
 export class FakeAgentHost implements AgentHost {
-  /** Stands in for the checkpoint tool's MCP server, which the fake agent calls as the model would. */
   readonly checkpoints = { handler: null as CheckpointHandler | null, setHandler: (h: CheckpointHandler) => void (this.checkpoints.handler = h) };
   readonly prompts: { sessionId: string; text: string; agent?: string }[] = [];
-  /** Test hook: the agent ends its turn once after this step's checkpoint call, as a model that stops between two steps. */
+  // test hook: ends the turn once after this step's checkpoint, like a model stopping between steps
   stopAfterStep?: number;
   private sessions = new Map<string, { dir: string; turns: number; next: number; redo?: number; running?: Promise<void> }>();
   private n = 0;
 
-  /** `steps(dir)`: the files each of the four steps writes in the trial whose project is `dir`. */
   constructor(private readonly steps: (dir: string) => Map<string, string>[]) {}
 
   async startSession({ dir }: { dir: string; title: string; agent: string }) {
@@ -281,7 +255,6 @@ export class FakeAgentHost implements AgentHost {
     await this.goOn(sessionId);
   }
 
-  /** After the participant's answer: the step it was about again, then the rest. */
   private async goOn(sessionId: string) {
     const s = this.sessions.get(sessionId)!;
     if (s.redo !== undefined) await this.checkpoint(s.redo);

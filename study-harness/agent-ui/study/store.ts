@@ -1,6 +1,5 @@
 import { createSignal } from "solid-js"
 
-/** The study server's view (see beacon shared/src/view.ts). Variant, regime and answers never reach the browser. */
 export type StudyPhase =
   | "intro"
   | "presurvey"
@@ -34,11 +33,9 @@ export interface StudyView {
   understanding?: { items: { question: string; options: string[] }[] }
 }
 
-/** Phases where opencode itself is on screen (with the study prompt in place of the composer). */
 export const AGENT_PHASES: StudyPhase[] = ["plan", "working", "stage1", "stage2", "feedback", "reviewing"]
 
-// opencode asks for system notification permission when the agent finishes; a browser popup has no place in the
-// study. Its own completion sound stays (the same in every condition).
+// Block opencode's notification-permission popup; its completion sound stays.
 if (typeof Notification !== "undefined") {
   try {
     Object.defineProperty(Notification, "requestPermission", { value: async () => "denied", configurable: true })
@@ -64,10 +61,7 @@ async function call<T>(path: string, body?: unknown, method = "POST"): Promise<T
 
 const PARTICIPANT_KEY = "beacon.participant"
 
-/**
- * opencode remembers open tabs, drafts and layout in the browser. A new participant (or a restarted container,
- * whose sessions are gone) must not inherit them: clear opencode's storage once and reload.
- */
+// Clear opencode's stored tabs, drafts and layout once, so a new participant does not inherit them.
 function resetForParticipant(id: string) {
   try {
     if (localStorage.getItem(PARTICIPANT_KEY) === id) return false
@@ -90,11 +84,9 @@ export function load() {
   return loading
 }
 
-/** Sends one study action; actions that start an agent turn resolve once the agent has stopped. */
 export async function act(action: Record<string, unknown>) {
   if (busy()) return
   setBusy(true)
-  // Show the agent as working right away, without waiting for the server's answer.
   if (action.type === "approvePlan" || (action.type === "stage2" && !view()?.finished)) setView((v) => v && { ...v, phase: "working" })
   try {
     setView(await call<StudyView>("action", action))
@@ -120,19 +112,16 @@ export async function finish() {
   if (completion && !error()) location.assign(completion)
 }
 
-/** Live, after a rejection: the agent has asked what to change, and opencode's own composer is the participant's answer. */
 export const composerOpen = () => view()?.phase === "feedback"
 
-// The participant's answer goes straight to opencode (not through a study action), so while the agent asks or works
-// on after it, the study state is fetched until it moves on.
+// The answer goes to opencode directly, so poll study state until it moves on.
 setInterval(() => {
   const v = view()
   if (!v || busy() || (v.phase !== "feedback" && v.phase !== "working")) return
   call<StudyView>("state", undefined, "GET").then((next) => setView(next), () => {})
 }, 1500)
 
-// Presence (StudySession.watch on the server): the last mouse, keyboard, scroll or touch input, reported every 30 s.
-// After a long stretch without input the server asks "Are you still there?"; without an answer the session ends.
+// Presence: report the last input every 30 s; the server asks "Are you still there?" after a long stretch.
 let lastInput = Date.now()
 for (const type of ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"])
   document.addEventListener(type, () => (lastInput = Date.now()), { capture: true, passive: true })
@@ -152,7 +141,6 @@ async function reportPresence(confirm = false) {
 }
 setInterval(() => void reportPresence(), 30_000)
 
-/** The participant answered "Are you still there?". */
 export function stillHere() {
   lastInput = Date.now()
   setAfk(false)

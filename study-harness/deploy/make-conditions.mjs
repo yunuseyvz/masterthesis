@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Writes the study's entry for Conditioner's conditions.json (docs/harness/deployment.md): one condition per
+// Writes the study's entry for Conditioner's conditions.json: one condition per
 // counterbalancing group and round, all with the same image. N should be a multiple of 12.
 //
 // Usage: node study-harness/deploy/make-conditions.mjs [completion redirect] > conditions.json
@@ -27,7 +27,7 @@ console.log(JSON.stringify([{
   study_name: "Agentic Interventions",
   study_slug: "beacon",
   supervisor: "",
-  // A technical cap, not the planned N (docs/study/analysis-plan.md §1: as many as possible, about 30); raise it if needed.
+  // A technical cap, not the planned N (about 30).
   stop_at_n: 36,
   info_html: "studies/beacon/info.html",
   consent_html: "studies/beacon/consent.html",

@@ -15,7 +15,6 @@ import { loadStory, makeStoryLoader } from "./trial.js";
 const load = (id: string) => loadStory(trialsDir, projectDir, id);
 const ref = (id: string) => loadReference(load(id));
 
-/** A session's dependencies with the fake agent, which writes the reference code (see FakeAgentHost). */
 function fakeDeps(plan: SessionPlan, loader = makeStoryLoader(trialsDir, projectDir)) {
   const agent = new FakeAgentHost(referenceSteps(loader, () => [plan.practice, ...plan.trials]));
   return { agent, endpoint: { load: () => {}, endPlanning: () => {} }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
@@ -38,7 +37,6 @@ const POSTSURVEY = {
 
 const UNDERSTANDING = { type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [25, 55, 85, 100, 40], paas: 6, review: { timing: 6, helped: 5, disrupted: 2 }, itemMs: [4000, 3000, 5000, 2000, 1000], answerChanges: [0, 1, 0, 0, 2] };
 
-/** begin -> presurvey -> first checkpoint */
 async function startSession(session: StudySession) {
   await session.act({ type: "begin" });
   await session.act(PRESURVEY);

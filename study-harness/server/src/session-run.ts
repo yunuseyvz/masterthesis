@@ -1,16 +1,6 @@
-/**
- * Plays one whole study session without a browser: survey, the practice feature and six measured features, the
- * postsurvey and the export. A mechanical test of the whole flow with the real agent; the data are not meant for
- * analysis.
- *
- * Usage (study-harness/server):
- *   set -a && . ../../.env && set +a
- *   npx tsx src/session-run.ts [--participant MECH01] [--seed 1] [--group 0] [--round 0]
- *     [--model deepseek-v4.1-flash] [--upstream https://opencode.ai/zen/go/v1] [--out /tmp/session-runs]
- *
- * It accepts every feature except one (see REJECT_AT), where it rejects with an unclear answer: that exercises the
- * rejection path and the hidden reminder.
- */
+// Mechanical end-to-end run of a whole session with the real agent, no browser; the data are not for analysis.
+// set -a && . ../../.env && set +a
+// npx tsx src/session-run.ts [--participant MECH01] [--seed 1] [--group 0] [--round 0] [--model ...] [--out /tmp/session-runs]
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -73,7 +63,6 @@ const sessionLog = (e: StudyEvent) => {
 const study = new StudySession(plan, loadStory, { agent, endpoint, checkpoints, workRoot: path.join(out, "work"), sandbox: {} }, sessionLog);
 session = study;
 
-/** Waits until the session reaches `phase`. */
 async function phase(name: string, timeoutMs = 15 * 60_000) {
   const until = Date.now() + timeoutMs;
   while (study.view().phase !== name) {
@@ -82,7 +71,6 @@ async function phase(name: string, timeoutMs = 15 * 60_000) {
   }
 }
 const view = () => study.view();
-/** Items whose answer key the code could not produce (null): not gradeable in this run. */
 const ungradeable = () => {
   let n = 0;
   for (const e of events) if (e.type === "live_key") n += (e.data as { understanding: (string | null)[] }).understanding.filter((x) => x === null).length;

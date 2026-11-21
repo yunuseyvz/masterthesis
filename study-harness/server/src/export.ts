@@ -3,7 +3,7 @@ import path from "node:path";
 import { MILESTONE_ROLES, UNDERSTANDING_ITEMS, type SessionBundle, type TrialResult } from "@beacon/shared";
 import type { StudyEvent } from "./machine.js";
 
-/** Appends each event to a JSONL file with fsync, so a crash loses at most the in-flight event. */
+// fsync per event, so a crash loses at most the one in flight
 export function makeEventSink(exportDir: string, participantId: string, studySeed: string) {
   fs.mkdirSync(exportDir, { recursive: true });
   const fd = fs.openSync(path.join(exportDir, `${participantId}_${studySeed}.events.jsonl`), "a");
@@ -23,10 +23,6 @@ const CSV_COLUMNS: (keyof TrialResult)[] = [
   "featureComplete", "pauseMissed", "understandingScore", "paas", "pauseTiming", "pauseHelped", "pauseDisrupted",
 ];
 
-/**
- * Per-item understanding columns, in the order the items were asked: u1_answer, u1_correct, u1_confidence, u1_role,
- * u1_step (the agent step whose code decides it), u1_milestone (a milestone item, see MILESTONE_ROLES), u1_ms, u1_changes, ...
- */
 const ITEM_COLUMNS = (n: number) =>
   Array.from({ length: n }, (_, k) => ["answer", "correct", "confidence", "role", "step", "milestone", "ms", "changes"].map((c) => `u${k + 1}_${c}`)).flat();
 const itemValues = (t: TrialResult) =>

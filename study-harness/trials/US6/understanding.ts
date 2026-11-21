@@ -1,7 +1,6 @@
-// Runs the story's code and prints the true option text for every understanding item, in the order of trial.json.
-// The harness test compares this output with the item's `correct` index for both variants.
+// Prints the true option text of every understanding item, in trial.json order.
 
-/** A module of the agent's code, or an empty one if it is missing: then only the items that use it fail. */
+// A module of the agent's code, or an empty one if it is missing: then only the items that use it fail.
 const optional = <T,>(m: Promise<T>): Promise<T> => m.catch(() => ({}) as T);
 const { createCatalog } = await optional(import("./src/lib/catalog.ts"));
 const { NotFoundError, ValidationError } = await optional(import("./src/lib/errors.ts"));
@@ -16,7 +15,7 @@ const catalog = createCatalog([
   { sku: "b", name: "B", priceCents: 333 },
   { sku: "c", name: "C", priceCents: 333 },
 ]);
-/** Describes discountFor's answer, or "rejected" for a ValidationError. */
+// Describes discountFor's answer, or "rejected" for a ValidationError.
 function discount(amount: number, value: number): string {
   try {
     return String(discountFor(amount, percent(value)));
