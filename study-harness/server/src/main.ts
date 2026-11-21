@@ -32,6 +32,13 @@ const socketPath = env.LISTEN_SOCKET || undefined;
 const host = env.LISTEN_HOST ?? "127.0.0.1";
 const port = Number(env.PORT ?? 5185);
 
+/** A limit in minutes from the environment, in ms. */
+function minutes(value: string | undefined, fallback: number) {
+  const n = value === undefined || value === "" ? fallback : Number(value);
+  if (!Number.isFinite(n) || n < 0) throw new Error(`a time limit must be a number of minutes >= 0, got "${value}"`);
+  return n * 60_000;
+}
+
 const demo = env.DEMO === "1";
 if (demo) console.warn("[study] DEMO=1: after Finish the harness starts a fresh session instead of exiting. Do not use for real participants.");
 // TRY_TRIAL=US1,MILESTONE,Flawed plays that trial in place of the practice story.
@@ -64,6 +71,12 @@ const app = await buildApp({
   recording: env.SESSION_RECORDING !== "0",
   sandbox: { uid, gid, probeUid },
   workRoot,
+  // Minutes; 0 turns one off. See StudySession.watch.
+  limits: {
+    warnMs: minutes(env.STUDY_AFK_WARN_MIN, 10),
+    abortMs: minutes(env.STUDY_AFK_ABORT_MIN, 10),
+    maxSessionMs: minutes(env.STUDY_MAX_SESSION_MIN, 120),
+  },
   agent:
     env.AGENT === "fake"
       ? { kind: "fake" }

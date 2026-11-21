@@ -20,7 +20,7 @@ const CSV_COLUMNS: (keyof TrialResult)[] = [
   "flawRegionMsStage1", "flawRegionSeenStage1", "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1",
   "stage2ProbeLatencyMs", "terminalCommandsProbe", "probeAnswer", "probeCorrect", "finalReviewMs", "changesViewMsFinal",
   "hunksFinal", "hunksViewedFinal", "flawRegionMsFinal", "flawRegionSeenFinal", "unfocusedMsFinal", "idleMsFinal",
-  "featureComplete", "pauseMissed", "understandingScore", "paas",
+  "featureComplete", "pauseMissed", "understandingScore", "paas", "pauseTiming", "pauseHelped", "pauseDisrupted",
 ];
 
 /**

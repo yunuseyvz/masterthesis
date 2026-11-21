@@ -62,6 +62,7 @@ export function generateSessionPlan(input: PlanInput): SessionPlan {
       understandingOptionOrders: understandingOrders(rng),
       // A story is NON_MILESTONE in two groups, g (Correct) and g + 3 (Flawed), of opposite parity. Alternating by
       // round + group gives each candidate step 5 of a story's 10 NON_MILESTONE trials at N = 30 (3:2 per variant).
+      // Only a story with two candidate steps uses it (US1; the others exclude a declarative step).
       pauseDraw: round === undefined ? coin : (round + group) % 2,
     };
   });

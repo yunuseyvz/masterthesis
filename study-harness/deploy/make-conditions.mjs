@@ -27,6 +27,7 @@ console.log(JSON.stringify([{
   study_name: "Agentic Interventions",
   study_slug: "beacon",
   supervisor: "",
+  // A technical cap, not the planned N (docs/study/analysis-plan.md §1: as many as possible, about 30); raise it if needed.
   stop_at_n: 36,
   info_html: "studies/beacon/info.html",
   consent_html: "studies/beacon/consent.html",

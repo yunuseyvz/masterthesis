@@ -55,9 +55,9 @@ const items: (() => Promise<string> | string)[] = [
     try {
       const r = await processEventOnce(deps, event, applyPayment, async () => {});
       const balance = getAccount(deps.accounts, "a").balanceCents;
-      return r.duplicate && balance === 0 ? "It is accepted as a duplicate, without crediting" : "It credits the account as well";
+      return r.duplicate && balance === 0 ? "It is accepted as a duplicate, without crediting" : "It is processed as well and credits the account again";
     } catch {
-      return "It fails with an error";
+      return "It fails with an error and nothing is credited";
     }
   },
   // dependency (step 4): the endpoint's answer when processing gives up, and whether a redelivery is tried anew
@@ -66,13 +66,13 @@ const items: (() => Promise<string> | string)[] = [
     const { accounts, real, state } = flakyAccounts();
     const deps = { accounts, log: createEventLog(fakeClock()), clock: fakeClock(), maxAttempts: 1 };
     const first: Response = await handleWebhookRequest(delivery(event), deps);
-    if (first.status === 200) return "200, so the provider stops and the payment is never credited";
+    if (first.status === 200) return "200: the provider stops delivering it";
     if (first.status === 409) return "409: rejected as a conflict";
     if (first.status === 400) return "400: rejected as invalid";
     if (first.status < 500) return `? it answers ${first.status}`;
     state.down = false;
     await handleWebhookRequest(delivery(event), deps);
-    return real.accounts.get("a")!.balanceCents === 100 ? "An error status (5xx), so the provider delivers it again and it is tried anew" : "? 5xx, but a redelivery is not credited";
+    return real.accounts.get("a")!.balanceCents === 100 ? "5xx: the provider delivers it again" : "? 5xx, but a redelivery is not credited";
   },
   // emergent (step 4): an event type the endpoint does not handle
   async () => {
@@ -81,7 +81,7 @@ const items: (() => Promise<string> | string)[] = [
     const res: Response = await handleWebhookRequest(delivery({ ...event, type: "payment.refunded" }), deps);
     const balance = getAccount(deps.accounts, "a").balanceCents;
     if (res.status === 200) return balance === 500 ? "200: accepted and ignored" : "200: the account is debited";
-    return { 400: "400: rejected as an invalid event", 500: "500: server error" }[res.status] ?? `It answers ${res.status}`;
+    return { 400: "400: rejected as an invalid event", 500: "500: it fails with a server error" }[res.status] ?? `It answers ${res.status}`;
   },
 ];
 

@@ -1,6 +1,6 @@
 # US3: Tenant Configuration
 
-Platz: Milestone Schritt 2, Flaw Schritt 3
+Platz: Milestone Schritt 2, Flaw Schritt 3 · NON-MILESTONE Schritt 3 (Schritt 1 deklarativ)
 
 ## Öffentlich
 
@@ -82,8 +82,8 @@ Flawed statt dessen: Die Operation läuft, solange noch Platz für eine weitere 
 2. A tenant overrides only { features: { refunds: false } }. Is analytics enabled for it?
    Optionen: No / Yes / Only if refunds are on / It is undefined
    Antwort: No
-3. A tenant with maxUsers 5 already has 4 users. withQuota is called to add 3 users at once (amount 3). What happens?
-   Optionen: It fails with a 429 QuotaExceededError / The operation runs / Only 1 user is added / It fails with 400
+3. A tenant with maxUsers 5 has no users yet. withQuota is called to invite 6 users at once (amount 6). What happens?
+   Optionen: It fails with a 429 QuotaExceededError / The operation runs / Only 5 users are added / It fails with 400
    Antwort: Correct: It fails with a 429 QuotaExceededError · Flawed: The operation runs
 
 ### Understanding-Items
@@ -92,14 +92,14 @@ Flawed statt dessen: Die Operation läuft, solange noch Platz für eine weitere 
    Optionen: The organization default / No limit at all / 0 / Resolving its configuration throws
    Antwort in der Referenz: The organization default
 2. **Emergent** (Schritt 2): A tenant's overrides contain a limit the platform does not have: { limits: { maxWidgets: 3 } }. What happens to it?
-   Optionen: It is dropped: the effective limits are only the known ones / It is kept in the effective limits / Resolving the configuration rejects it as invalid / It replaces maxUsers
-   Antwort in der Referenz: It is dropped: the effective limits are only the known ones
+   Optionen: It is dropped from the effective limits / It is kept in the effective limits / Resolving the configuration rejects it as invalid / It replaces maxUsers
+   Antwort in der Referenz: It is dropped from the effective limits
 3. **Milestone, Abhängigkeit** (Schritt 3): A tenant has overridden maxProducts with null and already has 100 products; the organization default is 100. It adds 1 product through withQuota. What happens?
-   Optionen: It is rejected: quota exceeded (429) / It runs: the tenant has no limit / It is rejected as invalid (400) / It fails with a TypeError
+   Optionen: It is rejected: quota exceeded (429) / It runs: null means the tenant has no limit / It is rejected as invalid (400) / It fails with a TypeError
    Antwort in der Referenz: It is rejected: quota exceeded (429)
 4. **Flaw** (Schritt 3): A tenant with a maxProducts limit of 100 has 98 products and imports 5 at once through withQuota. What happens?
-   Optionen: The import is rejected: quota exceeded (429) / The import runs / Only 2 products are imported / The import is rejected as invalid (400)
-   Antwort in der Referenz: Correct: The import is rejected: quota exceeded (429) · Flawed: The import runs
+   Optionen: The import is rejected (429) / The import runs and all 5 are added / Only 2 of the 5 products are imported / The import is rejected as invalid (400)
+   Antwort in der Referenz: Correct: The import is rejected (429) · Flawed: The import runs and all 5 are added
 5. **Zusammenspiel** (Schritt 3): A tenant overrides its limits with { maxUsers: 0 } and has no users yet. It adds one user through withQuota. What happens?
    Optionen: It is rejected: quota exceeded (429) / It runs: 0 counts as not set, so the default of 5 applies / It runs: 0 means no limit / It is rejected as invalid (400)
    Antwort in der Referenz: It is rejected: quota exceeded (429)

@@ -124,7 +124,7 @@ try {
     await phase("reviewing");
     await act({ type: "reviewed" });
     await phase("understanding");
-    await act({ type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [55, 55, 55, 55, 55], paas: 5, itemMs: [1000, 1000, 1000, 1000, 1000], answerChanges: [0, 0, 0, 0, 0] });
+    await act({ type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [55, 55, 55, 55, 55], paas: 5, review: { timing: 4, helped: 4, disrupted: 4 }, itemMs: [1000, 1000, 1000, 1000, 1000], answerChanges: [0, 0, 0, 0, 0] });
     if (i < 6) await phase("plan");
   }
 

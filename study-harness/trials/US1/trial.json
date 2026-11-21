@@ -61,17 +61,17 @@
     },
     {
       "step": 2,
-      "question": "The shop has 2 pens. One customer reserves 2 pens, then another customer reserves 1. What happens to the second reservation?",
+      "question": "The shop has 2 pens, and a customer reserves both. What does stockOf report for the pen afterwards?",
       "options": [
-        "Rejected with OutOfStockError (409)",
-        "Reserved; the stock stays at 2",
-        "Rejected: the pen is not found (404)",
-        "Reserved; the stock becomes -1"
+        "0",
+        "The pen does not exist (404)",
+        "2",
+        "Out of stock (409)"
       ],
       "script": "probe2.ts",
       "expected": {
-        "Correct": "Rejected with OutOfStockError (409)",
-        "Flawed": "Rejected: the pen is not found (404)"
+        "Correct": "0",
+        "Flawed": "The pen does not exist (404)"
       }
     },
     {
@@ -98,10 +98,10 @@
         "role": "open-case",
         "question": "A customer orders 5 mugs when 3 are left. What happens?",
         "options": [
-          "The whole order is rejected as out of stock; 3 mugs stay in stock",
-          "The 3 mugs are reserved and the customer is told it is fewer",
-          "The 3 mugs are reserved without a word",
-          "The order goes through and the stock goes to -2"
+          "Rejected as out of stock; the stock stays at 3",
+          "3 mugs are reserved, with a note that it is fewer; the stock goes to 0",
+          "3 mugs are reserved without a note; the stock goes to 0",
+          "5 mugs are reserved; the stock goes to -2"
         ],
         "correct": {
           "Correct": 0,
@@ -115,8 +115,8 @@
         "options": [
           "Told the mug is out of stock (409)",
           "Told the mug does not exist (404)",
-          "The mug is reserved",
-          "A server error (500)"
+          "The mug is reserved anyway",
+          "Told there was a server error (500)"
         ],
         "correct": {
           "Correct": 0,
@@ -128,10 +128,10 @@
         "role": "dependency",
         "question": "checkout answers with { sku, quantity, remaining }. What is quantity?",
         "options": [
-          "Always the quantity ordered, since a reservation is all or nothing",
-          "The quantity actually reserved, which can be less than ordered",
+          "The quantity ordered",
+          "The quantity actually reserved",
           "The stock before the reservation",
-          "Always 1"
+          "The stock left after the reservation"
         ],
         "correct": {
           "Correct": 0,
@@ -146,7 +146,7 @@
           "The field is ignored and the mug is reserved",
           "It is rejected as an invalid request (400)",
           "The mug is reserved and the gift flag is kept",
-          "It is rejected as out of stock (409)"
+          "It fails with a server error (500)"
         ],
         "correct": {
           "Correct": 0,

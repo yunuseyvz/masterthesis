@@ -1,10 +1,10 @@
 # Story-Spec: Vorlage für die User Stories
 
-Pro Story ein Blatt, von Hand und zuerst ohne LLM. Aus dem Blatt folgen die Dateien in `study-harness/trials/<id>/`
-(§5). Die Texte, die Teilnehmende oder das Modell sehen, sind Englisch; die Notizen nur für dich können Deutsch sein.
+Pro Story ein Blatt nach einem festen Rezept (§5), damit jede Story auf demselben Weg entsteht und sich das
+nachvollziehen lässt. Aus dem Blatt folgen die Dateien in `study-harness/trials/<id>/`. Die Texte, die Teilnehmende oder das Modell sehen, sind Englisch; die Notizen nur für dich können Deutsch sein.
 
 Warum das Ganze: Die heutigen Stories sind ein bis zwei Sätze lang, und mehrere Flaws lassen sich aus ihnen heraus
-bestreiten (§6). Ohne eindeutigen Maßstab ist bei H2 unklar, was ein Treffer und was ein False Alarm ist.
+bestreiten (§6). Ohne eindeutigen Maßstab ist bei H3 (Fehlererkennung) unklar, was ein Treffer und was ein False Alarm ist.
 
 ## 1. Die drei Schichten
 
@@ -36,6 +36,9 @@ und in drei von sechs Stories liegt der Flaw im Milestone-Schritt. Damit ist die
 - Die Varianten unterscheiden sich nur im Flaw-Schritt. Die sichtbaren Tests bestehen in der Correct-Variante.
 - Jeder Schritt ändert etwas, mindestens eine neue Datei entsteht, und `README.md` wird ergänzt.
 - Eine Verhaltensfrage pro Schritt 1–3. Ihre Skripte geben auf der Referenz die erwartete Antwort aus, in beiden Varianten.
+- Ein Schritt, der nur Typen und Konstanten anlegt, ist `declarative: true` in `trial.json`. Danach pausiert
+  NON-MILESTONE nie, denn es gibt nichts auszuführen. Milestone und Flaw liegen nie in so einem Schritt, und mindestens
+  ein anderer Schritt unter 1–3 ist nicht deklarativ.
 - Der Public Plan nennt die Dateien jedes Schritts und enthält keinen `planLeaks`-Treffer.
 
 **Regeln, die kein Test prüft: hier hilft nur das Blatt**
@@ -113,6 +116,11 @@ Alle anderen Details bleiben dem Modell überlassen. Kein Code, keine Werte, die
 ## Fragen
 ### Verhaltensfragen (je eine zu Schritt 1, 2, 3)
 Laufen beim Review, die Person darf den Code ausführen.
+Regeln: Die Frage nennt eine Eingabe und fragt nach der Folge für die Story, die man durch Ausführen prüfen kann. Nie
+nach einer Konstante oder einem Typ („Was ist der Default?“, „Welche Status gibt es?“). Ein deklarativer Schritt hat
+trotzdem eine Frage, die aber nie gezeigt wird. Die Frage zum Flaw-Schritt zeigt den Flaw (Correct ≠ Flawed), aber in
+einem anderen Szenario als das Flaw-Item: andere Zahlen, möglichst eine andere Funktion. Denn BATCH stellt immer
+diese Frage, und das Flaw-Item zählt zu H1.
 
 ### Understanding-Items
 Regel: Story und Public Plan dürfen die Antwort nicht verraten. Keine Fakten aus dem Secret Plan abfragen, die niemand
@@ -124,19 +132,59 @@ braucht („Wie lang ist das Default-Fenster?“), und keine Mutationsfragen (�
 5. Freie Entscheidung (emergent):
 ```
 
+### Regeln pro Item-Rolle
+
+Jedes Item nennt eine konkrete Eingabe und fragt nach der Folge, wie eine Verhaltensfrage. Die Antwort ergibt sich aus
+dem Code der Referenz, `understanding.ts` stellt sie auf dem gespielten Code fest.
+
+| Rolle | Die Eingabe | Die Antwort hängt ab von | Nicht |
+|---|---|---|---|
+| Offener Fall | trifft genau den Fall, zu dem die Story schweigt | der Lösung im Milestone-Schritt, in beiden Varianten gleich | ein Fall, den ein Kriterium entscheidet |
+| Abhängigkeit | geht durch eine später geschriebene Datei, die keine Testdatei ist | dem, was diese Datei aus der Milestone-Entscheidung macht | dieselbe Frage wie beim offenen Fall, nur eine Ebene höher |
+| Flaw | ein Szenario, in dem Correct und Flawed verschieden antworten | dem Flaw-Schritt | dasselbe Szenario wie die Verhaltensfrage zum Flaw-Schritt (andere Zahlen, möglichst eine andere Funktion) |
+| Zusammenspiel | braucht zwei Schritte, die zusammen die Antwort geben | beiden Schritten, keiner allein reicht | ein Fall, den ein Kriterium entscheidet |
+| Emergent | ein Fall, zu dem Story und Secret Plan schweigen | der Entscheidung, die das Modell selbst trifft | ein Fall mit einer offensichtlichen Antwort |
+
+Das Flaw-Item ist in Correct aus dem verletzten Kriterium beantwortbar, so gebaut (§3). Das ist kein Fehler des Items;
+H1 wird deshalb auch ohne es berichtet.
+
+### Regeln für die Antwortoptionen
+
+Vier Optionen, genau eine richtig (beim Flaw-Item eine pro Variante). Die falschen Optionen kommen aus dem Blatt:
+
+- **Offener Fall:** die anderen vernünftigen Lösungen vom Blatt, dazu höchstens eine, die ein Kriterium verletzt.
+- **Flaw:** das Verhalten in Flawed ist eine Option, das in Correct eine andere.
+- **Emergent:** die plausiblen Ausgänge vom Blatt. Die Referenz nimmt einen davon, ein anderer Lauf kann einen anderen
+  nehmen; Optionen, die kein Lauf wählen würde, sind keine Distraktoren.
+- **Abhängigkeit, Zusammenspiel:** was herauskäme, wenn die Milestone-Entscheidung anders gefallen wäre, oder wenn nur
+  einer der beiden Schritte zählte.
+
+Die Form verrät nichts:
+
+- Die richtige Option ist nicht auffällig länger als die anderen und trägt keine Begründung, die den anderen fehlt.
+  Begründet eine Option („…, since …“, „…: …“), dann alle oder keine.
+- Keine Option ist offensichtlich unsinnig (eine Zahl, die kein Code ausgibt; eine Einheit, die nicht passt). Sonst
+  bleiben drei Optionen, und das Zufallsniveau ist nicht mehr 25 %.
+- Gleiche Form für alle vier: alles Statuscodes, alles Zahlen oder alles Sätze.
+- Die Reihenfolge in `trial.json` ist egal, der Harness mischt sie pro Person.
+
 Der Harness erwartet genau diese fünf Rollen (`role` in `trial.json`, `ItemRole` in `shared/src/schema.ts`); die
 Items stehen in der Reihenfolge ihrer Schritte. In der Übung ersetzt `behaviour` das Flaw-Item.
 
 ### Selbstprüfung vor dem Weiterarbeiten
 
-- [ ] Kann jemand ohne Code jedes Understanding-Item aus Story und Public Plan beantworten? Dann umformulieren.
+- [ ] Kann jemand ohne Code jedes Understanding-Item aus Story und Public Plan beantworten? Dann umformulieren
+      (gemessen mit dem Rate-Check, §5).
+- [ ] Ist die richtige Option die längste, oder die einzige mit Begründung?
+- [ ] Fragt jede Verhaltensfrage nach einer Folge, nicht nach einem Wert aus den Typen?
+- [ ] Unterscheidet sich die Frage zum Flaw-Schritt vom Flaw-Item im Szenario?
 - [ ] Würde eine erfahrene Person Flawed als Fehler sehen, wenn sie nur die Story kennt?
 - [ ] Würde sie Correct **nicht** als Fehler sehen? (US3 wurde im Testlauf wegen einer Meinung abgelehnt.)
 - [ ] Ist der offene Fall wirklich offen, also wären zwei Lösungen vertretbar?
 - [ ] Baut eine spätere Nicht-Test-Datei auf dem Milestone auf?
 - [ ] Verrät der Titel oder eine Schrittbeschreibung (`steps[].summary`, wird Commit-Message) eine Entscheidung?
 
-## 5. Vom Blatt zur Story
+## 5. Das Rezept: vom Blatt zur Story
 
 | Blatt | Datei in `trials/<id>/` |
 |---|---|
@@ -148,19 +196,35 @@ Items stehen in der Reihenfolge ihrer Schritte. In der Übung ersetzt `behaviour
 | Fragen | `trial.json`, `probe1–3.ts`, `understanding.ts` |
 | (entsteht aus einem Live-Lauf) | `reference/` |
 
-**Reihenfolge**
+**Reihenfolge.** Jede Story geht diese Schritte in dieser Reihenfolge. Ein Schritt beginnt erst, wenn der vorige seine
+Prüfung bestanden hat.
 
-1. Alle sieben Blätter auf Papier, ohne LLM. Danach erst die Dateien, das kann ich übernehmen.
-2. Einen Entwurf ausprobieren, ohne die echten Trials anzufassen:
-   ```sh
-   cp -r study-harness/trials /tmp/draft   # dort die Story ändern
-   cd study-harness/server && set -a && . ../../.env && set +a
-   TRIALS_DIR=/tmp/draft npx tsx src/live-run.ts --story US1 --variant Flawed --regime MILESTONE --model "$LIVE_MODEL"
-   ```
-3. Besten Lauf von Hand prüfen und als `reference/` übernehmen, `npm test` grün bekommen.
-4. Eval-Matrix (Schritt 6) mit mehreren Läufen pro Story: Landet der Flaw? Sind alle Items gradebar?
-5. Bestreitbarkeits-Check: 3–5 Personen beurteilen blind, ob Flawed und Correct der Story widersprechen. Eine zweite
-   Person beurteilt die Milestones nach dem Kriterium im Exposé.
+| # | Schritt | Prüfung |
+|---|---|---|
+| 1 | Platz wählen (§2): Milestone- und Flaw-Schritt | Die sieben Plätze bleiben verteilt |
+| 2 | Story mit Kriterien, dann der offene Fall: Wozu schweigt sie, welche zwei Lösungen sind vertretbar? | Kein Kriterium entscheidet den Fall |
+| 3 | Der Flaw: Welchem Kriterium widerspricht er, wie sieht ein Skript ihn? | Correct und Flawed antworten auf eine Eingabe verschieden |
+| 4 | Secret Plan und Public Plan | Der Public Plan nennt Dateien, keine Werte (`planLeaks`) |
+| 5 | Verhaltensfragen (§4) und Understanding-Items nach den Regeln pro Rolle und für die Optionen | Selbstprüfung (§4) |
+| 6 | Dateien in `trials/<id>/`, ein Live-Lauf, die Referenz | `npm test` |
+| 7 | Eval-Matrix: mehrere Live-Läufe pro Variante | Der Flaw landet, alle Items sind gradebar, die freie Entscheidung streut |
+| 8 | Rate-Check ohne Code (`analysis/guess-check.ts`, `docs/study/pilot-plan.md`) | Kein Item ist für alle ohne Code lösbar, außer dem Flaw-Item in Correct |
+| 9 | Bestreitbarkeits-Check: 3–5 Personen beurteilen blind, ob Flawed und Correct der Story widersprechen. Eine zweite Person beurteilt den Milestone nach dem Kriterium im Exposé | Flawed wird als Fehler erkannt, Correct nicht; der Milestone erfüllt das Kriterium |
+
+**Rolle eines LLM.** Die Schritte 1–3 legen fest, was die Story misst. Sie werden von Hand gemacht. Ab Schritt 4 darf
+ein LLM Entwürfe liefern, etwa Formulierungen, Optionen, Skripte oder Dateien. Geprüft und übernommen wird von Hand.
+Jede Hilfe durch ein LLM wird in `docs/study/stories/README.md` unter „Herkunft“ festgehalten: Modell, wofür, und was
+davon übernommen wurde. So kann die Thesis angeben, wie die Stimuli entstanden sind.
+
+**Einen Entwurf ausprobieren** (Schritt 6), ohne die echten Trials anzufassen:
+
+```sh
+cp -r study-harness/trials /tmp/draft   # dort die Story ändern
+cd study-harness/server && set -a && . ../../.env && set +a
+TRIALS_DIR=/tmp/draft npx tsx src/live-run.ts --story US1 --variant Flawed --regime MILESTONE --model "$LIVE_MODEL"
+```
+
+Den besten Lauf von Hand prüfen und als `reference/` übernehmen.
 
 **Aufwand:** etwa ein Tag pro Story, mit bestehender Domäne eher weniger.
 

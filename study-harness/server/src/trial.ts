@@ -22,6 +22,11 @@ export const TrialDef = z.object({
       z.object({
         n: z.number().int().min(1).max(4),
         kind: z.enum(["scaffold", "milestone", "completion"]),
+        /**
+         * The step only declares types and constants: there is no behaviour to review or run after it, so a
+         * NON_MILESTONE pause never follows it.
+         */
+        declarative: z.boolean().default(false),
         summary: z.string(),
       }),
     )
@@ -95,7 +100,10 @@ export interface Story {
   fileSteps(): Map<string, number>;
   /** The stage-2 question asked after a review that ends at `pauseStep` (BATCH: the flaw step's question). */
   probeFor(regime: Regime, pauseStep: number): TrialDef["probes"][number];
-  /** Step after which the scored review happens for a regime (BATCH: 4). */
+  /**
+   * Step after which the scored review happens for a regime (BATCH: 4; NON_MILESTONE: one of the steps among 1-3
+   * that is neither the milestone nor declarative, picked by `pauseDraw`).
+   */
   pauseStep(regime: Regime, pauseDraw: number): number;
   probeScript(probe: TrialDef["probes"][number]): string;
   understandingScript(): string;
@@ -140,7 +148,13 @@ export function loadStory(trialsDir: string, projectDir: string, id: string): St
   if (def.flawStep !== null && roleStep("flaw") !== def.flawStep) throw new Error(where("the flaw item must ask about the flaw step"));
   const rules = fs.readFileSync(path.join(trialsDir, "drehbuch.md"), "utf8").trim();
   const outlines = { Correct: read(def.outline.Correct).trim(), Flawed: read(def.outline.Flawed).trim() };
-  const nonMilestoneSteps = [1, 2, 3].filter((n) => n !== milestoneStep);
+  // A NON_MILESTONE pause follows a step with behaviour of its own, like the milestone; the flaw and the milestone
+  // are in such steps.
+  const declarative = (n: number) => def.steps[n - 1]!.declarative;
+  if (declarative(milestoneStep)) throw new Error(where("the milestone step must not be declarative"));
+  if (def.flawStep !== null && declarative(def.flawStep)) throw new Error(where("the flaw step must not be declarative"));
+  const nonMilestoneSteps = [1, 2, 3].filter((n) => n !== milestoneStep && !declarative(n));
+  if (nonMilestoneSteps.length === 0) throw new Error(where("a NON_MILESTONE pause needs a step among 1-3 that is neither the milestone nor declarative"));
   let project: Map<string, string> | null = null;
   let owners: Map<string, number> | null = null;
   const fileSteps = () => {
@@ -170,7 +184,8 @@ export function loadStory(trialsDir: string, projectDir: string, id: string): St
     pauseStep(regime, pauseDraw) {
       if (regime === "BATCH") return 4;
       if (regime === "MILESTONE") return milestoneStep;
-      return nonMilestoneSteps[pauseDraw]!;
+      // With one candidate step the draw does not matter.
+      return nonMilestoneSteps[pauseDraw % nonMilestoneSteps.length]!;
     },
     probeScript: (probe) => read(probe.script),
     understandingScript: () => read(def.understanding.script),

@@ -18,7 +18,8 @@ export const MILESTONE_ROLES: readonly ItemRole[] = ["open-case"];
 
 /**
  * BATCH: review once at the end (reference). MILESTONE: pause after the step that meets the milestone criterion.
- * NON_MILESTONE: pause after a drawn step among the others (1-3), which does not meet it.
+ * NON_MILESTONE: pause after another step among 1-3 that has behaviour of its own (not a declarative step of types
+ * and constants), drawn when there are two.
  */
 export const Regime = z.enum(["BATCH", "MILESTONE", "NON_MILESTONE"]);
 export type Regime = z.infer<typeof Regime>;
@@ -54,7 +55,10 @@ export const TrialPlan = z.object({
   probeOptionOrder: z.array(z.number().int().min(0).max(3)).length(4),
   /** One permutation of the four options per understanding item. */
   understandingOptionOrders: z.array(z.array(z.number().int().min(0).max(3)).length(4)).length(UNDERSTANDING_ITEMS),
-  /** NON_MILESTONE only: which of the story's two non-milestone steps among 1-3 the agent pauses after. */
+  /**
+   * NON_MILESTONE only: which of the story's candidate steps among 1-3 the agent pauses after (no effect when the
+   * story has one; see Story.pauseStep).
+   */
   pauseDraw: z.number().int().min(0).max(1),
 });
 export type TrialPlan = z.infer<typeof TrialPlan>;
@@ -164,6 +168,10 @@ export const TrialResult = z.object({
   understandingAnswerChanges: z.array(z.number().int().nonnegative()).length(UNDERSTANDING_ITEMS),
   /** Paas mental effort for this feature, 1-9. */
   paas: z.number().int().min(1).max(9),
+  /** The review as the participant saw it, 1-7 agreement: at a good moment, helped understand the code, interrupted the work. */
+  pauseTiming: z.number().int().min(1).max(7),
+  pauseHelped: z.number().int().min(1).max(7),
+  pauseDisrupted: z.number().int().min(1).max(7),
 });
 export type TrialResult = z.infer<typeof TrialResult>;
 

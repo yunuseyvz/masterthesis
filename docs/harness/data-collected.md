@@ -13,7 +13,7 @@
 | Plan freigeben, Accept/Reject, Umentscheiden, Antwort an den Agenten nach Reject | Code auf dem Bildschirm (Datei/Zeile, ≥ 1 s) | Agent-Ereignisse von opencode, Modellaufrufe |
 | Verhaltensfrage (Antwort, richtig/falsch) | Terminal-Befehle, Testläufe | |
 | 4 Verständnisfragen + Konfidenz | Fokus, Idle, Chat-Scroll, Tool-Aufklappen, Klicks | |
-| Paas (mentaler Aufwand) | | |
+| Paas (mentaler Aufwand), Bewertung des Reviews | | |
 | Präferenz-Ranking, Kommentar | | |
 
 Alles Indirekte wird ohne zusätzliche Eingabe der Person erfasst. Es gibt **keine Kamera, kein Mikrofon und keine
@@ -53,6 +53,7 @@ Die Studie hat **eine** Forschungsfrage: Verstehen und Beurteilen des Codes. Das
 | Zeit je Frage | ms, summiert über Besuche | **Deskriptiv**, Aufwand |
 | Antwortänderungen je Frage | Anzahl | **Deskriptiv**, Unsicherheit |
 | Paas (mentaler Aufwand) | 1–9 | Deskriptiv |
+| Bewertung des Reviews: guter Zeitpunkt, hat beim Verstehen geholfen, hat gestört (`pauseTiming`, `pauseHelped`, `pauseDisrupted`) | 1–7 Zustimmung | Deskriptiv, pro Bedingung |
 
 Die **Practice-Story** (`US0`) durchläuft denselben Ablauf, wird aber als `practice` gespeichert und nicht in
 `trials.csv` aufgenommen. Sie zählt nicht zu den Analysen.

@@ -158,7 +158,7 @@ describe.skipIf(process.env.OPENCODE_IT !== "1")("live trial through opencode", 
       for (const files of steps) for (const [p, content] of files) expect(fs.readFileSync(path.join(dir, p), "utf8"), p).toBe(content);
 
       await post({ type: "reviewed" });
-      view = await post({ type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [55, 55, 55, 55, 55], paas: 5, itemMs: [1, 1, 1, 1, 1], answerChanges: [0, 0, 0, 0, 0] });
+      view = await post({ type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [55, 55, 55, 55, 55], paas: 5, review: { timing: 4, helped: 4, disrupted: 4 }, itemMs: [1, 1, 1, 1, 1], answerChanges: [0, 0, 0, 0, 0] });
       const events = readEvents();
       expect(events.filter((e) => e.type === "live_checkpoint").map((e) => [e.data.step, e.data.held])).toEqual([[1, false], [2, true], [3, false]]);
       // The answer key comes from running the code as played: here the reference code, so its documented answers.

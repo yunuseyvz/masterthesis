@@ -151,12 +151,20 @@ describe("milestone and flaw position", () => {
     expect(measured.filter((s) => s.flawStep !== null && s.flawStep !== s.milestoneStep)).toHaveLength(3);
   });
 
-  it("MILESTONE pauses after the milestone, NON_MILESTONE after one of the two other steps among 1-3", () => {
+  it("MILESTONE pauses after the milestone, NON_MILESTONE after another step among 1-3 that is not declarative", () => {
     for (const s of measured) {
       expect(s.pauseStep("MILESTONE", 0)).toBe(s.milestoneStep);
       expect(s.pauseStep("BATCH", 0)).toBe(4);
-      expect([s.pauseStep("NON_MILESTONE", 0), s.pauseStep("NON_MILESTONE", 1)].sort()).toEqual([1, 2, 3].filter((n) => n !== s.milestoneStep));
+      const candidates = [1, 2, 3].filter((n) => n !== s.milestoneStep && !s.def.steps[n - 1]!.declarative);
+      expect([...new Set([s.pauseStep("NON_MILESTONE", 0), s.pauseStep("NON_MILESTONE", 1)])].sort()).toEqual(candidates);
     }
+  });
+
+  it("the NON_MILESTONE pause contains the flaw step as often as the MILESTONE pause does (3 stories each)", () => {
+    const flawPaused = (regime: "MILESTONE" | "NON_MILESTONE") =>
+      measured.filter((s) => [0, 1].some((d) => s.pauseStep(regime, d) === s.flawStep)).map((s) => s.def.id);
+    expect(flawPaused("MILESTONE")).toEqual(["US1", "US5", "US6"]);
+    expect(flawPaused("NON_MILESTONE")).toEqual(["US2", "US3", "US4"]);
   });
 
   it("BATCH asks about the flaw step; a pause asks about the step it follows", () => {

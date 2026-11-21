@@ -20,7 +20,7 @@ const items: (() => Promise<string> | string)[] = [
   () => {
     try {
       const v = parseDurationMinutes("90");
-      return { 90: "It returns 90 (minutes)", 1.5: "It returns 1.5 (seconds)", 5400: "It returns 5400 (hours)" }[v] ?? `? ${v}`;
+      return { 90: "It returns 90: read as minutes", 1.5: "It returns 1.5: read as seconds", 5400: "It returns 5400: read as hours" }[v] ?? `? ${v}`;
     } catch (err) {
       return err instanceof ValidationError ? "It rejects it as invalid" : "? it throws";
     }
@@ -49,7 +49,7 @@ const items: (() => Promise<string> | string)[] = [
   // flaw (step 3): an outage that began before the period
   () => {
     const s = share(invoice([{ startedAt: -3 * DAY, endedAt: 60 * MIN }]).creditCents);
-    return { 0: "Nothing: the outage is left out", 5: "5% of the subtotal, for the hour inside the period", 10: "10% of the subtotal", 25: "25% of the subtotal, for the whole outage" }[s] ?? s;
+    return { 0: "Nothing", 5: "5% of the subtotal", 10: "10% of the subtotal", 25: "25% of the subtotal" }[s] ?? s;
   },
   // interplay (steps 2 and 3): two short outages in one period
   () => {

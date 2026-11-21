@@ -97,7 +97,7 @@ were therefore fused; the test blind spot remains a reason for review outside th
 
 ## Study design
 
-Within-participants online study, 30 people, \~60 minutes; the first sessions are moderated over a video call. Six features, two per condition: one correct, one with a flaw. Six counterbalancing groups of five people (Williams design): across the groups every feature appears in every condition, and the order is balanced for carry-over.
+Within-participants online study, as many people as the thesis allows (about 30 planned), \~60 minutes; the first sessions are moderated over a video call. Six features, two per condition: one correct, one with a flaw. Six counterbalancing groups, filled in turn (Williams design): across the groups every feature appears in every condition, and the order is balanced for carry-over.
 
 ### BATCH
 
@@ -113,7 +113,7 @@ Pause after the subtask chosen as the milestone (about 29–63 changed lines).
 
 ### NON-MILESTONE
 
-Pause after one of the two other subtasks among 1–3 (about 18–86 changed lines). Each is used equally often per feature.
+Pause after another subtask among 1–3 that has behaviour of its own, not one that only declares types and constants (there is nothing to run after it). In five features that leaves one subtask, in one feature two, used equally often. The review then contains the flaw subtask in three features, as often as at the milestone.
 
 **review**
 
@@ -123,7 +123,7 @@ Pause after one of the two other subtasks among 1–3 (about 18–86 changed lin
 
 **Review**Accept or reject, then one behaviour question answered by running the code. Same in all conditions. After a rejection the agent asks what to change and fixes it.
 
-**After**Five understanding questions, each with a confidence rating: how the milestone settled its open case, what later code relies on in it, what the flaw changes, how two subtasks work together, and one decision the agent made on its own. Then one mental-effort item (Paas, 1–9).
+**After**Five understanding questions, each with a confidence rating: how the milestone settled its open case, what later code relies on in it, what the flaw changes, how two subtasks work together, and one decision the agent made on its own. Then one mental-effort item (Paas, 1–9) and three statements about the review (good moment, helped understand the code, interrupted the work; 1–7), descriptive.
 
 **End**Preference, debrief.
 
@@ -164,13 +164,14 @@ After each feature: five understanding questions, each with a confidence rating.
 
 | Role | Measure | What is compared |
 | --- | --- | --- |
-| Primary | Understanding of the finished feature | Share of correct answers per condition, milestone questions vs. the rest |
-| Secondary | Fault detection | How well people tell flawed from correct code, separate from how often they reject in general; also only for reviews that contained the flaw subtask |
+| Primary | Understanding of the finished feature | Share of correct answers over all five questions, per condition; also without the flaw question |
+| Primary, second hypothesis | Understanding of the milestone's decision | Share of correct answers on the milestone question, per condition |
+| Secondary | Fault detection | How well people tell flawed from correct code, separate from how often they reject in general, taking into account whether the flaw subtask was in the review, before the pause or not yet written |
 | Secondary | Confidence vs. correctness | How far confidence exceeds actual correctness, per condition |
 | Secondary | Reversals | How often people change their decision after the behaviour question |
-| Descriptive | Time, mental effort | Compared by condition, no hypothesis |
+| Descriptive | Time, mental effort, the three statements about the review | Compared by condition, no hypothesis |
 
-Expected: a milestone pause closes the understanding gap on milestone decisions; a pause elsewhere does not, and may raise confidence without raising understanding.
+Expected: after a milestone pause people understand the feature better, the milestone's decision most of all; a pause elsewhere does not, and may raise confidence without raising understanding. MILESTONE vs. NON-MILESTONE carries the claim about the place: both pause once, after one subtask of similar size. MILESTONE vs. BATCH compares a pause partway with a review at the end, where place and amount of code change together.
 
 Analysis: mixed-effects regressions with participant and feature as random effects, planned contrasts MILESTONE vs. BATCH and MILESTONE vs. NON-MILESTONE, Holm-corrected. Details and a simulated run with fictitious data: `docs/study/analysis-plan.md`, `docs/study/scenario.md`.
 
@@ -207,4 +208,4 @@ Evaluation needs ground truth beyond the author's labels: multiple raters, real 
 - **Conditions**
 - **Measuring understanding:** which instrument, grounded in which literature?
 - **Automatic detection:** how much of it belongs in the thesis?
-- **Sample size:** 30 people; is that enough (see the simulation in `docs/study/scenario.md`)?
+- **Sample size:** not fixed, about 30 planned; the power at 24–36 is in `docs/study/scenario.md` §3, the N reached is named as a limitation.

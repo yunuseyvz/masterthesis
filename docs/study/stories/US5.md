@@ -1,6 +1,6 @@
 # US5: API Rate Limiter
 
-Platz: Milestone Schritt 3, Flaw Schritt 3 (im Milestone)
+Platz: Milestone Schritt 3, Flaw Schritt 3 (im Milestone) · NON-MILESTONE Schritt 2 (Schritt 1 deklarativ)
 
 ## Öffentlich
 
@@ -84,21 +84,21 @@ Flawed statt dessen: Jeder Request kommt in die Historie, erlaubt oder abgelehnt
 2. A request has the headers x-forwarded-for: "10.0.0.1, 10.0.0.2" and x-real-ip: "10.0.0.9". Which client id does it get?
    Optionen: 10.0.0.1 / 10.0.0.2 / 10.0.0.9 / unknown
    Antwort: 10.0.0.1
-3. A limiter allows 2 requests per 1000 ms. A client sends 2 requests at 0 ms, 2 more at 100 ms and 200 ms (both rejected), then one at 1000 ms. Is the last one allowed?
+3. A limiter allows 1 request per 1000 ms. A client's request at 0 ms is allowed, and its retry at 300 ms is rejected. Is its next request, at 1000 ms, allowed?
    Optionen: Allowed / Rejected / Allowed only after a reset / It throws
    Antwort: Correct: Allowed · Flawed: Rejected
 
 ### Understanding-Items
 
 1. **Milestone, offener Fall** (Schritt 3): A limiter allows 2 requests per 1000 ms. Requests at 0 ms and 500 ms are allowed. Is a request at exactly 1000 ms allowed?
-   Optionen: Allowed: the request from 0 ms no longer counts / Rejected: the request from 0 ms still counts / Allowed only after the limiter is reset / Checking it throws
-   Antwort in der Referenz: Allowed: the request from 0 ms no longer counts
+   Optionen: Allowed: the 0 ms request no longer counts / Rejected: the 0 ms request still counts / Allowed only after the limiter has been reset / Checking it throws an error
+   Antwort in der Referenz: Allowed: the 0 ms request no longer counts
 2. **Flaw** (Schritt 3): A client is over its limit and keeps retrying every 100 ms. When does it get through again?
-   Optionen: Once its oldest accepted request has left the window / Only after it stops retrying for a full window / On its very next request / Never, until the server restarts
-   Antwort in der Referenz: Correct: Once its oldest accepted request has left the window · Flawed: Only after it stops retrying for a full window
+   Optionen: Once its oldest accepted request leaves the window / Only after it has stopped retrying for a full window / On its very next request / Never again, until the server is restarted
+   Antwort in der Referenz: Correct: Once its oldest accepted request leaves the window · Flawed: Only after it has stopped retrying for a full window
 3. **Emergent** (Schritt 3): A limiter is created with a limit of 0. What happens when a client sends requests?
-   Optionen: The first request is allowed, the ones after it are rejected / Every request is rejected / Every request is allowed / Creating the limiter fails with a validation error
-   Antwort in der Referenz: The first request is allowed, the ones after it are rejected
+   Optionen: Only the first request is allowed / Every request is rejected / Every request is allowed: 0 means no limit / Creating the limiter fails as invalid
+   Antwort in der Referenz: Only the first request is allowed
 4. **Milestone, Abhängigkeit** (Schritt 4): Through the gateway, a client is rejected. It then waits exactly as long as its Retry-After header says, sending nothing in between. Does its next request get through?
    Optionen: Yes / No: it is rejected again / Only if no other client sent a request meanwhile / The rejection has no Retry-After header
    Antwort in der Referenz: Yes

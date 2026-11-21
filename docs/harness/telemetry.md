@@ -185,6 +185,7 @@ One row per measured trial. The practice trial has the same fields in `bundle.pr
 | `uK_ms` | Time on item K's screen, summed over visits (going back and forth) |
 | `uK_changes` | Times the answer to item K was changed after the first pick |
 | `paas` | Mental effort for the feature (1–9) |
+| `pauseTiming`, `pauseHelped`, `pauseDisrupted` | Agreement (1–7) with: the agent stopped for my review at a good moment; reviewing at that point helped me understand the code; stopping for the review interrupted my work |
 
 In the bundle the per-item values are arrays: `understandingAnswers`, `understandingCorrects`,
 `understandingConfidences`, `understandingItemMs`, `understandingAnswerChanges`. An item is correct when the chosen
@@ -248,6 +249,9 @@ Server events:
 | `trial_end` | The complete trial result |
 | `postsurvey_shown`, `postsurvey_submit` | Ranking, comment, duration |
 | `debrief_shown`, `finish` | — |
+| `afk_prompt` | "Are you still there?" appeared: phase, trial, time without input |
+| `afk_resume` | The participant answered it: phase, trial, ms after it appeared |
+| `session_abandoned` | The session ended without Finish (`reason`: `inactive` or `session_limit`): phase, trial, completed trials, ms since start. No bundle is written, so the session counts like one that never finished |
 | `agent_<type>` | opencode's own events (session status, messages, parts, files, permissions; streaming deltas and heartbeats left out) |
 | `agent_request_blocked` | Method and URL of a refused opencode API request |
 | `ui_<type>` | §3 |

@@ -92,6 +92,26 @@ body[data-study] [data-slot="titlebar-tab-item"]:not([data-active="true"]) {
   color: var(--text-base);
 }
 
+/* "Are you still there?" over the study page or opencode, after a long stretch without input. */
+[data-study-afk] {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--background-base, #000) 70%, transparent);
+}
+[data-study-afk] [data-study-card] {
+  max-width: 420px;
+  padding: 24px;
+  border-radius: 10px;
+  background: var(--background-base, var(--background-weak));
+  color: var(--text-base);
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.35);
+}
+
 [data-study-card] {
   max-width: 680px;
   margin: 0 auto;

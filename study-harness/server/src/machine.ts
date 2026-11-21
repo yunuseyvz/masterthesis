@@ -1,5 +1,6 @@
 import {
   Action,
+  Presence,
   SessionBundle,
   UiEvent,
   type Decision,
@@ -169,12 +170,37 @@ interface CurrentTrial {
 const STEP_CHECK_TRIES = 2;
 
 /**
+ * Protects the server, not the measures: a pod must not run on when the participant has gone. 0 turns a limit off.
+ * warnMs: time without input, in a phase that waits for the participant, before "Are you still there?" appears.
+ * abortMs: time after that prompt without an answer before the session ends. maxSessionMs: the session ends then
+ * in any phase.
+ */
+export interface SessionLimits {
+  warnMs: number;
+  abortMs: number;
+  maxSessionMs: number;
+}
+export const DEFAULT_LIMITS: SessionLimits = { warnMs: 10 * 60_000, abortMs: 10 * 60_000, maxSessionMs: 120 * 60_000 };
+
+/** What the server does after StudySession.watch: write the bundle as after Finish, or end without one. */
+export type WatchOutcome = "finish" | "abandoned" | null;
+
+/**
  * Server-authoritative study flow. The client renders `view()` and posts actions; variant, regime and ground truth
  * never leave this class. In each trial a real model plays the agent in opencode from the trial's Drehbuch; the
  * server sends the participant's request and approval, and holds the agent at the scored checkpoint (see checkpoint).
  */
 export class StudySession {
-  private phase: Phase = "intro";
+  private _phase: Phase = "intro";
+  /** Once abandoned, an agent turn that ends later does not bring the session back. */
+  private get phase(): Phase {
+    return this._phase;
+  }
+  private set phase(p: Phase) {
+    if (this._phase === "abandoned") return;
+    if (p !== this._phase) this.phaseSince = this.now();
+    this._phase = p;
+  }
   private trialIdx = 0;
   private shownAt = 0;
   private current: CurrentTrial | null = null;
@@ -193,6 +219,13 @@ export class StudySession {
   /** Practice trial first, then the six measured trials. */
   private readonly allTrials: TrialPlan[];
   readonly events: StudyEvent[] = [];
+  /** Presence (see watch): session start, the participant's last input, and since when the phase is the current one. */
+  private readonly startedAt: number;
+  private lastInput: number;
+  private phaseSince: number;
+  /** When "Are you still there?" appeared; null while it is not shown. */
+  private afkPromptAt: number | null = null;
+  private readonly limits: SessionLimits;
 
   constructor(
     private readonly plan: SessionPlan,
@@ -202,9 +235,68 @@ export class StudySession {
     private readonly now: () => number = Date.now,
     /** Experimenter aid: expose a "B·F"-style condition tag in the view. Off in real sessions. */
     private readonly showCondition = false,
+    limits: Partial<SessionLimits> = {},
   ) {
     this.allTrials = [plan.practice, ...plan.trials];
+    this.limits = { ...DEFAULT_LIMITS, ...limits };
+    this.startedAt = this.lastInput = this.phaseSince = this.now();
     this.log("session_start", { participantId: plan.participantId, studySeed: plan.studySeed, group: plan.group, plan });
+  }
+
+  /**
+   * The browser's presence report (see Presence). Answers whether "Are you still there?" is to be shown, and whether
+   * the session has ended (the browser then fetches the end page).
+   */
+  presence(raw: unknown): { prompt: boolean; ended: boolean } {
+    const p = Presence.parse(raw);
+    this.lastInput = Math.max(this.lastInput, this.now() - p.inputAgoMs);
+    if (p.confirm && this.afkPromptAt !== null) {
+      this.log("afk_resume", { phase: this.phase, trial: this.current ? this.trial.position : null, ms: this.now() - this.afkPromptAt });
+      this.afkPromptAt = null;
+    }
+    return { prompt: this.afkPromptAt !== null, ended: this.phase === "finished" || this.phase === "abandoned" };
+  }
+
+  /**
+   * Called every few seconds by the server. While the participant is to act (any phase but the agent working), a
+   * stretch of SessionLimits.warnMs without input shows "Are you still there?"; no answer for abortMs more ends the
+   * session. A closed browser sends no presence reports, so it ends the same way. At maxSessionMs it ends in any
+   * phase. Ending at the debrief is a normal Finish: everything is recorded by then.
+   */
+  watch(): WatchOutcome {
+    if (this.phase === "finished" || this.phase === "abandoned") return null;
+    const now = this.now();
+    const { warnMs, abortMs, maxSessionMs } = this.limits;
+    if (maxSessionMs > 0 && now - this.startedAt >= maxSessionMs) return this.end("session_limit");
+    if (this.phase === "working") {
+      // Waiting for the agent is not absence; the prompt waits for the next phase that needs the participant.
+      this.afkPromptAt = null;
+      return null;
+    }
+    const inactiveMs = now - Math.max(this.lastInput, this.phaseSince);
+    if (this.afkPromptAt === null) {
+      if (warnMs > 0 && inactiveMs >= warnMs) {
+        this.afkPromptAt = now;
+        this.log("afk_prompt", { phase: this.phase, trial: this.current ? this.trial.position : null, inactiveMs });
+      }
+      return null;
+    }
+    if (abortMs > 0 && now - this.afkPromptAt >= abortMs) return this.end("inactive");
+    return null;
+  }
+
+  private end(reason: "inactive" | "session_limit"): WatchOutcome {
+    this.afkPromptAt = null;
+    if (this.phase === "debrief") return "finish";
+    this.log("session_abandoned", {
+      reason,
+      phase: this.phase,
+      trial: this.current ? this.trial.position : null,
+      completedTrials: this.results.length,
+      ms: this.now() - this.startedAt,
+    });
+    this.phase = "abandoned";
+    return "abandoned";
   }
 
   log(type: string, data: unknown) {
@@ -576,7 +668,7 @@ export class StudySession {
       practice: this.trialIdx === 0,
       sessions: this.sessionsSoFar(),
     };
-    if (!this.current || ["intro", "presurvey", "postsurvey", "debrief", "finished"].includes(this.phase)) return base;
+    if (!this.current || ["intro", "presurvey", "postsurvey", "debrief", "finished", "abandoned"].includes(this.phase)) return base;
 
     const story = this.story;
     if (this.showCondition) base.debugTag = `${REGIME_LETTER[this.trial.regime]}·${this.trial.variant === "Flawed" ? "F" : "C"}`;
@@ -602,6 +694,7 @@ export class StudySession {
 
   async act(raw: unknown): Promise<ViewState> {
     const action = Action.parse(raw);
+    this.lastInput = this.now();
     switch (action.type) {
       case "begin":
         this.require("intro");
@@ -770,7 +863,7 @@ export class StudySession {
         const options = this.current!.understandingOptions!;
         const corrects = canonical.map((c, k) => gradeable(key![k]) && options[k]![c] === key![k]);
         const result: TrialResult = {
-          ...(this.pending as Omit<TrialResult, "featureComplete" | "understandingRoles" | "understandingSteps" | "understandingAnswers" | "understandingCorrects" | "understandingConfidences" | "understandingScore" | "paas" | "understandingItemMs" | "understandingAnswerChanges">),
+          ...(this.pending as Omit<TrialResult, "featureComplete" | "understandingRoles" | "understandingSteps" | "understandingAnswers" | "understandingCorrects" | "understandingConfidences" | "understandingScore" | "paas" | "pauseTiming" | "pauseHelped" | "pauseDisrupted" | "understandingItemMs" | "understandingAnswerChanges">),
           featureComplete: this.current!.complete !== false,
           pauseMissed: this.current!.pauseMissed === true,
           understandingRoles: this.story.def.understanding.items.map((it) => it.role),
@@ -780,6 +873,9 @@ export class StudySession {
           understandingConfidences: action.confidences,
           understandingScore: corrects.filter(Boolean).length,
           paas: action.paas,
+          pauseTiming: action.review.timing,
+          pauseHelped: action.review.helped,
+          pauseDisrupted: action.review.disrupted,
           understandingItemMs: action.itemMs,
           understandingAnswerChanges: action.answerChanges,
         };

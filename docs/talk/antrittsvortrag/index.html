@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowing Where to Pause · Antrittsvortrag</title>
+<style>
+/* A fixed 1280x720 stage scaled to the window. Keys: arrows/space = navigate, d = dark, f = fullscreen. Print = PDF. */
+:root {
+  --bg: #fafaf8; --ink: #16181d; --muted: #6b7280; --line: #dcdcd6; --soft: #efefea;
+  --accent: #2c55c7; --accent-soft: #e4eafb; --add: #1d7a4f; --add-soft: #e3f3ea; --del: #a8324a; --del-soft: #f8e6ea;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+}
+:root[data-theme="dark"] {
+  --bg: #111418; --ink: #e6e8ec; --muted: #8e97a6; --line: #2b313b; --soft: #1a1f26;
+  --accent: #8aa8ff; --accent-soft: #1d2740; --add: #6fd3a0; --add-soft: #163024; --del: #f29bb0; --del-soft: #381c25;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: 0 0; }
+.slide { position: absolute; inset: 0; padding: 64px 80px 72px; display: none; flex-direction: column; gap: 32px;
+  font: 400 26px/1.4 var(--sans); background: var(--bg); }
+.slide.on { display: flex; }
+.tag { font: 500 16px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.tag::before { content: "// "; color: var(--muted); }
+h1 { font: 650 64px/1.05 var(--sans); letter-spacing: -.02em; }
+h2 { font: 650 42px/1.15 var(--sans); letter-spacing: -.015em; text-wrap: balance; }
+.head { display: grid; gap: 14px; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--mono); }
+b, strong { font-weight: 650; }
+em { font-style: normal; color: var(--accent); font-weight: 600; }
+.grow { flex: 1; min-height: 0; }
+.center { justify-content: center; }
+.foot { position: absolute; left: 80px; right: 80px; bottom: 28px; display: flex; justify-content: space-between;
+  font: 400 14px/1 var(--mono); color: var(--muted); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.card { background: var(--soft); border-radius: 10px; padding: 24px 28px; display: grid; gap: 14px; align-content: start; }
+.card h3 { font: 600 17px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.card p { font-size: 25px; }
+pre { font: 400 16.5px/1.6 var(--mono); background: var(--soft); border-radius: 10px; padding: 20px 24px; overflow: hidden; }
+pre .c { color: var(--muted); }
+pre .hl { display: inline-block; width: 100%; background: var(--accent-soft); box-shadow: -24px 0 0 var(--accent-soft), 24px 0 0 var(--accent-soft); }
+.diff { font: 400 23px/1.65 var(--mono); display: grid; gap: 2px; }
+.diff span { padding: 0 10px; border-radius: 4px; }
+.diff .a { background: var(--add-soft); color: var(--add); }
+.diff .d { background: var(--del-soft); color: var(--del); }
+.diff .n { color: var(--muted); }
+.bottomline { font-size: 28px; border-left: 4px solid var(--accent); padding-left: 20px; }
+ul { padding-left: 0; list-style: none; display: grid; gap: 12px; }
+li { padding-left: 34px; position: relative; }
+li::before { content: "›"; position: absolute; left: 6px; color: var(--accent); font-family: var(--mono); font-weight: 600; }
+ol.checks { padding: 0; list-style: none; counter-reset: c; display: grid; gap: 18px; }
+ol.checks li { counter-increment: c; padding-left: 52px; font-size: 23px; }
+ol.checks li::before { content: counter(c); left: 0; top: 2px; width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
+  color: var(--bg); font: 600 17px/34px var(--mono); text-align: center; }
+ol.checks b { display: block; }
+
+/* the three conditions */
+.regimes { display: grid; gap: 20px; }
+.regime { display: grid; grid-template-columns: 220px 1fr; align-items: center; gap: 24px; }
+.regime .name { font: 600 20px/1.2 var(--mono); }
+.regime .name small { display: block; font: 400 16px/1.3 var(--sans); color: var(--muted); margin-top: 6px; }
+.track { display: grid; grid-template-columns: repeat(4, 1fr 104px); align-items: center; gap: 8px; }
+.step { height: 54px; white-space: nowrap; border-radius: 8px; background: var(--soft); font: 500 17px/54px var(--mono); text-align: center; color: var(--muted); }
+.step.ms { background: var(--accent-soft); color: var(--accent); outline: 2px solid var(--accent); outline-offset: -2px; font-size: 14px; }
+.pause { font: 600 15px/1 var(--mono); text-align: center; white-space: nowrap; color: var(--bg); background: var(--ink); border-radius: 6px; padding: 10px 0; }
+.gap { }
+
+.flow { display: flex; align-items: stretch; gap: 10px; }
+.flow > div { flex: 1; background: var(--soft); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.flow > div b { font: 600 16px/1.2 var(--mono); }
+.flow > div span { font-size: 19px; line-height: 1.3; color: var(--muted); }
+.flow > i { align-self: center; font: 400 20px/1 var(--mono); color: var(--muted); font-style: normal; }
+.facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.facts div { display: grid; gap: 6px; }
+.facts b { font: 650 44px/1 var(--sans); letter-spacing: -.02em; }
+.facts span { font-size: 18px; color: var(--muted); line-height: 1.3; }
+table { border-collapse: collapse; width: 100%; font-size: 21px; }
+th, td { text-align: left; padding: 10px 14px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 14px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td, tr:last-child th { border-bottom: 0; }
+.status { display: grid; gap: 12px; font-size: 23px; }
+.status div { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: baseline; }
+.status .s { font: 600 15px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+.status .done { color: var(--add); } .status .next { color: var(--accent); } .status .todo { color: var(--muted); }
+.qs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.qs .card p { font-size: 22px; }
+
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  html, body { height: auto; overflow: visible; }
+  #stage { position: static; transform: none !important; width: 1280px; height: auto; }
+  .slide { display: flex !important; position: relative; height: 720px; break-after: page; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<section class="slide center">
+  <div class="tag">Antrittsvortrag · Master's thesis</div>
+  <h1>Knowing Where<br>to Pause</h1>
+  <p class="muted" style="font-size:30px;max-width:22em">Timing a blocking intervention for understanding AI-generated code</p>
+  <p class="mono" style="font-size:19px;margin-top:40px">Yunus Yavuz <span class="muted">· LMU Munich</span></p>
+</section>
+
+<section class="slide">
+  <div class="head"><div class="tag">Problem</div>
+  <h2>Agents write whole features. Developers approve what they barely understand.</h2></div>
+  <div class="cols grow">
+    <div class="card">
+      <h3>Review at the end</h3>
+      <div class="diff"><span class="n">14 files changed</span><span class="a">+ 390 lines</span><span class="a">✓ 23 tests passed</span><span class="n">&gt; LGTM, merge</span></div>
+      <p>A large diff next to green tests. The tests are taken as proof.</p>
+    </div>
+    <div class="card">
+      <h3>Approval at every edit</h3>
+      <div class="diff"><span class="n">edit types.ts? <b>[y]</b></span><span class="n">edit types.ts? <b>[y]</b></span><span class="n">run npm test? <b>[y]</b></span><span class="n">edit route.ts? <b>[y]</b></span></div>
+      <p>Half-written code, many interruptions. People learn to click through.</p>
+    </div>
+  </div>
+  <p class="bottomline">Both ask for review at the wrong moment. <em>When is the right one?</em></p>
+  <div class="foot"><span>Knowing Where to Pause</span><span>2</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><div class="tag">Idea</div>
+  <h2>Pause at a <em>semantic milestone</em>: the agent just decided something the rest will build on.</h2></div>
+  <div class="cols grow" style="grid-template-columns: 1.45fr 1fr; align-items: start">
+    <div style="display:grid;gap:14px">
+      <p class="muted" style="font-size:20px">Story: “The provider may deliver the same event more than once, and processing can fail temporarily.”</p>
+<pre>async function processWebhook(log, event, handler) {
+  if (log.processed.has(event.id)) return "duplicate";
+  await handler(event);
+<span class="hl">  log.processed.add(event.id);  <span class="c">// only AFTER</span></span>
+  return "processed";
+}</pre>
+      <p class="muted" style="font-size:20px">A crash between the two lines credits the customer twice. The story never said which way to go.</p>
+    </div>
+    <ol class="checks">
+      <li><b>Open case settled</b><span class="muted">The story is silent; more than one outcome is reasonable.</span></li>
+      <li><b>Built upon</b><span class="muted">Later code will depend on this decision.</span></li>
+      <li><b>Not yet built upon</b><span class="muted">That code does not exist yet, so changing course is cheap.</span></li>
+    </ol>
+  </div>
+  <div class="foot"><span>Knowing Where to Pause</span><span>3</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><div class="tag">Research question</div>
+  <h2>Does <em>where</em> a coding agent pauses for review affect how well developers understand and judge its code?</h2></div>
+  <div class="regimes grow" style="align-content:center">
+    <div class="regime"><div class="name">BATCH<small>one review at the end (reference)</small></div>
+      <div class="track"><div class="step">1</div><div class="gap"></div><div class="step ms">milestone</div><div class="gap"></div><div class="step">3</div><div class="gap"></div><div class="step">4</div><div class="pause">▮▮ review</div></div></div>
+    <div class="regime"><div class="name">MILESTONE<small>pause after the milestone step</small></div>
+      <div class="track"><div class="step">1</div><div class="gap"></div><div class="step ms">milestone</div><div class="pause">▮▮ review</div><div class="step">3</div><div class="gap"></div><div class="step">4</div><div class="gap"></div></div></div>
+    <div class="regime"><div class="name">NON-MILESTONE<small>pause of similar size elsewhere</small></div>
+      <div class="track"><div class="step">1</div><div class="pause">▮▮ review</div><div class="step ms">milestone</div><div class="gap"></div><div class="step">3</div><div class="gap"></div><div class="step">4</div><div class="gap"></div></div></div>
+  </div>
+  <p class="muted" style="font-size:22px">Expected: a milestone pause improves understanding of the milestone's decision; a pause elsewhere does not, and may only raise confidence.</p>
+  <div class="foot"><span>Knowing Where to Pause</span><span>4</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><div class="tag">Study</div>
+  <h2>A within-participants online study with a real coding agent</h2></div>
+  <div class="facts">
+    <div><b>30</b><span>developers, ~60 min, online</span></div>
+    <div><b>3</b><span>conditions, each person sees all</span></div>
+    <div><b>6</b><span>features in a small Next.js shop</span></div>
+    <div><b>½</b><span>of them with a planted flaw the tests miss</span></div>
+  </div>
+  <div class="flow">
+    <div><b>plan</b><span>Participant approves the agent's plan</span></div><i>→</i>
+    <div><b>build</b><span>A live model implements four steps in opencode</span></div><i>→</i>
+    <div><b>review</b><span>The agent stops where the condition says: accept or reject</span></div><i>→</i>
+    <div><b>questions</b><span>Five questions on how the code behaves, with confidence</span></div>
+  </div>
+  <table>
+    <tr><th style="width:150px">Primary</th><td><b>Understanding</b> of the finished feature, graded by running the code the agent wrote</td></tr>
+    <tr><th>Secondary</th><td>Fault detection · confidence vs. correctness · reversed decisions</td></tr>
+  </table>
+  <div class="foot"><span>Knowing Where to Pause</span><span>5</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><div class="tag">Status</div>
+  <h2>Where I am</h2></div>
+  <div class="cols grow" style="grid-template-columns: 1.1fr 1fr; align-items: start">
+    <div class="status">
+      <div><span class="s done">done</span><span>Milestone criterion with a decision test, from the literature</span></div>
+      <div><span class="s done">done</span><span>Study harness: opencode, a hidden script per feature, sandbox, telemetry</span></div>
+      <div><span class="s done">done</span><span>Six features with stories, flaws and questions</span></div>
+      <div><span class="s next">next</span><span>Pilot with 3–5 people, moderated over a video call</span></div>
+      <div><span class="s todo">then</span><span>Main study, analysis with mixed-effects models, writing</span></div>
+    </div>
+    <div class="card">
+      <h3>Contributions</h3>
+      <ul style="font-size:23px">
+        <li>A pause criterion with a decision test</li>
+        <li>A controlled comparison of where to pause</li>
+        <li>A reproducible study harness</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>Knowing Where to Pause</span><span>6</span></div>
+</section>
+
+<section class="slide">
+  <div class="head"><div class="tag">Feedback</div>
+  <h2>Where I would like your input</h2></div>
+  <div class="qs grow">
+    <div class="card"><h3>Control vs. realism</h3><p>A live agent varies between sessions. Is an instructed, checked agent controlled enough?</p></div>
+    <div class="card"><h3>Measuring understanding</h3><p>Multiple-choice questions on behaviour, graded on the real code. Is there a better-grounded instrument?</p></div>
+    <div class="card"><h3>Sample size</h3><p>N = 30 only detects a large effect (about 26 points for 80 % power). Accept, or change the design?</p></div>
+    <div class="card"><h3>Deception</h3><p>Planted flaws, and a plan on screen that is not the agent's own. Concerns for ethics and the debrief?</p></div>
+  </div>
+  <div class="foot"><span>Knowing Where to Pause · Yunus Yavuz</span><span>7</span></div>
+</section>
+
+</div>
+<script>
+const stage = document.getElementById("stage"), slides = [...document.querySelectorAll(".slide")];
+let at = Math.min(slides.length - 1, Math.max(0, (parseInt(location.hash.slice(1)) || 1) - 1));
+function show(i) {
+  at = Math.min(slides.length - 1, Math.max(0, i));
+  slides.forEach((s, k) => s.classList.toggle("on", k === at));
+  history.replaceState(null, "", "#" + (at + 1));
+}
+function fit() {
+  const k = Math.min(innerWidth / 1280, innerHeight / 720);
+  stage.style.transform = `scale(${k}) translate(-50%, -50%)`;
+}
+addEventListener("resize", fit);
+addEventListener("keydown", (e) => {
+  if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) show(at + 1);
+  else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) show(at - 1);
+  else if (e.key === "Home") show(0);
+  else if (e.key === "End") show(slides.length - 1);
+  else if (e.key === "d") document.documentElement.dataset.theme = document.documentElement.dataset.theme === "dark" ? "" : "dark";
+  else if (e.key === "f") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+});
+addEventListener("click", (e) => show(at + (e.clientX < innerWidth / 3 ? -1 : 1)));
+fit(); show(at);
+</script>
+</body>
+</html>

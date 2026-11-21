@@ -123,7 +123,7 @@ steps, with nothing explaining it.
 
 | Missing | Why |
 |---|---|
-| Resume after a restart (plan §7.4) | Seen: a stopped pod comes back at the welcome page, and the log gets a second `session_start`. Idle stop after an hour, stop after 2 h regardless |
+| Resume after a restart (plan §7.4) | Seen: a stopped pod comes back at the welcome page, and the log gets a second `session_start`. Idle stop after an hour, stop after 2 h regardless. The harness itself now ends a session nobody is at (10 min without input, 10 min without an answer to "Are you still there?", 120 min in total; technical.md §10.1) and exits, so Conditioner's idle stop is a second line |
 | Actions that do not block (plan §7.4) | The longer timeout is a workaround; a dropped connection still leaves the browser waiting |
 | Egress rule and API allowlist | See above |
 | Errors and slow phases on screen, retries, possibly a second model | See "the provider's load" |

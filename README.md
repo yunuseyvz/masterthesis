@@ -9,7 +9,7 @@ the agent live, following a hidden script per story (the Drehbuch), and stops fo
 | `study-harness/` | The study harness: study server, the study build of opencode's web app, the project, the trials, the Docker image |
 | `shared/` | The study's types and the session plan generator |
 | `docs/` | The study (`study/`), how the harness works (`harness/`), earlier material (`archive/`); index: [docs/README.md](docs/README.md) |
-| `analysis/` | The planned analysis in R (`analyze.R`), fictitious data for it (`design.ts`, `simulate.R`) and the power simulation (`power.R`) |
+| `analysis/` | The planned analysis in R (`analyze.R`), fictitious data for it (`design.ts`, `simulate.R`) and the power simulation (`power.R`); the pilot's checks (`guess-check.ts`, `pilot-check.ts`) |
 | `scripts/` | Research scripts (benchmarks) |
 
 ## Run a session (Docker)

@@ -1,6 +1,6 @@
 # US1: Flash-Sale Reservation
 
-Platz: Milestone Schritt 2, Flaw Schritt 2 (im Milestone)
+Platz: Milestone Schritt 2, Flaw Schritt 2 (im Milestone) · NON-MILESTONE Schritt 1 oder 3
 
 ## Öffentlich
 
@@ -77,9 +77,9 @@ Flawed statt dessen: Ist der neue Bestand 0, wird die SKU aus dem Store entfernt
 1. A stock store is created with createStockStore([{ sku: "mug", stock: 3 }, { sku: "mug", stock: 5 }]), the same SKU twice. How many mugs does it hold?
    Optionen: 5 / 3 / 8 / Creating it throws
    Antwort: 5
-2. The shop has 2 pens. One customer reserves 2 pens, then another customer reserves 1. What happens to the second reservation?
-   Optionen: Rejected with OutOfStockError (409) / Reserved; the stock stays at 2 / Rejected: the pen is not found (404) / Reserved; the stock becomes -1
-   Antwort: Correct: Rejected with OutOfStockError (409) · Flawed: Rejected: the pen is not found (404)
+2. The shop has 2 pens, and a customer reserves both. What does stockOf report for the pen afterwards?
+   Optionen: 0 / The pen does not exist (404) / 2 / Out of stock (409)
+   Antwort: Correct: 0 · Flawed: The pen does not exist (404)
 3. checkout receives the body {"sku": "mug", "quantity": "2"} (the quantity as text). What happens?
    Optionen: Rejected with 400 / 2 mugs are reserved / 1 mug is reserved / Rejected with 409
    Antwort: Rejected with 400
@@ -87,16 +87,16 @@ Flawed statt dessen: Ist der neue Bestand 0, wird die SKU aus dem Store entfernt
 ### Understanding-Items
 
 1. **Milestone, offener Fall** (Schritt 2): A customer orders 5 mugs when 3 are left. What happens?
-   Optionen: The whole order is rejected as out of stock; 3 mugs stay in stock / The 3 mugs are reserved and the customer is told it is fewer / The 3 mugs are reserved without a word / The order goes through and the stock goes to -2
-   Antwort in der Referenz: The whole order is rejected as out of stock; 3 mugs stay in stock
+   Optionen: Rejected as out of stock; the stock stays at 3 / 3 mugs are reserved, with a note that it is fewer; the stock goes to 0 / 3 mugs are reserved without a note; the stock goes to 0 / 5 mugs are reserved; the stock goes to -2
+   Antwort in der Referenz: Rejected as out of stock; the stock stays at 3
 2. **Flaw** (Schritt 2): The last 2 mugs are sold. Then another customer orders one. What do they get?
-   Optionen: Told the mug is out of stock (409) / Told the mug does not exist (404) / The mug is reserved / A server error (500)
+   Optionen: Told the mug is out of stock (409) / Told the mug does not exist (404) / The mug is reserved anyway / Told there was a server error (500)
    Antwort in der Referenz: Correct: Told the mug is out of stock (409) · Flawed: Told the mug does not exist (404)
 3. **Milestone, Abhängigkeit** (Schritt 3): checkout answers with { sku, quantity, remaining }. What is quantity?
-   Optionen: Always the quantity ordered, since a reservation is all or nothing / The quantity actually reserved, which can be less than ordered / The stock before the reservation / Always 1
-   Antwort in der Referenz: Always the quantity ordered, since a reservation is all or nothing
+   Optionen: The quantity ordered / The quantity actually reserved / The stock before the reservation / The stock left after the reservation
+   Antwort in der Referenz: The quantity ordered
 4. **Emergent** (Schritt 3): A checkout request carries a field the shop does not know: { "sku": "mug", "quantity": 1, "gift": true }. What happens?
-   Optionen: The field is ignored and the mug is reserved / It is rejected as an invalid request (400) / The mug is reserved and the gift flag is kept / It is rejected as out of stock (409)
+   Optionen: The field is ignored and the mug is reserved / It is rejected as an invalid request (400) / The mug is reserved and the gift flag is kept / It fails with a server error (500)
    Antwort in der Referenz: The field is ignored and the mug is reserved
 5. **Zusammenspiel** (Schritt 4): The checkout route (POST /api/checkout) receives an order with quantity 0. What does it answer?
    Optionen: 400: invalid request / 200: nothing is reserved / 409: out of stock / 500: server error

@@ -1,7 +1,7 @@
 # The planned analysis (docs/study/analysis-plan.md). Runs on the harness's trials.csv, real or simulated.
 #
 # Usage: Rscript analysis/analyze.R trials.csv [excluded participant IDs, comma-separated]
-# As a library (power.R): source("analysis/analyze.R"); fit_primary(items_long(read_trials(path)))
+# As a library (power.R): source("analysis/analyze.R"); fit_feature(items_long(read_trials(path)))
 suppressPackageStartupMessages({
   library(lme4)
   library(lmerTest)
@@ -24,6 +24,10 @@ read_trials <- function(path, exclude = character()) {
   d$flawed <- as.integer(d$variant == "Flawed")
   d$reject <- as.integer(d$initialDecision == "reject")
   d$position_c <- d$position - 3.5
+  # Where the flaw subtask lies relative to what the review showed: in it (BATCH always), written before the pause
+  # (in the files, not in the review), or not yet written (H3).
+  d$flaw_rel <- factor(ifelse(d$regime == "BATCH" | d$flawStep == d$pauseStep, "in review",
+                              ifelse(d$flawStep < d$pauseStep, "before", "after")), levels = c("in review", "before", "after"))
   d
 }
 
@@ -42,23 +46,33 @@ items_long <- function(d) {
 
 holm <- function(p) p.adjust(p, "holm")
 
-# H1 (primary). Coded so that the regime coefficients are the contrasts on milestone items:
-# BATCH - MILESTONE and NON_MILESTONE - MILESTONE, in log-odds.
-fit_primary <- function(items) {
-  glmer(correct ~ regime * item_type + position_c + (1 | participant_id) + (1 | story) + (1 | story:item),
-        data = items, family = binomial, control = ctrl)
-}
-primary_contrasts <- function(m) {
+# The two contrasts of H1 and H2 from the regime coefficients (BATCH - MILESTONE, NON_MILESTONE - MILESTONE in
+# log-odds), turned around so that a positive value favours MILESTONE.
+regime_contrasts <- function(m) {
   s <- coef(summary(m))[c("regimeBATCH", "regimeNON_MILESTONE"), ]
   data.frame(contrast = c("MILESTONE vs BATCH", "MILESTONE vs NON_MILESTONE"),
              log_odds = -s[, "Estimate"], odds_ratio = exp(-s[, "Estimate"]), z = -s[, "z value"],
              p = s[, "Pr(>|z|)"], p_holm = holm(s[, "Pr(>|z|)"]), row.names = NULL)
 }
 
-# H2. Equal-variance signal detection as a probit model: the flawed coefficient is d', the intercept is -c.
-# With MILESTONE as reference, regimeX:flawed is d'(X) - d'(MILESTONE).
+# H1 (primary): all items of the feature.
+fit_feature <- function(items) {
+  glmer(correct ~ regime + position_c + (1 | participant_id) + (1 | story) + (1 | story:item),
+        data = items, family = binomial, control = ctrl)
+}
+
+# H2: the milestone item. Milestone is the reference item type, so the regime coefficients are the contrasts on it.
+fit_decision <- function(items) {
+  glmer(correct ~ regime * item_type + position_c + (1 | participant_id) + (1 | story) + (1 | story:item),
+        data = items, family = binomial, control = ctrl)
+}
+
+# H3. Equal-variance signal detection as a probit model: the flawed coefficient is d', the intercept is -c.
+# With MILESTONE as reference, regimeX:flawed is d'(X) - d'(MILESTONE) when the flaw subtask was in the review;
+# flawed:flaw_rel takes out the trials where it was not.
 fit_sdt <- function(d) {
-  glmer(reject ~ regime * flawed + position_c + (1 | participant_id) + (1 | story),
+  rel <- if (length(unique(d$flaw_rel)) > 1) " + flawed:flaw_rel" else ""
+  glmer(as.formula(paste0("reject ~ regime * flawed", rel, " + position_c + (1 | participant_id) + (1 | story)")),
         data = d, family = binomial(link = "probit"), control = ctrl)
 }
 sdt_contrasts <- function(m) {
@@ -90,9 +104,13 @@ report <- function(d) {
 
   cat("== Understanding: share correct (regime x item type)\n")
   print(with(items, tapply(correct, list(regime, item_type), function(x) round(100 * mean(x)))))
-  cat("\n== H1 (primary): milestone items\n")
-  m1 <- fit_primary(items)
-  print(primary_contrasts(m1), digits = 3)
+  cat("\n== H1 (primary): all items of the feature\n")
+  print(regime_contrasts(fit_feature(items)), digits = 3)
+  cat("\nSensitivity: without the flaw item\n")
+  print(regime_contrasts(fit_feature(items[items$role != "flaw", ])), digits = 3)
+
+  cat("\n== H2: the milestone item\n")
+  print(regime_contrasts(fit_decision(items)), digits = 3)
 
   cat("\n== Exploratory: milestone or just reviewed? (items, all regimes)\n")
   m1b <- glmer(correct ~ reviewed * item_type + position_c + (1 | participant_id) + (1 | story) + (1 | story:item),
@@ -107,17 +125,21 @@ report <- function(d) {
                   error = function(e) NULL)
   if (is.null(m1c)) cat("model did not fit\n") else print(coef(summary(m1c))[-1, ], digits = 3)
 
-  cat("\n== H2: fault detection (initial decision)\n")
+  cat("\n== H3: fault detection (initial decision), d' when the flaw subtask was in the review\n")
+  print(table(regime = d$regime, flaw = d$flaw_rel))
   m2 <- fit_sdt(d)
   print(dprime_by_regime(m2), digits = 3)
   print(sdt_contrasts(m2), digits = 3)
+  b <- fixef(m2)
+  cat(sprintf("d' lower by %.2f when the flaw subtask was written before the pause, by %.2f when after\n",
+              -b["flawed:flaw_relbefore"], -b["flawed:flaw_relafter"]))
   cat("\nOnly reviews that contained the flaw subtask:\n")
   seen <- d[d$flawStepReviewed, ]
   print(table(regime = seen$regime, variant = seen$variant))
   m2s <- fit_sdt(seen)
   print(dprime_by_regime(m2s), digits = 3)
 
-  cat("\n== H3: confidence vs correctness (overconfidence = confidence - correct, in points)\n")
+  cat("\n== H4: confidence vs correctness (overconfidence = confidence - correct, in points)\n")
   items$over <- items$confidence - 100 * items$correct
   print(with(items, tapply(over, list(regime, item_type), function(x) round(mean(x), 1))))
   m3 <- lmer(over ~ regime * item_type + position_c + (1 | participant_id) + (1 | story), data = items)
@@ -128,18 +150,19 @@ report <- function(d) {
     resolution = sapply(split(items, items$regime), function(x) auroc(x$confidence, x$correct))
   ), digits = 3)
 
-  cat("\n== H4: reversals after the behaviour question\n")
+  cat("\n== H5: reversals after the behaviour question\n")
   print(with(d, tapply(decisionReversed, list(regime, variant), function(x) sprintf("%d/%d", sum(x), length(x)))))
   if (sum(d$decisionReversed) >= 10) {
     m4 <- glmer(decisionReversed ~ regime + (1 | participant_id), data = d, family = binomial, control = ctrl)
     print(coef(summary(m4))[-1, ], digits = 3)
   } else cat("fewer than 10 reversals: descriptive only\n")
 
-  cat("\n== Descriptive: time (median minutes) and mental effort (Paas, mean)\n")
+  cat("\n== Descriptive: time (median minutes), mental effort (Paas 1-9) and the review statements (1-7), means\n")
+  avg <- function(x) tapply(x, d$regime, function(v) round(mean(v), 1))
   print(data.frame(
     review_before_decision = tapply(d$stage1DwellMs, d$regime, function(x) round(median(x) / 60000, 1)),
     final_review = tapply(d$finalReviewMs, d$regime, function(x) round(median(x) / 60000, 1)),
-    paas = tapply(d$paas, d$regime, function(x) round(mean(x), 1))
+    paas = avg(d$paas), good_moment = avg(d$pauseTiming), helped = avg(d$pauseHelped), interrupted = avg(d$pauseDisrupted)
   ))
   cat("\nFinal decision correct (reject flawed, accept correct):",
       paste(sapply(REGIMES, function(r) { x <- d[d$regime == r, ]; paste(r, pct((x$finalDecision == "reject") == (x$variant == "Flawed"))) }), collapse = ", "), "\n")

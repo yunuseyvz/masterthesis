@@ -14,6 +14,7 @@ export type StudyPhase =
   | "postsurvey"
   | "debrief"
   | "finished"
+  | "abandoned"
 
 export interface StudyView {
   phase: StudyPhase
@@ -129,6 +130,34 @@ setInterval(() => {
   if (!v || busy() || (v.phase !== "feedback" && v.phase !== "working")) return
   call<StudyView>("state", undefined, "GET").then((next) => setView(next), () => {})
 }, 1500)
+
+// Presence (StudySession.watch on the server): the last mouse, keyboard, scroll or touch input, reported every 30 s.
+// After a long stretch without input the server asks "Are you still there?"; without an answer the session ends.
+let lastInput = Date.now()
+for (const type of ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"])
+  document.addEventListener(type, () => (lastInput = Date.now()), { capture: true, passive: true })
+const [afk, setAfk] = createSignal(false)
+export { afk }
+
+async function reportPresence(confirm = false) {
+  const v = view()
+  if (!v || v.phase === "finished" || v.phase === "abandoned") return
+  try {
+    const r = await call<{ prompt: boolean; ended: boolean }>("presence", { inputAgoMs: Math.max(0, Date.now() - lastInput), confirm })
+    setAfk(r.prompt)
+    if (r.ended) setView(await call<StudyView>("state", undefined, "GET"))
+  } catch {
+    /* the server may be gone after the session ended; the page stays as it is */
+  }
+}
+setInterval(() => void reportPresence(), 30_000)
+
+/** The participant answered "Are you still there?". */
+export function stillHere() {
+  lastInput = Date.now()
+  setAfk(false)
+  void reportPresence(true)
+}
 
 export const active = () => {
   const v = view()

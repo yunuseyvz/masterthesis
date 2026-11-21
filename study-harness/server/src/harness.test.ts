@@ -36,7 +36,7 @@ const POSTSURVEY = {
   comment: "fine",
 };
 
-const UNDERSTANDING = { type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [25, 55, 85, 100, 40], paas: 6, itemMs: [4000, 3000, 5000, 2000, 1000], answerChanges: [0, 1, 0, 0, 2] };
+const UNDERSTANDING = { type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [25, 55, 85, 100, 40], paas: 6, review: { timing: 6, helped: 5, disrupted: 2 }, itemMs: [4000, 3000, 5000, 2000, 1000], answerChanges: [0, 1, 0, 0, 2] };
 
 /** begin -> presurvey -> first checkpoint */
 async function startSession(session: StudySession) {
@@ -170,6 +170,7 @@ describe("study flow", () => {
     expect(new Set(bundle.trials.map((t: { regime: string }) => t.regime))).toEqual(new Set(["BATCH", "MILESTONE", "NON_MILESTONE"]));
     for (const t of bundle.trials) {
       expect(t.paas).toBe(6);
+      expect([t.pauseTiming, t.pauseHelped, t.pauseDisrupted]).toEqual([6, 5, 2]);
       expect(t.understandingConfidences).toEqual([25, 55, 85, 100, 40]);
       expect(t.reviewedLines).toBeGreaterThan(0);
       expect(t.finalReviewMs).toBeGreaterThanOrEqual(0);
@@ -293,6 +294,120 @@ describe("stage-1 dwell", () => {
     await session.act({ type: "stage1", decision: "accept" });
     expect((session.events.find((e) => e.type === "plan_approved")!.data as { ms: number }).ms).toBe(3000);
     expect((session.events.find((e) => e.type === "stage1_submit")!.data as { dwellMs: number }).dwellMs).toBe(4000);
+  });
+});
+
+describe("a participant who has gone (server protection)", () => {
+  const MIN = 60_000;
+  const limits = { warnMs: 10 * MIN, abortMs: 10 * MIN, maxSessionMs: 120 * MIN };
+  const mk = (clock: { t: number }, extra: object = {}) => {
+    const plan = generateSessionPlan({ participantId: "AFK", studySeed: "3", group: 1 });
+    return new StudySession(plan, makeStoryLoader(trialsDir, projectDir), fakeDeps(plan), () => {}, () => clock.t, false, { ...limits, ...extra });
+  };
+  const types = (s: StudySession) => s.events.map((e) => e.type);
+
+  it("asks after 10 minutes without input, and ends the session 10 minutes later without an answer", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock);
+    await startSession(s); // the practice plan is on screen
+    clock.t += 9 * MIN;
+    expect(s.watch()).toBeNull();
+    expect(s.presence({ inputAgoMs: 9 * MIN })).toEqual({ prompt: false, ended: false });
+    clock.t += 1 * MIN;
+    expect(s.watch()).toBeNull();
+    expect(s.presence({ inputAgoMs: 10 * MIN })).toEqual({ prompt: true, ended: false });
+    clock.t += 10 * MIN;
+    expect(s.watch()).toBe("abandoned");
+    expect(s.view().phase).toBe("abandoned");
+    expect(types(s)).toContain("afk_prompt");
+    const end = s.events.find((e) => e.type === "session_abandoned")!.data as { reason: string; phase: string };
+    expect(end).toMatchObject({ reason: "inactive", phase: "plan" });
+    expect(s.presence({ inputAgoMs: 0 })).toEqual({ prompt: false, ended: true });
+    // The session stays ended: no action brings it back.
+    await expect(s.act({ type: "approvePlan" })).rejects.toThrow(/abandoned/);
+  });
+
+  it("does not ask while there is input, and an answer to the prompt keeps the session going", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock);
+    await startSession(s);
+    for (let i = 0; i < 4; i++) {
+      clock.t += 5 * MIN;
+      s.presence({ inputAgoMs: 20_000 });
+      expect(s.watch()).toBeNull();
+    }
+    expect(types(s)).not.toContain("afk_prompt");
+    clock.t += 10 * MIN;
+    s.watch();
+    clock.t += 3 * MIN;
+    expect(s.presence({ inputAgoMs: 0, confirm: true })).toEqual({ prompt: false, ended: false });
+    expect(types(s)).toContain("afk_resume");
+    clock.t += 9 * MIN;
+    expect(s.watch()).toBeNull();
+    expect(s.view().phase).toBe("plan");
+  });
+
+  it("does not count the agent's working time, and counts from the moment the participant is to act", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock);
+    await startSession(s);
+    const building = s.act({ type: "approvePlan" });
+    expect(s.view().phase).toBe("working");
+    clock.t += 30 * MIN; // the agent takes long
+    expect(s.watch()).toBeNull();
+    await building; // the review comes up now, 30 minutes after the last input
+    expect(s.view().phase).toBe("stage1");
+    clock.t += 9 * MIN;
+    expect(s.watch()).toBeNull();
+    expect(types(s)).not.toContain("afk_prompt");
+    clock.t += 1 * MIN;
+    s.watch();
+    expect(types(s)).toContain("afk_prompt");
+  });
+
+  it("ends any session at its time limit, and an action counts as input", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock, { warnMs: 0 });
+    await startSession(s);
+    clock.t += 119 * MIN;
+    await s.act({ type: "approvePlan" });
+    expect(s.watch()).toBeNull();
+    clock.t += 1 * MIN;
+    expect(s.watch()).toBe("abandoned");
+    expect(s.events.find((e) => e.type === "session_abandoned")!.data).toMatchObject({ reason: "session_limit" });
+  });
+
+  it("finishes normally when the participant leaves at the debrief, since everything is recorded", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock);
+    let view = s.view();
+    for (let guard = 0; view.phase !== "debrief" && guard < 100; guard++) {
+      switch (view.phase) {
+        case "intro": view = await s.act({ type: "begin" }); break;
+        case "presurvey": view = await s.act(PRESURVEY); break;
+        case "plan": view = await s.act({ type: "approvePlan" }); break;
+        case "stage1": view = await s.act({ type: "stage1", decision: "accept" }); break;
+        case "stage2": view = await s.act({ type: "stage2", probeAnswer: 0, final: "confirm" }); break;
+        case "reviewing": view = await s.act({ type: "reviewed" }); break;
+        case "understanding": view = await s.act(UNDERSTANDING); break;
+        case "postsurvey": view = await s.act(POSTSURVEY); break;
+      }
+    }
+    expect(view.phase).toBe("debrief");
+    clock.t += 10 * MIN;
+    expect(s.watch()).toBeNull(); // the prompt
+    clock.t += 10 * MIN;
+    expect(s.watch()).toBe("finish");
+    expect(s.finish().trials).toHaveLength(6);
+    expect(types(s)).not.toContain("session_abandoned");
+  }, 120_000);
+
+  it("is served to the browser at /_study/presence", async () => {
+    const app = await buildApp(fakeConfig("AFKP", "4", 0));
+    const res = await app.inject({ method: "POST", url: "/_study/presence", payload: { inputAgoMs: 1000 } });
+    expect(res.json()).toEqual({ prompt: false, ended: false });
+    expect((await app.inject({ method: "POST", url: "/_study/presence", payload: { inputAgoMs: -1 } })).statusCode).toBe(400);
+    await app.close();
   });
 });
 

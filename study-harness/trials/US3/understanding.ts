@@ -37,20 +37,20 @@ const items: (() => Promise<string> | string)[] = [
     try {
       const limits = resolveTenantConfig(tenant({ limits: { maxWidgets: 3 } })).limits as Record<string, unknown>;
       if (limits.maxUsers === 3) return "It replaces maxUsers";
-      return "maxWidgets" in limits ? "It is kept in the effective limits" : "It is dropped: the effective limits are only the known ones";
+      return "maxWidgets" in limits ? "It is kept in the effective limits" : "It is dropped from the effective limits";
     } catch {
       return "Resolving the configuration rejects it as invalid";
     }
   },
   // dependency (step 3): the quota check relies on every effective limit being a number
   async () => {
-    const r = await attempt({ limits: { maxProducts: null } }, "maxProducts", 100, 1, "It runs: the tenant has no limit");
+    const r = await attempt({ limits: { maxProducts: null } }, "maxProducts", 100, 1, "It runs: null means the tenant has no limit");
     return { "rejected 429": "It is rejected: quota exceeded (429)", "rejected 400": "It is rejected as invalid (400)", TypeError: "It fails with a TypeError" }[r] ?? r;
   },
   // flaw (step 3): a bulk import that does not fit
   async () => {
-    const r = await attempt({}, "maxProducts", 98, 5, "The import runs");
-    return { "rejected 429": "The import is rejected: quota exceeded (429)", "rejected 400": "The import is rejected as invalid (400)" }[r] ?? r;
+    const r = await attempt({}, "maxProducts", 98, 5, "The import runs and all 5 are added");
+    return { "rejected 429": "The import is rejected (429)", "rejected 400": "The import is rejected as invalid (400)" }[r] ?? r;
   },
   // interplay (steps 2 and 3): a limit of 0 is a value, not "not set"
   async () => {

@@ -16,11 +16,11 @@ const items: (() => Promise<string> | string)[] = [
       clock.advance(500);
       limiter.check("c");
       clock.advance(500);
-      if (limiter.check("c").allowed) return "Allowed: the request from 0 ms no longer counts";
+      if (limiter.check("c").allowed) return "Allowed: the 0 ms request no longer counts";
       limiter.reset();
-      return limiter.check("c").allowed ? "Rejected: the request from 0 ms still counts" : "?";
+      return limiter.check("c").allowed ? "Rejected: the 0 ms request still counts" : "?";
     } catch {
-      return "Checking it throws";
+      return "Checking it throws an error";
     }
   },
   // flaw (step 3): retrying while limited
@@ -30,9 +30,9 @@ const items: (() => Promise<string> | string)[] = [
     for (let i = 0; i < 3; i++) limiter.check("c");
     for (let t = 100; t <= 3000; t += 100) {
       clock.advance(100);
-      if (limiter.check("c").allowed) return t === 1000 ? "Once its oldest accepted request has left the window" : t === 100 ? "On its very next request" : `? ${t}`;
+      if (limiter.check("c").allowed) return t === 1000 ? "Once its oldest accepted request leaves the window" : t === 100 ? "On its very next request" : `? ${t}`;
     }
-    return "Only after it stops retrying for a full window";
+    return "Only after it has stopped retrying for a full window";
   },
   // emergent (step 3): a limit of 0
   () => {
@@ -40,11 +40,11 @@ const items: (() => Promise<string> | string)[] = [
     try {
       limiter = createLimiter(fakeClock(0), { limit: 0 });
     } catch {
-      return "Creating the limiter fails with a validation error";
+      return "Creating the limiter fails as invalid";
     }
     const a = limiter.check("c").allowed;
     const b = limiter.check("c").allowed;
-    return a && !b ? "The first request is allowed, the ones after it are rejected" : !a && !b ? "Every request is rejected" : a && b ? "Every request is allowed" : "?";
+    return a && !b ? "Only the first request is allowed" : !a && !b ? "Every request is rejected" : a && b ? "Every request is allowed: 0 means no limit" : "?";
   },
   // dependency (step 4): waiting as long as Retry-After says
   async () => {

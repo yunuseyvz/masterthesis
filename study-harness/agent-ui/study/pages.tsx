@@ -271,13 +271,22 @@ function Preparing() {
   )
 }
 
-/** The understanding questions: the code is hidden, one question per screen, then mental effort. */
+/** Agreement with three statements about this feature's review (TrialResult.pauseTiming, pauseHelped, pauseDisrupted). */
+const REVIEW_ITEMS = [
+  { key: "timing", label: "The agent stopped for my review at a good moment." },
+  { key: "helped", label: "Reviewing at that point helped me understand the code." },
+  { key: "disrupted", label: "Stopping for the review interrupted my work." },
+] as const
+type ReviewKey = (typeof REVIEW_ITEMS)[number]["key"]
+
+/** The understanding questions: the code is hidden, one question per screen, then mental effort and the review. */
 function Quiz() {
   const items = () => view()!.understanding!.items
   const [step, setStep] = createSignal(0)
   const [answers, setAnswers] = createStore<(number | undefined)[]>([])
   const [confs, setConfs] = createStore<(number | undefined)[]>([])
   const [paas, setPaas] = createSignal<number | undefined>()
+  const [review, setReview] = createStore<Partial<Record<ReviewKey, number>>>({})
   const onEffort = () => step() >= items().length
   // Time on each question's screen and answer changes, for the server's per-item measures.
   const itemMs = items().map(() => 0)
@@ -301,7 +310,16 @@ function Quiz() {
       <Card step={`${v().practice ? "Practice feature" : `Feature ${v().trial - 1} of ${v().nTrials}`} · the code is hidden now`} title={onEffort() ? "Almost done" : `Question ${step() + 1} of ${items().length}`}>
         <Show
           when={!onEffort()}
-          fallback={<Scale label="How much mental effort did you invest in reviewing this feature?" values={[1, 2, 3, 4, 5, 6, 7, 8, 9]} ends={["Very, very low", "Very, very high"]} value={paas()} onChange={setPaas} />}
+          fallback={
+            <>
+              <Scale label="How much mental effort did you invest in reviewing this feature?" values={[1, 2, 3, 4, 5, 6, 7, 8, 9]} ends={["Very, very low", "Very, very high"]} value={paas()} onChange={setPaas} />
+              <For each={REVIEW_ITEMS}>
+                {(it) => (
+                  <Scale label={it.label} values={[1, 2, 3, 4, 5, 6, 7]} ends={["Strongly disagree", "Strongly agree"]} value={review[it.key]} onChange={(n) => setReview(it.key, n)} />
+                )}
+              </For>
+            </>
+          }
         >
           <p data-study-lead>A colleague on the support desk asks you about the feature you just reviewed.</p>
           <p data-study-question>{items()[k()]!.question}</p>
@@ -319,9 +337,9 @@ function Quiz() {
             <Button
               variant="submit"
               size="large"
-              disabled={paas() === undefined || items().some((_, i) => answers[i] === undefined || confs[i] === undefined)}
+              disabled={paas() === undefined || REVIEW_ITEMS.some((it) => review[it.key] === undefined) || items().some((_, i) => answers[i] === undefined || confs[i] === undefined)}
               onClick={() =>
-                act({ type: "understanding", answers: items().map((_, i) => answers[i]), confidences: items().map((_, i) => confs[i]), paas: paas(), itemMs: itemMs.map(Math.round), answerChanges: changes })
+                act({ type: "understanding", answers: items().map((_, i) => answers[i]), confidences: items().map((_, i) => confs[i]), paas: paas(), review: { ...review }, itemMs: itemMs.map(Math.round), answerChanges: changes })
               }
             >
               Next
@@ -408,6 +426,14 @@ export function StudyPage() {
               <Button variant="submit" size="large" onClick={() => window.location.assign("/")}>Start again</Button>
             </div>
           </Show>
+        </Card>
+      </Match>
+      <Match when={view()!.phase === "abandoned"}>
+        <Card title="This session has ended">
+          <p>
+            There was no activity for a long time, or the session reached its time limit, so it was closed. Thank you for
+            your time. If you would like to take part again or have questions, please contact the experimenter.
+          </p>
         </Card>
       </Match>
       <Match when={view()!.phase === "intro"}><Intro /></Match>

@@ -1,6 +1,6 @@
 # US6: Coupons
 
-Platz: Milestone Schritt 1, Flaw Schritt 1 (im Milestone)
+Platz: Milestone Schritt 1, Flaw Schritt 1 (im Milestone) · NON-MILESTONE Schritt 3 (Schritt 2 deklarativ)
 
 ## Öffentlich
 

@@ -1,6 +1,6 @@
 # US4: SLA Credits
 
-Platz: Milestone Schritt 1, Flaw Schritt 3
+Platz: Milestone Schritt 1, Flaw Schritt 3 · NON-MILESTONE Schritt 3 (Schritt 2 deklarativ)
 
 ## Öffentlich
 
@@ -91,7 +91,7 @@ Flawed statt dessen: Nur Ausfälle, die ganz in der Periode liegen, zählen; ein
 ### Understanding-Items
 
 1. **Milestone, offener Fall** (Schritt 1): What does parseDurationMinutes do with "90", a number without a unit?
-   Optionen: It rejects it as invalid / It returns 90 (minutes) / It returns 1.5 (seconds) / It returns 5400 (hours)
+   Optionen: It rejects it as invalid / It returns 90: read as minutes / It returns 1.5: read as seconds / It returns 5400: read as hours
    Antwort in der Referenz: It rejects it as invalid
 2. **Emergent** (Schritt 1): What does parseDurationMinutes do with "2H", the unit as a capital letter?
    Optionen: It returns 120 / It rejects it as invalid / It returns 2 / It returns 0
@@ -100,8 +100,8 @@ Flawed statt dessen: Nur Ausfälle, die ganz in der Periode liegen, zählen; ein
    Optionen: Generating the invoice fails with a validation error / The threshold is read as 30 minutes / The threshold is read as 30 hours / The threshold is ignored and every outage earns a credit
    Antwort in der Referenz: Generating the invoice fails with a validation error
 4. **Flaw** (Schritt 3): An outage started 3 days before the billing period and ended 1 hour into it. What does the invoice credit for it (default policy)?
-   Optionen: 5% of the subtotal, for the hour inside the period / Nothing: the outage is left out / 25% of the subtotal, for the whole outage / 10% of the subtotal
-   Antwort in der Referenz: Correct: 5% of the subtotal, for the hour inside the period · Flawed: Nothing: the outage is left out
+   Optionen: 5% of the subtotal / Nothing / 25% of the subtotal / 10% of the subtotal
+   Antwort in der Referenz: Correct: 5% of the subtotal · Flawed: Nothing
 5. **Zusammenspiel** (Schritt 3): Two outages of 20 minutes each fall into the same billing period (default policy, threshold "30m"). What does the invoice credit?
    Optionen: Nothing: each outage is measured on its own / 5% of the subtotal: together they last 40 minutes / 10% of the subtotal / Generating the invoice fails
    Antwort in der Referenz: Nothing: each outage is measured on its own

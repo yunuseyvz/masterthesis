@@ -209,7 +209,9 @@ An action in the wrong phase returns 409; an invalid one 400.
 - Story `s` in group `g` gets cell `(s + g) mod 6`; cell `% 3` picks the regime (BATCH, MILESTONE, NON_MILESTONE),
   cells 0–2 are Correct and 3–5 Flawed. Every participant meets each regime × variant cell once; across six groups
   every story appears in every cell. N should be a multiple of 6.
-- NON_MILESTONE pauses after one of the two non-milestone steps among 1–3 (`pauseDraw`). With `round` (`STUDY_ROUND`,
+- NON_MILESTONE pauses after a step among 1–3 that is neither the milestone nor `declarative` (only types and
+  constants, nothing to run); `loadStory` refuses a story without such a step. Only US1 has two candidates; there
+  `pauseDraw` picks one. With `round` (`STUDY_ROUND`,
   completed sessions / 6) it alternates by `(round + group) mod 2`, so each candidate step gets half of a story's
   NON_MILESTONE trials. Without `round`, a coin flip per trial.
 - Option orders of the behaviour question and of every understanding item are shuffled per trial.
@@ -314,6 +316,8 @@ never keeps an older build from an earlier session on the same address.
 | `WORK_ROOT`, `AGENT_HOME` | `/work`, `/agent-home` | Trial projects; opencode's home |
 | `SESSION_RECORDING` | on | `0` turns the screen recording off |
 | `EXIT_ON_FINISH` | on | `0` keeps the server running after Finish |
+| `STUDY_AFK_WARN_MIN`, `STUDY_AFK_ABORT_MIN` | `10`, `10` | Minutes without input (while the participant is to act, not while the agent works) before "Are you still there?", and without an answer after it before the session ends; `0` turns one off |
+| `STUDY_MAX_SESSION_MIN` | `120` | The session ends after this many minutes in any phase; `0` turns it off |
 | `TRY_TRIAL` | unset | `US1,MILESTONE,Flawed` plays that trial in place of the practice story (development) |
 | `DEMO`, `SHOW_CONDITION` | off | Demo restarts; condition tag in the UI (never for participants) |
 | `STUDY_SLUG`, `STUDY_USER_ID`, `STUDY_LLM_KEY`, `STUDY_COMPLETION_URL` | unset | Set by Conditioner (deployment.md): the app's path; participant ID and seed unless given; the model's key unless `LIVE_API_KEY` is given; where to go after Finish |

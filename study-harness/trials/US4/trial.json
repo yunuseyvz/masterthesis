@@ -12,6 +12,7 @@
     {
       "n": 2,
       "kind": "scaffold",
+      "declarative": true,
       "summary": "Add the SLA types: billing tiers, policy, outages and the invoice"
     },
     {
@@ -102,9 +103,9 @@
         "question": "What does parseDurationMinutes do with \"90\", a number without a unit?",
         "options": [
           "It rejects it as invalid",
-          "It returns 90 (minutes)",
-          "It returns 1.5 (seconds)",
-          "It returns 5400 (hours)"
+          "It returns 90: read as minutes",
+          "It returns 1.5: read as seconds",
+          "It returns 5400: read as hours"
         ],
         "correct": {
           "Correct": 0,
@@ -146,9 +147,9 @@
         "role": "flaw",
         "question": "An outage started 3 days before the billing period and ended 1 hour into it. What does the invoice credit for it (default policy)?",
         "options": [
-          "5% of the subtotal, for the hour inside the period",
-          "Nothing: the outage is left out",
-          "25% of the subtotal, for the whole outage",
+          "5% of the subtotal",
+          "Nothing",
+          "25% of the subtotal",
           "10% of the subtotal"
         ],
         "correct": {

@@ -4,7 +4,8 @@ import { useLanguage } from "@/runtime/i18n/language"
 import { ServerConnection } from "@/runtime/server/registry"
 import { sessionHref } from "@/shell/routes/session"
 import { StudyPage } from "./pages"
-import { active, error, load, view } from "./store"
+import { active, afk, error, load, stillHere, view } from "./store"
+import { Button } from "@opencode/ui/button"
 import { markRecording, resetCoverage, startRecording, startTelemetry } from "./telemetry"
 import "./study.css"
 
@@ -86,24 +87,39 @@ export function StudyGate(props: ParentProps) {
   })
 
   return (
-    <Switch>
-      <Match when={error()}>
-        <pre data-study-error>{error()}</pre>
-      </Match>
-      <Match when={!view()}>
-        <div data-study-page />
-      </Match>
-      <Match when={!active()}>
-        <StudyPage />
-      </Match>
-      <Match when={active()}>
-        <Show when={view()!.debugTag}>
-          <div data-study-tag title="regime · variant (experimenter view)">
-            {view()!.participantId} {view()!.debugTag}
+    <>
+      <Show when={afk()}>
+        <div data-study-afk role="alertdialog" aria-labelledby="study-afk-title">
+          <div data-study-card>
+            <h1 id="study-afk-title">Are you still there?</h1>
+            <p>There has been no activity for a while. Continue where you left off.</p>
+            <div data-study-actions>
+              <Button variant="submit" size="large" onClick={stillHere}>
+                Continue
+              </Button>
+            </div>
           </div>
-        </Show>
-        {props.children}
-      </Match>
-    </Switch>
+        </div>
+      </Show>
+      <Switch>
+        <Match when={error()}>
+          <pre data-study-error>{error()}</pre>
+        </Match>
+        <Match when={!view()}>
+          <div data-study-page />
+        </Match>
+        <Match when={!active()}>
+          <StudyPage />
+        </Match>
+        <Match when={active()}>
+          <Show when={view()!.debugTag}>
+            <div data-study-tag title="regime · variant (experimenter view)">
+              {view()!.participantId} {view()!.debugTag}
+            </div>
+          </Show>
+          {props.children}
+        </Match>
+      </Switch>
+    </>
   )
 }

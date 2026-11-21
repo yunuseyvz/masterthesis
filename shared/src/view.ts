@@ -7,10 +7,21 @@ import { Confidence, Style, UNDERSTANDING_ITEMS, type Decision } from "./schema.
  * plan: the agent's plan is shown, the participant approves it. working: the agent is running (or finishing after the
  * decision). stage1/stage2: the scored review. feedback: live trials, after a rejection, the agent has asked what to
  * change and the participant answers in opencode's composer (the agent then fixes it). reviewing: the feature is finished, the participant confirms they are
- * done looking before the code is hidden for the understanding questions.
+ * done looking before the code is hidden for the understanding questions. abandoned: the session ended without
+ * Finish, after a long stretch without input or at the session's time limit (see StudySession.watch).
  */
 export type Phase =
-  | "intro" | "presurvey" | "plan" | "working" | "stage1" | "stage2" | "feedback" | "reviewing" | "understanding" | "postsurvey" | "debrief" | "finished";
+  | "intro" | "presurvey" | "plan" | "working" | "stage1" | "stage2" | "feedback" | "reviewing" | "understanding" | "postsurvey" | "debrief" | "finished" | "abandoned";
+
+/**
+ * The browser's report that someone is there: how long ago the last mouse, keyboard, scroll or touch input was, and
+ * `confirm` when the participant answered the "Are you still there?" prompt.
+ */
+export const Presence = z.object({
+  inputAgoMs: z.number().int().min(0).max(24 * 60 * 60 * 1000),
+  confirm: z.boolean().optional(),
+});
+export type Presence = z.infer<typeof Presence>;
 
 export interface ViewState {
   phase: Phase;
@@ -87,6 +98,11 @@ export const Action = z.discriminatedUnion("type", [
     confidences: z.array(Confidence).length(UNDERSTANDING_ITEMS),
     /** Paas mental-effort scale for this feature, 1-9. */
     paas: Scale(9),
+    /**
+     * The participant's view of this feature's review, 1-7 (strongly disagree to strongly agree): it came at a good
+     * moment, it helped understand the code, it interrupted the work. Descriptive; worded to fit a review at the end too.
+     */
+    review: z.object({ timing: Scale(7), helped: Scale(7), disrupted: Scale(7) }),
     /** Time spent on each question's screen (summed over visits, including after going back), ms. */
     itemMs: z.array(z.number().nonnegative()).length(UNDERSTANDING_ITEMS),
     /** How often each answer was changed after the first pick. */

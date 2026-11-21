@@ -1,6 +1,6 @@
 # US2: Payment Webhook
 
-Platz: Milestone Schritt 3, Flaw Schritt 2
+Platz: Milestone Schritt 3, Flaw Schritt 2 · NON-MILESTONE Schritt 2 (Schritt 1 deklarativ)
 
 ## Öffentlich
 
@@ -91,17 +91,17 @@ Flawed statt dessen: Der Betrag wird als Zahl gelesen, mit 100 multipliziert und
 ### Understanding-Items
 
 1. **Flaw** (Schritt 2): Three payments of "0.29", "4.35" and "1.15" are applied to an account with a balance of 0. What is its balance in cents?
-   Optionen: 579 / 576 / 580 / 6
+   Optionen: 579 / 576 / 580 / 577
    Antwort in der Referenz: Correct: 579 · Flawed: 576
 2. **Milestone, offener Fall** (Schritt 3): Processing an event fails temporarily on every attempt, so it is given up. Later the provider delivers the same event again, and now processing works. What happens?
    Optionen: It is processed again and the account is credited / It is ignored as a duplicate: the account is never credited / It is rejected as a conflict (409) / The account is credited twice
    Antwort in der Referenz: It is processed again and the account is credited
 3. **Zusammenspiel** (Schritt 3): A second delivery of an event arrives while the first delivery is still being processed. What happens to the second?
-   Optionen: It is accepted as a duplicate, without crediting / It credits the account as well / It waits for the first and then credits again / It fails with an error
+   Optionen: It is accepted as a duplicate, without crediting / It is processed as well and credits the account again / It waits for the first and then credits again / It fails with an error and nothing is credited
    Antwort in der Referenz: It is accepted as a duplicate, without crediting
 4. **Milestone, Abhängigkeit** (Schritt 4): A delivery reaches the webhook endpoint, but processing it fails temporarily on every attempt. What does the endpoint answer?
-   Optionen: An error status (5xx), so the provider delivers it again and it is tried anew / 200, so the provider stops and the payment is never credited / 409: rejected as a conflict / 400: rejected as invalid
-   Antwort in der Referenz: An error status (5xx), so the provider delivers it again and it is tried anew
+   Optionen: 5xx: the provider delivers it again / 200: the provider stops delivering it / 409: rejected as a conflict / 400: rejected as invalid
+   Antwort in der Referenz: 5xx: the provider delivers it again
 5. **Emergent** (Schritt 4): The provider sends the webhook endpoint an event of type "payment.refunded". What does the endpoint answer?
-   Optionen: 400: rejected as an invalid event / 200: accepted and ignored / 200: the account is debited / 500: server error
+   Optionen: 400: rejected as an invalid event / 200: accepted and ignored / 200: the account is debited / 500: it fails with a server error
    Antwort in der Referenz: 400: rejected as an invalid event

@@ -14,10 +14,10 @@ const items: (() => Promise<string> | string)[] = [
     const store = createStockStore([{ sku: "mug", stock: 3 }]);
     try {
       const left = reserveStock(store, "mug", 5);
-      return left < 0 ? "The order goes through and the stock goes to -2" : "The 3 mugs are reserved without a word";
+      return left < 0 ? "5 mugs are reserved; the stock goes to -2" : "3 mugs are reserved without a note; the stock goes to 0";
     } catch (err) {
       if (!(err instanceof OutOfStockError)) return "? it throws";
-      return stockOf(store, "mug") === 3 ? "The whole order is rejected as out of stock; 3 mugs stay in stock" : "The 3 mugs are reserved and the customer is told it is fewer";
+      return stockOf(store, "mug") === 3 ? "Rejected as out of stock; the stock stays at 3" : "3 mugs are reserved, with a note that it is fewer; the stock goes to 0";
     }
   },
   // flaw (step 2): ordering an item that has just sold out
@@ -26,15 +26,15 @@ const items: (() => Promise<string> | string)[] = [
     reserveStock(store, "mug", 2);
     try {
       reserveStock(store, "mug", 1);
-      return "The mug is reserved";
+      return "The mug is reserved anyway";
     } catch (err) {
-      return err instanceof OutOfStockError ? "Told the mug is out of stock (409)" : err instanceof NotFoundError ? "Told the mug does not exist (404)" : "A server error (500)";
+      return err instanceof OutOfStockError ? "Told the mug is out of stock (409)" : err instanceof NotFoundError ? "Told the mug does not exist (404)" : "Told there was a server error (500)";
     }
   },
   // dependency (step 3): checkout reports the quantity ordered
   () => {
     const r = checkout(createStockStore([{ sku: "mug", stock: 3 }]), JSON.stringify({ sku: "mug", quantity: 2 }));
-    return r.quantity === 2 && r.remaining === 1 ? "Always the quantity ordered, since a reservation is all or nothing" : "?";
+    return r.quantity === 2 && r.remaining === 1 ? "The quantity ordered" : "?";
   },
   // emergent (step 3): an unknown field in the request
   () => {
@@ -42,7 +42,9 @@ const items: (() => Promise<string> | string)[] = [
       const r = checkout(createStockStore([{ sku: "mug", stock: 3 }]), JSON.stringify({ sku: "mug", quantity: 1, gift: true }));
       return "gift" in r ? "The mug is reserved and the gift flag is kept" : "The field is ignored and the mug is reserved";
     } catch (err) {
-      return err instanceof AppError && err.status === 400 ? "It is rejected as an invalid request (400)" : err instanceof OutOfStockError ? "It is rejected as out of stock (409)" : "? it throws";
+      // Any error that is not an AppError becomes a 500 in the route.
+      if (err instanceof AppError) return err.status === 400 ? "It is rejected as an invalid request (400)" : `? it answers ${err.status}`;
+      return "It fails with a server error (500)";
     }
   },
   // interplay (step 4): the route on an invalid quantity

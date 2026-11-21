@@ -7,6 +7,7 @@
     {
       "n": 1,
       "kind": "scaffold",
+      "declarative": true,
       "summary": "Add the rate limit types and defaults"
     },
     {
@@ -76,7 +77,7 @@
     },
     {
       "step": 3,
-      "question": "A limiter allows 2 requests per 1000 ms. A client sends 2 requests at 0 ms, 2 more at 100 ms and 200 ms (both rejected), then one at 1000 ms. Is the last one allowed?",
+      "question": "A limiter allows 1 request per 1000 ms. A client's request at 0 ms is allowed, and its retry at 300 ms is rejected. Is its next request, at 1000 ms, allowed?",
       "options": [
         "Allowed",
         "Rejected",
@@ -98,10 +99,10 @@
         "role": "open-case",
         "question": "A limiter allows 2 requests per 1000 ms. Requests at 0 ms and 500 ms are allowed. Is a request at exactly 1000 ms allowed?",
         "options": [
-          "Allowed: the request from 0 ms no longer counts",
-          "Rejected: the request from 0 ms still counts",
-          "Allowed only after the limiter is reset",
-          "Checking it throws"
+          "Allowed: the 0 ms request no longer counts",
+          "Rejected: the 0 ms request still counts",
+          "Allowed only after the limiter has been reset",
+          "Checking it throws an error"
         ],
         "correct": {
           "Correct": 0,
@@ -113,10 +114,10 @@
         "role": "flaw",
         "question": "A client is over its limit and keeps retrying every 100 ms. When does it get through again?",
         "options": [
-          "Once its oldest accepted request has left the window",
-          "Only after it stops retrying for a full window",
+          "Once its oldest accepted request leaves the window",
+          "Only after it has stopped retrying for a full window",
           "On its very next request",
-          "Never, until the server restarts"
+          "Never again, until the server is restarted"
         ],
         "correct": {
           "Correct": 0,
@@ -128,10 +129,10 @@
         "role": "emergent",
         "question": "A limiter is created with a limit of 0. What happens when a client sends requests?",
         "options": [
-          "The first request is allowed, the ones after it are rejected",
+          "Only the first request is allowed",
           "Every request is rejected",
-          "Every request is allowed",
-          "Creating the limiter fails with a validation error"
+          "Every request is allowed: 0 means no limit",
+          "Creating the limiter fails as invalid"
         ],
         "correct": {
           "Correct": 0,

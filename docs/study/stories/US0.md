@@ -1,6 +1,6 @@
 # US0: Practice: Greeting Formatter
 
-Platz: Milestone Schritt 2, kein Flaw (Übung)
+Platz: Milestone Schritt 2, kein Flaw (Übung) · Schritt 1 deklarativ
 
 ## Öffentlich
 

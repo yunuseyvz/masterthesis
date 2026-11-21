@@ -7,6 +7,7 @@
     {
       "n": 1,
       "kind": "scaffold",
+      "declarative": true,
       "summary": "Add the webhook types and the event-log contract"
     },
     {
@@ -101,7 +102,7 @@
           "579",
           "576",
           "580",
-          "6"
+          "577"
         ],
         "correct": {
           "Correct": 0,
@@ -129,9 +130,9 @@
         "question": "A second delivery of an event arrives while the first delivery is still being processed. What happens to the second?",
         "options": [
           "It is accepted as a duplicate, without crediting",
-          "It credits the account as well",
+          "It is processed as well and credits the account again",
           "It waits for the first and then credits again",
-          "It fails with an error"
+          "It fails with an error and nothing is credited"
         ],
         "correct": {
           "Correct": 0,
@@ -143,8 +144,8 @@
         "role": "dependency",
         "question": "A delivery reaches the webhook endpoint, but processing it fails temporarily on every attempt. What does the endpoint answer?",
         "options": [
-          "An error status (5xx), so the provider delivers it again and it is tried anew",
-          "200, so the provider stops and the payment is never credited",
+          "5xx: the provider delivers it again",
+          "200: the provider stops delivering it",
           "409: rejected as a conflict",
           "400: rejected as invalid"
         ],
@@ -161,7 +162,7 @@
           "400: rejected as an invalid event",
           "200: accepted and ignored",
           "200: the account is debited",
-          "500: server error"
+          "500: it fails with a server error"
         ],
         "correct": {
           "Correct": 0,

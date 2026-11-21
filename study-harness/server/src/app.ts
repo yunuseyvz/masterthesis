@@ -13,7 +13,7 @@ import { LiveEndpoint } from "./live.js";
 import { referenceSteps } from "./reference.js";
 import { makeStoryLoader } from "./trial.js";
 import { makeEventSink, writeBundle } from "./export.js";
-import { ConflictError, StudySession, type AgentDeps } from "./machine.js";
+import { ConflictError, StudySession, type AgentDeps, type SessionLimits, type WatchOutcome } from "./machine.js";
 import { assertProbeRuns, assertUnreadable, killUserProcesses, type SandboxOptions } from "./sandbox.js";
 
 export interface ServerConfig {
@@ -46,6 +46,10 @@ export interface ServerConfig {
   protectedPaths?: string[];
   /** Root for the per-trial project folders the agent works in. */
   workRoot: string;
+  /** When a session ends without Finish: no input for a long time, or the session's time limit (see StudySession.watch). */
+  limits?: Partial<SessionLimits>;
+  /** How often the server checks them, ms (default 15 s). */
+  watchEveryMs?: number;
   /**
    * "opencode": real opencode with the model that plays the agent from each trial's Drehbuch (OpenAI-compatible
    * upstream). "fake": a stand-in that writes the reference code, without a UI (tests and flow development only).
@@ -134,14 +138,16 @@ export async function buildApp(cfg: ServerConfig) {
     plan = generateSessionPlan({ participantId, studySeed, group, round });
     if (cfg.tryTrial) plan.practice = { ...plan.practice, ...cfg.tryTrial, story: cfg.tryTrial.story as typeof plan.practice.story };
     const sink = makeEventSink(cfg.exportDir, participantId, studySeed);
-    session = new StudySession(plan, loadStory, { agent, ...deps, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox }, sink, Date.now, cfg.showCondition ?? false);
+    session = new StudySession(plan, loadStory, { agent, ...deps, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox }, sink, Date.now, cfg.showCondition ?? false, cfg.limits);
     recordingFile = path.join(cfg.exportDir, `${participantId}_${studySeed}.recording.jsonl`);
     return plan;
   };
   let group = start(cfg.participantId, cfg.studySeed, cfg.group, cfg.round).group;
 
   const app = Fastify({ logger: false });
+  let watcher: NodeJS.Timeout | undefined;
   app.addHook("onClose", async () => {
+    clearInterval(watcher);
     agent.close();
     closeLive();
   });
@@ -186,9 +192,8 @@ export async function buildApp(cfg: ServerConfig) {
       return { ok: true };
     });
   }
-  app.post("/_study/finish", async (_req, reply) => {
-    const bundle = session.finish();
-    writeBundle(cfg.exportDir, bundle);
+  /** The session is over (Finish, or ended by watch): stop the participant's processes, then a fresh demo session. */
+  const wrapUp = () => {
     // The participant's terminal and anything they started in it run as the sandbox user.
     if (cfg.sandbox.uid !== undefined && !cfg.demo) killUserProcesses(cfg.sandbox.uid);
     if (cfg.demo) {
@@ -196,10 +201,36 @@ export async function buildApp(cfg: ServerConfig) {
       const id = Array.from({ length: 6 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[randomInt(32)]).join("");
       group = start(id, String(randomInt(2 ** 32)), (group + 1) % 6).group;
     }
+  };
+  app.post("/_study/finish", async (_req, reply) => {
+    const bundle = session.finish();
+    writeBundle(cfg.exportDir, bundle);
+    wrapUp();
     await reply.send({ ok: true, restarted: cfg.demo === true });
     if (cfg.exitOnFinish && !cfg.demo) setImmediate(() => process.exit(0));
     return reply;
   });
+  /** The browser's presence report, every 30 s and when "Are you still there?" is answered. */
+  app.post("/_study/presence", async (req) => session.presence(req.body));
+  /**
+   * A session nobody finishes must not keep the pod running. Ended at the debrief, it is exported as after Finish;
+   * otherwise only its event log stays (a session without Finish writes no bundle, so it does not count towards
+   * the group balance). The process exits a little later, so that the browser still gets the end page.
+   */
+  const onWatch = (outcome: WatchOutcome) => {
+    if (outcome === null) return;
+    if (outcome === "finish") writeBundle(cfg.exportDir, session.finish());
+    wrapUp();
+    if (cfg.exitOnFinish && !cfg.demo) setTimeout(() => void app.close().finally(() => process.exit(0)), 45_000);
+  };
+  watcher = setInterval(() => {
+    try {
+      onWatch(session.watch());
+    } catch (err) {
+      session.log("server_error", { message: String(err) });
+    }
+  }, cfg.watchEveryMs ?? 15_000);
+  watcher.unref();
 
   const target = agent.proxy();
   if (target) {

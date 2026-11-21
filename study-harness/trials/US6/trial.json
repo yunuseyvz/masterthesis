@@ -12,6 +12,7 @@
     {
       "n": 2,
       "kind": "scaffold",
+      "declarative": true,
       "summary": "Define the coupon and order-summary types"
     },
     {

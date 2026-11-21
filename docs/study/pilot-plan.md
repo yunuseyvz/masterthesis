@@ -1,6 +1,39 @@
 # Pilot plan
 
-A small check before data collection.
+A small check before data collection, in this order: the guessing check (two people, no code), then the pilot sessions
+(three to five people), then the power rerun. Nothing in the pilot counts toward the study.
+
+## Guessing check (2 people, without the code)
+
+**Goal.** Measure how much of the understanding questions can be answered without the code: from the request, its
+acceptance criteria and the plan, which every participant sees before the agent writes anything.
+
+**Who.** Two people with programming experience who are neither in the pilot nor in the sample.
+
+**How.** One questionnaire per person, each with its own option order:
+
+```
+npx tsx analysis/guess-check.ts sheet 11 > sheet-11.md    # person 1; person 2 gets another seed
+```
+
+The sheet has the six measured features (request, plan, the five questions each); about 20 minutes. Everything is
+answered, guesses included. The answers go into a text file, one line per question (`US1 1 B`), then:
+
+```
+npx tsx analysis/guess-check.ts grade 11:answers-1.txt 12:answers-2.txt
+```
+
+**Reading it.**
+
+| What | Expected | Fix if |
+|---|---|---|
+| All 60 answers | at chance, 25 % (15 of 60) | 22 or more right (37 %, one-sided p < .05): the options give answers away |
+| Open-case items | at chance | right for both: the request does not leave the case open; reword the request or the case |
+| Flaw items | the Correct key is what the acceptance criterion says, so they are often right | not a fault: the flaw contradicts a criterion by construction (`story-spec.md`). In a Correct trial the item can be answered from the criterion; the H1 sensitivity analysis without the flaw item covers it |
+| Dependency, interplay, emergent | at chance | right for both: make the wrong options as plausible as the right one, keep the scenario |
+
+The emergent item's key depends on what the agent decides; the check grades it against the reference, so a hit there
+only says the reference's choice is the obvious one.
 
 ## Pilot of the understanding questions (3 to 5 people)
 
@@ -8,11 +41,14 @@ A small check before data collection.
 
 **Who.** Three to five people with programming experience who are not in the later sample. Run the full session (`study-harness/scripts/run-session.sh --show-condition` is for you, never for them).
 
-**What to look at** (from the exported `trials.csv` and the logs):
+**What to look at** (from the exported `trials.csv` and the logs; `npx tsx analysis/pilot-check.ts <export dir>` prints
+session lengths, every item's share correct, confidence and time, shares per role and regime, and the stretches without
+input):
 
 | Check | Look at | Fix if |
 |---|---|---|
-| Too easy / too hard | `u1..u5_correct` per feature | one item is correct for everyone, or for nobody |
+| Too easy / too hard | `u1..u5_correct` per feature (flagged by `pilot-check.ts`) | one item is correct for everyone, or for nobody |
+| Difficulty per role | share correct per role (open case, dependency, flaw, interplay, emergent) | a role is near 100 % or near 25 % across features: the whole role is too easy or unanswerable, not one item. With 3–5 people only extremes count |
 | Guessable | accuracy vs. the 25% chance level, option order | an item is answered above chance without having read the code |
 | All regimes work | the same items in BATCH, MILESTONE and NON_MILESTONE | an item only makes sense after one regime |
 | Time | session length | well over 60 minutes |
@@ -20,6 +56,24 @@ A small check before data collection.
 | Wrap-up screen | do people understand why they see more code after the decision | confusion or skipping |
 
 **Stop rule.** Change at most the wording and the options, then re-run two people. Do not tune items on the pilot data beyond that.
+
+### "Are you still there?" (same sessions)
+
+The server asks after 10 minutes without input while the participant is to act, and ends the session 10 minutes later
+without an answer; at most 120 minutes per session (`docs/harness/technical.md` §10.1). The pilot shows whether that
+fits people who are there, since a moderated session tells who was.
+
+| Check | Look at | Fix if |
+|---|---|---|
+| Nobody present is asked | `afk_prompt` in the logs; the stretches without input per phase (`pilot-check.ts`) | someone present was asked, or a stretch comes within 2–3 minutes of the limit (reading the plan, thinking over a question): raise `STUDY_AFK_WARN_MIN` |
+| The session fits the cap | session length (`pilot-check.ts`) | a session takes over 90 minutes: shorten the session, or raise `STUDY_MAX_SESSION_MIN` |
+
+## Power after the pilot
+
+`analysis/power.R` rests on guessed values (`truth_default` in `analysis/simulate.R`). Replace those the pilot can
+give, roughly at 3–5 people: the share correct per role in BATCH as the baseline (`base`, `milestone_gap`), and the
+spread between people. Not the regime differences: those are what the study tests. Then rerun
+`Rscript analysis/power.R 250 24,30,36` and update `docs/study/scenario.md` §3.
 
 ## The live agent (same sessions)
 
