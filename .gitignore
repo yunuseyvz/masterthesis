@@ -13,3 +13,6 @@ exports-demo
 .DS_Store
 *.log
 .openchamber/
+
+# private notes, drafts, literature: kept locally, sorted by date
+notes

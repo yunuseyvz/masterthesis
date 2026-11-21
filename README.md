@@ -8,9 +8,8 @@ the agent live, following a hidden script per story (the Drehbuch), and stops fo
 |---|---|
 | `study-harness/` | The study harness: study server, the study build of opencode's web app, the project, the trials, the Docker image |
 | `shared/` | The study's types and the session plan generator |
-| `docs/` | The study (`study/`), how the harness works (`harness/`), earlier material (`archive/`); index: [docs/README.md](docs/README.md) |
+| `docs/` | [Study design](docs/study-design.md), [harness](docs/harness.md), [data collected](docs/data.md) |
 | `analysis/` | The planned analysis in R (`analyze.R`), fictitious data for it (`design.ts`, `simulate.R`) and the power simulation (`power.R`); the pilot's checks (`guess-check.ts`, `pilot-check.ts`) |
-| `scripts/` | Research scripts (benchmarks) |
 
 ## Run a session (Docker)
 
@@ -117,9 +116,6 @@ Each session writes to `exports/`:
 
 ## Documentation
 
-[docs/README.md](docs/README.md) lists every doc. The ones to start with:
-
-- [docs/harness/technical.md](docs/harness/technical.md): how the harness is built, and why.
-- [docs/harness/telemetry.md](docs/harness/telemetry.md): every column, event and how each measure is computed.
-- [docs/study/analysis-plan.md](docs/study/analysis-plan.md): hypotheses, models, exclusions.
-- [docs/study/pilot-plan.md](docs/study/pilot-plan.md): what the pilot checks, and what is known before it.
+- [docs/study-design.md](docs/study-design.md): research question, milestone criterion, conditions, hypotheses.
+- [docs/harness.md](docs/harness.md): how the harness is built, isolation, deployment.
+- [docs/data.md](docs/data.md): what is recorded.
