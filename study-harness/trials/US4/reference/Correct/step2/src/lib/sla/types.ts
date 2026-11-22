@@ -1,15 +1,15 @@
 import type { Cents } from "../money.ts";
 
-/** How much credit an outage of at least `minOutageMinutes` earns. */
+/** How much credit an outage of at least `minOutage` (a duration such as "4h") earns. */
 export interface SlaTier {
-  minOutageMinutes: number;
+  minOutage: string;
   /** Percent of the invoice subtotal, 0-100. */
   creditPercent: number;
 }
 
-/** Outages this short are inside the SLA and earn no credit. */
+/** Outages up to `threshold` (a duration such as "30m") are inside the SLA and earn no credit. */
 export interface SlaPolicy {
-  thresholdMinutes: number;
+  threshold: string;
   /** Checked in order; the highest satisfied tier applies. */
   tiers: SlaTier[];
 }
@@ -36,12 +36,12 @@ export interface Invoice {
 
 /** 5%, 10% and 25% of the subtotal once the miss exceeds 30m, 4h and 12h. */
 export const DEFAULT_TIERS: SlaTier[] = [
-  { minOutageMinutes: 30, creditPercent: 5 },
-  { minOutageMinutes: 240, creditPercent: 10 },
-  { minOutageMinutes: 720, creditPercent: 25 },
+  { minOutage: "30m", creditPercent: 5 },
+  { minOutage: "4h", creditPercent: 10 },
+  { minOutage: "12h", creditPercent: 25 },
 ];
 
 export const DEFAULT_POLICY: SlaPolicy = {
-  thresholdMinutes: 30,
+  threshold: "30m",
   tiers: DEFAULT_TIERS,
 };

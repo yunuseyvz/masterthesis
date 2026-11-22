@@ -1,16 +1,26 @@
 diff --git a/packages/app/src/app.tsx b/packages/app/src/app.tsx
-index 78d1117..6ff8854 100644
+index 78d1117..e254d05 100644
 --- a/packages/app/src/app.tsx
 +++ b/packages/app/src/app.tsx
-@@ -18,6 +18,7 @@ import { TabsProvider } from "@/shell/tabs/tabs"
+@@ -4,7 +4,7 @@ import { FileComponentProvider } from "@opencode/ui/context/file"
+ import { Font } from "@opencode/ui/font"
+ import { ThemeProvider } from "@opencode/ui/theme/context"
+ import { MetaProvider } from "@solidjs/meta"
+-import { type BaseRouterProps, Router } from "@solidjs/router"
++import { type BaseRouterProps } from "@solidjs/router"
+ import { QueryClient, QueryClientProvider } from "@tanstack/solid-query"
+ import { type Component, createRenderEffect, ErrorBoundary, type JSX, type ParentProps } from "solid-js"
+ import { Dynamic } from "solid-js/web"
+@@ -18,6 +18,8 @@ import { TabsProvider } from "@/shell/tabs/tabs"
  import { ErrorPage } from "@/shell/errors/error"
  import { AppRoutes, File, preloadRoute } from "@/shell/routes/routes"
  import { ExtensionRoot } from "@/runtime/extension/root"
 +import { StudyGate } from "@/study/gate"
++import { StudyRouter } from "@/study/router"
  
  export { preloadRoute }
  
-@@ -99,8 +100,11 @@ export function AppInterface(props: {
+@@ -99,8 +101,11 @@ export function AppInterface(props: {
          <BodyTypography />
          <CommandProvider>
            <DesktopCommands />
@@ -24,8 +34,29 @@ index 78d1117..6ff8854 100644
          </CommandProvider>
        </GlobalProvider>
      </TabsProvider>
+@@ -109,7 +114,7 @@ export function AppInterface(props: {
+   return (
+     <ServersProvider canonicalLocalServer={props.canonicalLocalServer} servers={props.servers}>
+       <SettingsProvider>
+-        <Dynamic component={props.router ?? Router} root={Root}>
++        <Dynamic component={props.router ?? StudyRouter} root={Root}>
+           <AppRoutes />
+         </Dynamic>
+       </SettingsProvider>
+diff --git a/packages/app/src/entry.tsx b/packages/app/src/entry.tsx
+index b9760dd..1cab422 100644
+--- a/packages/app/src/entry.tsx
++++ b/packages/app/src/entry.tsx
+@@ -1,5 +1,7 @@
+ // @refresh reload
+ 
++// Study mode (beacon): before anything keeps a reference to fetch or WebSocket.
++import "@/study/base"
+ import "@/runtime/polyfills"
+ import { init } from "@sentry/solid"
+ import { render } from "solid-js/web"
 diff --git a/packages/app/src/session/composer/session-composer-region.tsx b/packages/app/src/session/composer/session-composer-region.tsx
-index d4632fc..15ffbb4 100644
+index d4632fc..b28f250 100644
 --- a/packages/app/src/session/composer/session-composer-region.tsx
 +++ b/packages/app/src/session/composer/session-composer-region.tsx
 @@ -4,6 +4,8 @@ import { SessionPermissionDock } from "@/session/requests/session-permission-doc

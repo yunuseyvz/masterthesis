@@ -1,0 +1,26 @@
+diff --git a/deploy/docker-compose.yml b/deploy/docker-compose.yml
+index 3910a75..b3dabac 100644
+--- a/deploy/docker-compose.yml
++++ b/deploy/docker-compose.yml
+@@ -81,6 +81,8 @@ services:
+     environment:
+       UPSTREAM_HOST: ${UPSTREAM_HOST:-host.containers.internal}
+       NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"
++    # spike: on Linux the bridges are isolated from each other, so nginx must share the pods' network.
++    networks: [default, internal_network]
+     volumes:
+       - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
+       - ./static:/usr/share/nginx/tracking:ro
+diff --git a/deploy/nginx.conf b/deploy/nginx.conf
+index bb4e52f..9acf312 100644
+--- a/deploy/nginx.conf
++++ b/deploy/nginx.conf
+@@ -174,7 +174,7 @@ server {
+         proxy_set_header Connection "upgrade";
+ 
+         # Increase if /resolve blocks while a stopped container restarts
+-        proxy_read_timeout 30s;
++        proxy_read_timeout 3600s; # spike: agent turns and idle terminals outlast 30 s
+     }
+ 
+     location = /internal/resolve {

@@ -1,9 +1,5 @@
-/**
- * What the participant does inside opencode, sent to the study server as `ui_*` events: clicks on controls, the
- * changes view opening and closing, how far the diff was scrolled, which code lines are on screen, files opened,
- * the terminal (commands typed, test results printed), window focus, idleness, and reading back in the chat.
- * The server turns these into per-trial measures (see docs/harness/telemetry.md).
- */
+
+import { withBase } from "./base"
 
 type View = { file: string; from: number; to: number }
 type UiEvent =
@@ -26,16 +22,13 @@ function send(e: UiEvent) {
 
 const REVIEW = '[data-component="session-review-v2"], [data-component="session-review"]'
 const TERMINAL = '[data-component="terminal"]'
-/** No input for this long counts as idle. */
 const IDLE_MS = 30_000
-/** The chat counts as scrolled back once its end is this far below the visible part. */
 const CHAT_BACK_PX = 200
 
 const visible = (el: Element | null) => !!el && (el as HTMLElement).offsetParent !== null
 const clean = (s: string) => s.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "")
 const text = (el: Element | null | undefined) => (el?.textContent ?? "").replace(/\s+/g, " ").trim()
 
-/** A short, readable name for the control a click landed on. */
 function labelOf(el: Element) {
   const control = el.closest("button, a, [role=tab], [role=treeitem], [role=option], [role=menuitem]")
   const slot = el.closest("[data-slot]:not([data-slot^=icon])")
@@ -44,10 +37,7 @@ function labelOf(el: Element) {
   return label.slice(0, 80)
 }
 
-/**
- * The terminal's websocket: every line typed (one per Enter) and the summary of every `node --test` run printed in it.
- * Installed before opencode opens a terminal, so its sockets are created through this subclass.
- */
+// Installed before opencode opens a terminal, so its sockets use this subclass.
 function watchTerminal() {
   const isPty = (url: string) => /\/api\/(experimental\/persistent-pty|pty)\//.test(url)
   const lines = new WeakMap<WebSocket, string>()
@@ -87,7 +77,6 @@ function watchTerminal() {
   } as typeof WebSocket
 }
 
-/** The file a code view shows: the changes view's file header, otherwise the file last picked in a file tree. */
 let lastFile = ""
 function fileOf(host: Element) {
   const review = host.closest(REVIEW)
@@ -98,7 +87,6 @@ function fileOf(host: Element) {
   return dir ? `${dir.replace(/\/?$/, "/")}${name}` : name
 }
 
-/** The part of the viewport where `el` can be seen: clipped by every scrolling or clipping ancestor. */
 function clipOf(el: Element) {
   let top = 0
   let bottom = window.innerHeight
@@ -111,10 +99,7 @@ function clipOf(el: Element) {
   return { top, bottom }
 }
 
-/**
- * Code lines on screen, per code view (opencode renders diffs and files with @pierre/diffs, one line per
- * `[data-line]` in a shadow root). Only the new side counts: deleted lines have no place in the code as it is now.
- */
+// opencode renders code with @pierre/diffs: one [data-line] per line in a shadow root. Only the new side counts.
 function codeOnScreen(): View[] {
   if (document.visibilityState !== "visible") return []
   const views: View[] = []
@@ -207,7 +192,6 @@ export function startTelemetry() {
     true,
   )
 
-  // Diff coverage: the furthest point reached in the changes view's longest scroll area (1 = scrolled to the end).
   reportCoverage = () => {
     const review = document.querySelector(REVIEW)
     if (!visible(review)) return
@@ -239,7 +223,6 @@ export function startTelemetry() {
     true,
   )
 
-  // Open/closed state of the changes view and the terminal, the code on screen, and idleness, twice a second.
   let reviewOpen = false
   let terminalOpen = false
   let onScreen = "[]"
@@ -272,7 +255,6 @@ export function startTelemetry() {
   }, 500)
 }
 
-/** A new agent turn or trial: count diff coverage from zero again (the server keeps everything else per trial). */
 export function resetCoverage() {
   best = 0
   setTimeout(() => reportCoverage(), 300)
@@ -281,13 +263,9 @@ export function resetCoverage() {
 type Rrweb = { record: ((o: object) => (() => void) | undefined) & { addCustomEvent(tag: string, payload: unknown): void } }
 let recorder: Rrweb | undefined
 let recording = false
-/** The phase marked before rrweb finished loading; marked as soon as it records. */
 let pendingMark: { phase: string; trial: number } | undefined
 
-/**
- * Screen recording with rrweb (DOM snapshots and changes, not video), for qualitative follow-up. Batches go to the
- * study server every 5 s. The terminal is drawn on a canvas and not recorded; its commands are logged above.
- */
+// rrweb DOM recording, batches every 5 s. The terminal is a canvas and is not recorded.
 export function startRecording() {
   if (recording) return
   recording = true
@@ -299,7 +277,7 @@ export function startRecording() {
     void fetch("/_study/recording", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: body.length < 60_000 }).catch(() => {})
   }
   const script = document.createElement("script")
-  script.src = "/_study/rrweb.js"
+  script.src = withBase("/_study/rrweb.js")
   script.onload = () => {
     recorder = (window as unknown as { rrweb: Rrweb }).rrweb
     recorder.record({
@@ -316,7 +294,6 @@ export function startRecording() {
   document.head.appendChild(script)
 }
 
-/** Marks a study phase change in the recording, so a replay can jump to it. */
 export function markRecording(phase: string, trial: number) {
   if (!recorder) {
     pendingMark = { phase, trial }

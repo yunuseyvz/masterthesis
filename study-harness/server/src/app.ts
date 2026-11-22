@@ -13,50 +13,38 @@ import { LiveEndpoint } from "./live.js";
 import { referenceSteps } from "./reference.js";
 import { makeStoryLoader } from "./trial.js";
 import { makeEventSink, writeBundle } from "./export.js";
-import { ConflictError, StudySession, type AgentDeps } from "./machine.js";
-import { assertUnreadable, killUserProcesses, type SandboxOptions } from "./sandbox.js";
+import { ConflictError, StudySession, type AgentDeps, type SessionLimits, type WatchOutcome } from "./machine.js";
+import { assertProbeRuns, assertUnreadable, killUserProcesses, type SandboxOptions } from "./sandbox.js";
 
 export interface ServerConfig {
   participantId: string;
   studySeed: string;
   group?: number;
-  /** Earlier sessions of this group; balances the NON_MILESTONE pause step (see generateSessionPlan). */
   round?: number;
   exportDir: string;
-  /** Trial definitions (study-harness/trials): the stories, their Drehbuch outlines and questions. */
   trialsDir: string;
-  /** The project every trial starts from (study-harness/project). */
   projectDir: string;
   staticDir?: string;
   exitOnFinish: boolean;
-  /** Demo deployment: after Finish, start a fresh session (new ID, seed and next group) instead of stopping. */
   demo?: boolean;
-  /** Screen recording of the agent UI with rrweb, written to <participant>_<seed>.recording.jsonl. */
   recording?: boolean;
-  /** Experimenter aid: show the regime/variant tag in the UI. Never enable for real participants. */
+  // never for real participants
   showCondition?: boolean;
-  /** Development: play this story, regime and variant as the practice trial (e.g. to try a live trial first). */
+  basePath?: string;
+  completionUrl?: string;
   tryTrial?: { story: string; regime: Regime; variant: Variant };
   sandbox: SandboxOptions;
-  /** Paths the sandbox uid must not be able to read (checked at startup). */
   protectedPaths?: string[];
-  /** Root for the per-trial project folders the agent works in. */
   workRoot: string;
-  /**
-   * "opencode": real opencode with the model that plays the agent from each trial's Drehbuch (OpenAI-compatible
-   * upstream). "fake": a stand-in that writes the reference code, without a UI (tests and flow development only).
-   */
+  limits?: Partial<SessionLimits>;
+  watchEveryMs?: number;
   agent:
     | { kind: "fake" }
     | { kind: "opencode"; bin: string; port: number; home: string; live: { upstream: string; apiKey?: string; model: string; port: number; checkpointPort: number } };
 }
 
-/**
- * opencode API calls the participant's browser may not make: everything that would change the session (prompting the
- * agent, switching agents, reverting, forking, compacting, deleting or creating sessions). The study server drives
- * the agent itself, directly and not through this proxy; the one exception is the participant's answer when the
- * agent asks what to change after a rejection (StudySession.acceptsComposerMessage).
- */
+// opencode calls the browser may not make: anything that changes the session. The server drives the agent directly;
+// the one exception is the answer after a rejection (acceptsComposerMessage).
 const BLOCKED: [string, RegExp][] = [
   // The checkpoint tool's MCP server and opencode's configuration are the study's. (Not the session's model: the
   // composer sends it before every message, and opencode's configuration has only the live model anyway.)
@@ -72,14 +60,28 @@ const BLOCKED: [string, RegExp][] = [
 ];
 export const isBlocked = (method: string, url: string) => BLOCKED.some(([m, re]) => m === method && re.test(url));
 
+// a pod belongs to one participant, so the path is set once at start
+const BASE_PLACEHOLDER = "/__STUDY_BASE__/";
+
+export function setBasePath(dir: string, basePath: string) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) setBasePath(p, basePath);
+    else if (/\.(js|css|html|webmanifest)$/.test(e.name)) {
+      const text = fs.readFileSync(p, "utf8");
+      if (text.includes(BASE_PLACEHOLDER)) fs.writeFileSync(p, text.split(BASE_PLACEHOLDER).join(basePath));
+    }
+  }
+}
+
 export async function buildApp(cfg: ServerConfig) {
   assertUnreadable(cfg.protectedPaths ?? [], cfg.sandbox);
+  assertProbeRuns(cfg.sandbox);
   const loadStory = makeStoryLoader(cfg.trialsDir, cfg.projectDir);
 
   let session!: StudySession;
   let plan!: SessionPlan;
   let recordingFile = "";
-  // Events from the agent and the model endpoint belong to whichever session is current.
   const log = (type: string, data: unknown) => session?.log(type, data);
   let agent: AgentHost;
   let deps: Pick<AgentDeps, "endpoint" | "checkpoints">;
@@ -87,7 +89,7 @@ export async function buildApp(cfg: ServerConfig) {
   if (cfg.agent.kind === "opencode") {
     const { live } = cfg.agent;
     // Both listen before opencode starts: it connects to the checkpoint tool's MCP server at startup.
-    const endpoint = new LiveEndpoint({ upstream: live.upstream, apiKey: live.apiKey, log });
+    const endpoint = new LiveEndpoint({ upstream: live.upstream, apiKey: live.apiKey, model: live.model, log });
     const checkpoints = new CheckpointServer(log);
     await endpoint.listen(live.port);
     await checkpoints.listen(live.checkpointPort);
@@ -107,47 +109,50 @@ export async function buildApp(cfg: ServerConfig) {
   } else {
     const fake = new FakeAgentHost(referenceSteps(loadStory, () => [plan.practice, ...plan.trials]));
     agent = fake;
-    deps = { endpoint: { load: () => {}, mainTexts: () => [] }, checkpoints: fake.checkpoints };
+    deps = { endpoint: { load: () => {}, endPlanning: () => {} }, checkpoints: fake.checkpoints };
   }
 
   const start = (participantId: string, studySeed: string, group?: number, round?: number) => {
     plan = generateSessionPlan({ participantId, studySeed, group, round });
     if (cfg.tryTrial) plan.practice = { ...plan.practice, ...cfg.tryTrial, story: cfg.tryTrial.story as typeof plan.practice.story };
     const sink = makeEventSink(cfg.exportDir, participantId, studySeed);
-    session = new StudySession(plan, loadStory, { agent, ...deps, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox }, sink, Date.now, cfg.showCondition ?? false);
+    session = new StudySession(plan, loadStory, { agent, ...deps, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox }, sink, Date.now, cfg.showCondition ?? false, cfg.limits);
     recordingFile = path.join(cfg.exportDir, `${participantId}_${studySeed}.recording.jsonl`);
     return plan;
   };
   let group = start(cfg.participantId, cfg.studySeed, cfg.group, cfg.round).group;
 
   const app = Fastify({ logger: false });
+  let watcher: NodeJS.Timeout | undefined;
   app.addHook("onClose", async () => {
+    clearInterval(watcher);
     agent.close();
     closeLive();
   });
   app.setErrorHandler((err, _req, reply) => {
     if (err instanceof ConflictError) return reply.code(409).send({ error: err.message });
     if (err instanceof ZodError) return reply.code(400).send({ error: "invalid request", issues: err.issues });
+    // The browser dropped a request before it was read (a page load or a reconnecting tunnel): nothing failed here.
+    if ((err as Error).message === "aborted" || (err as { code?: string }).code === "ECONNRESET") {
+      session?.log("client_aborted", { url: _req.url });
+      return reply.code(499).send({ error: "client closed request" });
+    }
     app.log.error(err);
     session?.log("server_error", { message: String(err) });
     return reply.code(500).send({ error: "internal error" });
   });
 
-  const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}) });
-  // The study's own API. Everything else on this origin is opencode: its web app (study build, agent-ui/) and,
-  // forwarded below, its API. One origin means the browser never talks to opencode directly or sees its password.
+  const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}), ...(cfg.completionUrl ? { completionUrl: cfg.completionUrl } : {}) });
+  // Everything else on this origin is opencode, so the browser never talks to it directly or sees its password.
   app.get("/_study/state", async () => decorate(session.view()));
   app.post("/_study/action", async (req) => decorate(await session.act(req.body)));
-  /** Participant activity inside opencode (study build of its web app): clicks, changes view, terminal commands. */
   app.post("/_study/event", async (req) => {
     session.recordUi(req.body);
     return { ok: true };
   });
   if (cfg.recording) {
-    // rrweb's browser build, loaded by the agent UI only when recording is on.
     const rrweb = path.join(path.dirname(createRequire(import.meta.url).resolve("rrweb")), "rrweb.umd.min.cjs");
     app.get("/_study/rrweb.js", async (_req, reply) => reply.type("application/javascript").send(fs.readFileSync(rrweb)));
-    /** Batches of rrweb events, one JSON line each with the study phase and trial they were sent in. */
     app.post("/_study/recording", { bodyLimit: 32 * 1024 * 1024 }, async (req) => {
       const { events } = req.body as { events: unknown[] };
       if (!Array.isArray(events)) return { ok: false };
@@ -161,20 +166,38 @@ export async function buildApp(cfg: ServerConfig) {
       return { ok: true };
     });
   }
-  app.post("/_study/finish", async (_req, reply) => {
-    const bundle = session.finish();
-    writeBundle(cfg.exportDir, bundle);
+  const wrapUp = () => {
     // The participant's terminal and anything they started in it run as the sandbox user.
     if (cfg.sandbox.uid !== undefined && !cfg.demo) killUserProcesses(cfg.sandbox.uid);
     if (cfg.demo) {
-      // Same ID format as study-harness/scripts/run-session.sh; the next group keeps a run of demos balanced too.
       const id = Array.from({ length: 6 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[randomInt(32)]).join("");
       group = start(id, String(randomInt(2 ** 32)), (group + 1) % 6).group;
     }
+  };
+  app.post("/_study/finish", async (_req, reply) => {
+    const bundle = session.finish();
+    writeBundle(cfg.exportDir, bundle);
+    wrapUp();
     await reply.send({ ok: true, restarted: cfg.demo === true });
     if (cfg.exitOnFinish && !cfg.demo) setImmediate(() => process.exit(0));
     return reply;
   });
+  app.post("/_study/presence", async (req) => session.presence(req.body));
+  // ends sessions nobody finishes; only the event log stays unless ended at the debrief. Exit is delayed so the browser gets the end page.
+  const onWatch = (outcome: WatchOutcome) => {
+    if (outcome === null) return;
+    if (outcome === "finish") writeBundle(cfg.exportDir, session.finish());
+    wrapUp();
+    if (cfg.exitOnFinish && !cfg.demo) setTimeout(() => void app.close().finally(() => process.exit(0)), 45_000);
+  };
+  watcher = setInterval(() => {
+    try {
+      onWatch(session.watch());
+    } catch (err) {
+      session.log("server_error", { message: String(err) });
+    }
+  }, cfg.watchEveryMs ?? 15_000);
+  watcher.unref();
 
   const target = agent.proxy();
   if (target) {
@@ -199,16 +222,17 @@ export async function buildApp(cfg: ServerConfig) {
             return reply.code(403).send({ error: "not available in this study" });
           }
         },
-        replyOptions: { rewriteRequestHeaders: (_req, headers) => auth(headers) },
+        // The chat is a server-sent event stream; a reverse proxy in front must not hold it back.
+        replyOptions: { rewriteRequestHeaders: (_req, headers) => auth(headers), rewriteHeaders: (headers) => ({ ...headers, "x-accel-buffering": "no" }) },
         wsClientOptions: { rewriteRequestHeaders: (headers: Record<string, unknown>) => auth(headers) },
       });
     }
   }
 
   if (cfg.staticDir && fs.existsSync(cfg.staticDir)) {
-    // opencode's web app installs a service worker that caches the whole app, so a browser would keep showing an
-    // older study build (an earlier session on the same address). This one replaces it: it clears the caches,
-    // unregisters itself and reloads the open pages, which then load the current build from the server.
+    setBasePath(cfg.staticDir, cfg.basePath ?? "/");
+    // opencode's service worker caches the whole app and would keep an older study build; this one clears the caches,
+    // unregisters itself and reloads.
     app.get("/sw.js", async (_req, reply) =>
       reply
         .type("application/javascript")

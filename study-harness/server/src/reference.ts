@@ -10,20 +10,10 @@ export interface DiffFile {
   after: string;
 }
 
-/**
- * A story's reference implementation (trials/<id>/reference/<variant>/step<n>/): the files each step writes when the
- * step outline is followed, for each variant. A Flawed step without a folder of its own writes what the Correct one
- * does. It checks the questions' scripts (trials.test.ts) and is what the offline agent writes (FakeAgentHost); the
- * live agent never sees it.
- */
 export interface Reference {
-  /** Files step `n` writes (their content after the step). */
   step(variant: Variant, n: number): Map<string, string>;
-  /** The project after step `upTo` (0: as it starts). */
   workspaceAt(variant: Variant, upTo: number): Map<string, string>;
-  /** Files changed in steps from..to, with content before `from` and after `to`. */
   diff(variant: Variant, from: number, to: number): DiffFile[];
-  /** The hunks of that diff (changed lines, merged like git's), in line numbers of the files after step `to`. */
   hunks(variant: Variant, from: number, to: number): Region[];
 }
 
@@ -59,10 +49,6 @@ export function loadReference(story: Story): Reference {
   };
 }
 
-/**
- * What FakeAgentHost writes: the reference steps of the trial whose project folder is `dir` (named after the trial's
- * position, see StudySession.setUp), in the variant the session plan gives it.
- */
 export function referenceSteps(loadStory: (id: string) => Story, trials: () => TrialPlan[]) {
   return (dir: string) => {
     const t = trials().find((x) => x.position === Number(path.basename(dir).slice(0, 2)))!;

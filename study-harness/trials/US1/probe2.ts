@@ -5,9 +5,7 @@ import { createStockStore } from "./src/lib/inventory/types.ts";
 const store = createStockStore([{ sku: "pen", stock: 2 }]);
 reserveStock(store, "pen", 2);
 try {
-  reserveStock(store, "pen", 1);
-  const left = stockOf(store, "pen");
-  console.log(left === 2 ? "Reserved; the stock stays at 2" : left === -1 ? "Reserved; the stock becomes -1" : `Reserved; the stock is ${left}`);
+  console.log(String(stockOf(store, "pen")));
 } catch (err) {
-  console.log(err instanceof OutOfStockError ? "Rejected with OutOfStockError (409)" : err instanceof NotFoundError ? "Rejected: the pen is not found (404)" : "? it throws");
+  console.log(err instanceof NotFoundError ? "The pen does not exist (404)" : err instanceof OutOfStockError ? "Out of stock (409)" : "? it throws");
 }

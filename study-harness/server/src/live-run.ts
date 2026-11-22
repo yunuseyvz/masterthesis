@@ -1,13 +1,5 @@
-/**
- * Test run: plays one story with a real model through real opencode, without a participant, and reports how the
- * agent kept to the Drehbuch. The study flow runs as for a participant (the trial is the session's practice trial);
- * the run accepts at the review, answers the first option and stops before the understanding questions.
- *
- *   LIVE_API_KEY=... npx tsx src/live-run.ts --story US1 --variant Flawed --regime MILESTONE \
- *     --model deepseek-v4.1-flash [--upstream https://opencode.ai/zen/go/v1] [--out /tmp/live-runs]
- *
- * Keeps the trial's project, the event log and a summary (summary.json) in the output folder.
- */
+// Plays one story with a real model through opencode, no participant.
+// LIVE_API_KEY=... npx tsx src/live-run.ts --story US1 --variant Flawed --regime MILESTONE --model deepseek-v4.1-flash
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -32,9 +24,8 @@ const { values: a } = parseArgs({
     model: { type: "string", default: "deepseek-v4.1-flash" },
     upstream: { type: "string", default: "https://opencode.ai/zen/go/v1" },
     out: { type: "string", default: "/tmp/live-runs" },
-    /** First of four loopback ports (opencode, live endpoint, checkpoint server); several runs need different ones. */
+    // first of four loopback ports; parallel runs need different ones
     ports: { type: "string", default: "4890" },
-    /** Reject at the review and give this answer when the agent asks what to change. */
     reject: { type: "string" },
   },
 });
@@ -44,14 +35,15 @@ const out = path.join(a.out!, `${a.story}-${variant}-${regime}-${new Date().toIS
 const port = Number(a.ports);
 fs.mkdirSync(out, { recursive: true });
 
-const trialsDir = path.resolve(here, "../../trials");
+// TRIALS_DIR: a copy to try a draft of a story on.
+const trialsDir = process.env.TRIALS_DIR ?? path.resolve(here, "../../trials");
 const loadStory = makeStoryLoader(trialsDir, path.resolve(here, "../../project"));
 const story = loadStory(a.story!);
 
 const events: StudyEvent[] = [];
 let session: StudySession | undefined;
 const log = (type: string, data: unknown) => session?.log(type, data);
-const live = { endpoint: new LiveEndpoint({ upstream: a.upstream!, apiKey: process.env.LIVE_API_KEY, log }), checkpoints: new CheckpointServer(log) };
+const live = { endpoint: new LiveEndpoint({ upstream: a.upstream!, apiKey: process.env.LIVE_API_KEY, model: a.model!, log }), checkpoints: new CheckpointServer(log) };
 await live.endpoint.listen(port + 2);
 await live.checkpoints.listen(port + 3);
 const agent = await new OpencodeHost({
@@ -81,25 +73,19 @@ try {
   await session.act({ type: "begin" });
   await session.act({ type: "presurvey", consent: true, demographics: { ageGroup: "25-34", programmingYears: "3-5", aiAssistantUse: "weekly", codeReviewFrequency: "weekly", tsFamiliarity: 4 }, ncs: [4, 3, 2, 2, 5, 4], attention: 4, stias: [5, 5, 4] });
   const dir = path.join(out, "work", "00-" + story.def.id);
-  const textOf = (c: { chunks: { data: string }[] }) => c.chunks.map((ch) => { try { return JSON.parse(ch.data).choices?.[0]?.delta?.content ?? ""; } catch { return ""; } }).join("");
-  // The plan: the main conversation's text so far (requests that offer tools; side requests such as titles do not).
-  const plan = live.endpoint.calls().filter((c) => c.request.tools.length > 0).map(textOf).join("\n").trim();
   await session.act({ type: "approvePlan" });
   const atReview = execFileSync("git", ["status", "--porcelain", "--untracked-files=all"], { cwd: dir, encoding: "utf8" }).trim();
   await session.act({ type: "stage1", decision: a.reject ? "reject" : "accept" });
   let view = await session.act({ type: "stage2", probeAnswer: 0, final: "confirm" });
   if (view.phase === "feedback") {
-    // The agent has asked what to change; the answer goes in as from opencode's composer.
     const asked = live.endpoint.calls().filter((c) => c.thread !== undefined).at(-1);
     console.log("agent asked:", JSON.stringify(asked ? asked.chunks.map((ch) => { try { return JSON.parse(ch.data).choices?.[0]?.delta?.content ?? ""; } catch { return ""; } }).join("") : ""));
     await session.composerMessage(`/api/session/${view.agentSessionId}/prompt`, JSON.stringify({ text: a.reject }));
     while (session.view().phase !== "reviewing") await new Promise((r) => setTimeout(r, 500));
     view = session.view();
   }
-  // Not "reviewed": that would start preparing the session's next trial.
-  // Stops before the understanding questions: answering them would start the session's next trial.
+  // not "reviewed" and no understanding questions: either would start the session's next trial
 
-  // What was played, against the Drehbuch.
   const files = readWorkspace(dir, {});
   const probes = await Promise.all(story.def.probes.map(async (p) => ({ step: p.step, printed: await runProbe(files, story.probeScript(p)), expected: p.expected })));
   const flawProbe = story.flawStep ? probes.find((p) => p.step === story.flawStep) : undefined;
@@ -111,9 +97,8 @@ try {
     story: story.def.id, variant, regime, model: a.model, minutes: +((Date.now() - started) / 60000).toFixed(1),
     checkpoints: events.filter((e) => e.type === "live_checkpoint").map((e) => (e.data as { step: number }).step),
     stepChecks: events.filter((e) => e.type === "live_step_check").map((e) => e.data as { step: number; attempt: number; passed: boolean; accepted: boolean; missing: string[]; early: string[]; runs: boolean }).map((d) => ({ step: d.step, attempt: d.attempt, passed: d.passed, accepted: d.accepted, ...(d.passed ? {} : { missing: d.missing, early: d.early, runs: d.runs }) })),
-    plan,
-    planLeaks: events.filter((e) => e.type === "live_plan_leak").map((e) => e.data),
-    summaryLeaks: events.filter((e) => e.type === "live_summary_leak").map((e) => e.data),
+    plan: events.find((e) => e.type === "live_plan_public")?.data,
+    textLeaks: events.filter((e) => e.type === "live_text_leak").map((e) => e.data),
     pauseMissed: events.some((e) => e.type === "live_pause_missed"),
     stepAnnouncements: texts.flatMap((t) => [...t.matchAll(/\bStep (\d):/g)].map((m) => Number(m[1]))),
     commits: execFileSync("git", ["log", "--format=%s"], { cwd: dir, encoding: "utf8" }).trim().split("\n").reverse(),

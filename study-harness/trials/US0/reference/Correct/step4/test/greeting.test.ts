@@ -14,6 +14,10 @@ test("prefers the preferred name when given one", () => {
   );
 });
 
+test("falls back to the first name when the preferred name is blank", () => {
+  assert.equal(formatGreeting({ name: "Ada Lovelace", preferredName: "  " }), "Hello, Ada!");
+});
+
 test("uses the full name in a formal greeting", () => {
   assert.equal(
     formatGreeting({ name: "Ada Lovelace", tone: "formal" }),

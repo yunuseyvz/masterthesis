@@ -21,7 +21,7 @@ export interface TenantConfig {
 /** The fields a tenant may customize; anything omitted falls back to the organization defaults. */
 export interface TenantOverrides {
   features?: Partial<TenantFeatureFlags>;
-  limits?: Partial<TenantLimits>;
+  limits?: { [K in keyof TenantLimits]?: number | null };
 }
 
 export interface Tenant {

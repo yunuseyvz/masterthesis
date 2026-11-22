@@ -13,7 +13,6 @@ BUN=${BUN:-npx -y bun@1.4.4}
 if [ ! -d "$SRC/.git" ]; then
   git clone -q --depth 1 --branch "$VERSION" https://github.com/anomalyco/opencode.git "$SRC"
 fi
-# Start from a clean upstream tree every time, then apply the study changes.
 git -C "$SRC" checkout -q -- packages/app/src packages/gui-extensions/src
 rm -rf "$SRC/packages/app/src/study"
 cp -r "$HERE/study" "$SRC/packages/app/src/study"
@@ -22,7 +21,8 @@ git -C "$SRC" apply "$HERE/opencode.patch"
 cd "$SRC"
 [ -d node_modules ] || $BUN install --ignore-scripts
 cd packages/app
-$BUN run build
+# Where the app lives is known when the server starts (behind a study platform, a path per participant); it fills this in.
+$BUN run build --base=/__STUDY_BASE__/
 rm -rf "$HERE/dist"
 cp -r dist "$HERE/dist"
 # Source maps are only useful for debugging opencode itself.

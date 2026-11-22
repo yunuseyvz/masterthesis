@@ -9,13 +9,21 @@ truth_default <- list(
   base = qlogis(0.65),      # an item about a subtask nobody paused at
   milestone_gap = -0.5,     # milestone items are harder: the agent's silent decisions sit there
   reviewed = 0.3,           # any pause helps the item about the paused subtask
-  milestone_pause = 0.5,    # pausing at the milestone helps its item beyond that (the hypothesis)
+  feature_pause = 0.3,      # pausing at the milestone helps every item of the feature (H1)
+  milestone_pause = 0.2,    # and its own item beyond that (H2)
   sd_participant = 0.7, sd_story = 0.3, sd_item = 0.4,
   dprime = c(BATCH = 0.8, MILESTONE = 1.3, NON_MILESTONE = 1.0), # when the flaw subtask was in the review
-  dprime_unseen = 0.1,      # when it was not
+  dprime_unseen = 0.1,      # when it was not (written before the pause, or not yet)
   criterion = 0.4, sd_criterion = 0.3,
   confidence_pause = 4      # a pause raises confidence on every item, right or wrong
 )
+
+# The confidence scale (CONFIDENCE_LEVELS in shared/src/schema.ts); an assumed confidence goes to the nearest level.
+confidence_levels <- c(25, 40, 55, 70, 85, 100)
+level_edges <- (head(confidence_levels, -1) + tail(confidence_levels, -1)) / 2
+
+# Understanding items per trial (UNDERSTANDING_ITEMS in shared/src/schema.ts).
+n_items <- 5
 
 # Column order of study-harness/server/src/export.ts.
 csv_columns <- c(
@@ -27,13 +35,14 @@ csv_columns <- c(
   "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1", "stage2ProbeLatencyMs",
   "terminalCommandsProbe", "probeAnswer", "probeCorrect", "finalReviewMs", "changesViewMsFinal", "hunksFinal",
   "hunksViewedFinal", "flawRegionMsFinal", "flawRegionSeenFinal", "unfocusedMsFinal", "idleMsFinal",
-  "understandingScore", "paas",
-  as.vector(t(outer(1:4, c("answer", "correct", "confidence", "milestone", "ms", "changes"), function(k, c) paste0("u", k, "_", c))))
+  "featureComplete", "pauseMissed", "understandingScore", "paas", "pauseTiming", "pauseHelped", "pauseDisrupted",
+  as.vector(t(outer(1:n_items, c("answer", "correct", "confidence", "role", "step", "milestone", "ms", "changes"),
+                    function(k, c) paste0("u", k, "_", c))))
 )
 
 read_design <- function(path) {
   d <- read.csv(path, stringsAsFactors = FALSE)
-  d$flawStepReviewed <- d$flawStepReviewed == "true"
+  for (c in c("flawStepReviewed", paste0("u", 1:n_items, "_milestone"))) d[[c]] <- d[[c]] == "true"
   d
 }
 
@@ -44,25 +53,27 @@ simulate_trials <- function(design, truth = truth_default) {
   stories <- unique(d$story)
   u_p <- setNames(rnorm(length(people), 0, truth$sd_participant), people)
   u_s <- setNames(rnorm(length(stories), 0, truth$sd_story), stories)
-  u_i <- matrix(rnorm(length(stories) * 4, 0, truth$sd_item), ncol = 4, dimnames = list(stories, 1:4))
+  u_i <- matrix(rnorm(length(stories) * n_items, 0, truth$sd_item), ncol = n_items, dimnames = list(stories, 1:n_items))
   conf_p <- setNames(rnorm(length(people), 0, 6), people)
   crit_p <- setNames(rnorm(length(people), truth$criterion, truth$sd_criterion), people)
   paused <- d$regime != "BATCH"
 
   out <- as.data.frame(setNames(replicate(length(csv_columns), rep(NA, n), simplify = FALSE), csv_columns))
   out[names(d)] <- d
-  for (k in 1:4) {
-    milestone <- d$milestoneStep == k
-    reviewed <- paused & d$pauseStep == k
+  for (k in 1:n_items) {
+    milestone <- d[[paste0("u", k, "_milestone")]]
+    reviewed <- paused & d$pauseStep == d[[paste0("u", k, "_step")]]
     eta <- truth$base + truth$milestone_gap * milestone + truth$reviewed * reviewed +
-      truth$milestone_pause * (reviewed & milestone) + u_p[d$participant_id] + u_s[d$story] + u_i[cbind(d$story, k)]
+      truth$feature_pause * (d$regime == "MILESTONE") + truth$milestone_pause * (reviewed & milestone) +
+      u_p[d$participant_id] + u_s[d$story] + u_i[cbind(d$story, k)]
     correct <- rbinom(n, 1, plogis(eta)) == 1
     conf <- 70 + 8 * correct + 4 * reviewed + truth$confidence_pause * paused + conf_p[d$participant_id] + rnorm(n, 0, 10)
     out[[paste0("u", k, "_correct")]] <- correct
-    out[[paste0("u", k, "_confidence")]] <- pmin(100, pmax(50, round(conf)))
-    out[[paste0("u", k, "_milestone")]] <- milestone
+    out[[paste0("u", k, "_confidence")]] <- confidence_levels[findInterval(conf, level_edges) + 1]
   }
-  out$understandingScore <- rowSums(out[paste0("u", 1:4, "_correct")])
+  out$featureComplete <- TRUE
+  out$pauseMissed <- FALSE
+  out$understandingScore <- rowSums(out[paste0("u", 1:n_items, "_correct")])
 
   flawed <- d$variant == "Flawed"
   dprime <- ifelse(d$flawStepReviewed, truth$dprime[d$regime], truth$dprime_unseen)
@@ -79,6 +90,10 @@ simulate_trials <- function(design, truth = truth_default) {
   out$stage1DwellMs <- round(exp(log(ifelse(paused, 100, 200)) + rnorm(n, 0, 0.5)) * 1000)
   out$finalReviewMs <- round(exp(log(ifelse(paused, 120, 60)) + rnorm(n, 0, 0.5)) * 1000)
   out$paas <- pmin(9, pmax(1, round(5 + 0.5 * !paused + rnorm(n, 0, 1.2))))
+  likert <- function(m) pmin(7, pmax(1, round(m + rnorm(n, 0, 1.3))))
+  out$pauseTiming <- likert(ifelse(d$regime == "MILESTONE", 5, 4.5))
+  out$pauseHelped <- likert(ifelse(paused, 4.8, 4.5))
+  out$pauseDisrupted <- likert(ifelse(paused, 3.5, 2.5))
   out
 }
 

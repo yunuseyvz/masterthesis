@@ -38,8 +38,7 @@ const YEARS: Opt[] = [
 const FREQ: Opt[] = [
   { value: "never", label: "Never" }, { value: "rarely", label: "Rarely" }, { value: "monthly", label: "Monthly" }, { value: "weekly", label: "Weekly" }, { value: "daily", label: "Daily" },
 ]
-/** 50 % = guessing between two options, 100 % = certain. */
-const CONFIDENCE = [50, 60, 70, 80, 90, 100]
+const CONFIDENCE = [25, 40, 55, 70, 85, 100]
 const STYLES = [
   { value: "END", label: "The agent works through everything and I review once, at the very end" },
   { value: "PAUSE", label: "The agent pauses partway through and I review that part before it continues" },
@@ -76,7 +75,6 @@ function Choice(props: { label: string; options: Opt[]; value?: string; onChange
   )
 }
 
-/** Equal-width segments with anchors under both ends (Likert, confidence, effort). */
 function Scale(props: { label: string; values: number[]; format?: (n: number) => string; ends: [string, string]; value?: number; onChange: (n: number) => void; captions?: string[] }) {
   return (
     <div data-study-field>
@@ -271,17 +269,23 @@ function Preparing() {
   )
 }
 
-/** The understanding questions: the code is hidden, one question per screen, then mental effort. */
+const REVIEW_ITEMS = [
+  { key: "timing", label: "The agent stopped for my review at a good moment." },
+  { key: "helped", label: "Reviewing at that point helped me understand the code." },
+  { key: "disrupted", label: "Stopping for the review interrupted my work." },
+] as const
+type ReviewKey = (typeof REVIEW_ITEMS)[number]["key"]
+
 function Quiz() {
   const items = () => view()!.understanding!.items
   const [step, setStep] = createSignal(0)
   const [answers, setAnswers] = createStore<(number | undefined)[]>([])
   const [confs, setConfs] = createStore<(number | undefined)[]>([])
   const [paas, setPaas] = createSignal<number | undefined>()
+  const [review, setReview] = createStore<Partial<Record<ReviewKey, number>>>({})
   const onEffort = () => step() >= items().length
-  // Time on each question's screen and answer changes, for the server's per-item measures.
-  const itemMs = [0, 0, 0, 0]
-  const changes = [0, 0, 0, 0]
+  const itemMs = items().map(() => 0)
+  const changes = items().map(() => 0)
   let since = Date.now()
   const go = (next: number) => {
     if (step() < items().length) itemMs[step()]! += Date.now() - since
@@ -301,12 +305,21 @@ function Quiz() {
       <Card step={`${v().practice ? "Practice feature" : `Feature ${v().trial - 1} of ${v().nTrials}`} · the code is hidden now`} title={onEffort() ? "Almost done" : `Question ${step() + 1} of ${items().length}`}>
         <Show
           when={!onEffort()}
-          fallback={<Scale label="How much mental effort did you invest in reviewing this feature?" values={[1, 2, 3, 4, 5, 6, 7, 8, 9]} ends={["Very, very low", "Very, very high"]} value={paas()} onChange={setPaas} />}
+          fallback={
+            <>
+              <Scale label="How much mental effort did you invest in reviewing this feature?" values={[1, 2, 3, 4, 5, 6, 7, 8, 9]} ends={["Very, very low", "Very, very high"]} value={paas()} onChange={setPaas} />
+              <For each={REVIEW_ITEMS}>
+                {(it) => (
+                  <Scale label={it.label} values={[1, 2, 3, 4, 5, 6, 7]} ends={["Strongly disagree", "Strongly agree"]} value={review[it.key]} onChange={(n) => setReview(it.key, n)} />
+                )}
+              </For>
+            </>
+          }
         >
           <p data-study-lead>A colleague on the support desk asks you about the feature you just reviewed.</p>
           <p data-study-question>{items()[k()]!.question}</p>
           <Options options={items()[k()]!.options} value={answers[k()]} onChange={pick} />
-          <Scale label="How sure are you about your answer?" values={CONFIDENCE} format={(c) => `${c}%`} ends={["Guessing", "Certain"]} value={confs[k()]} onChange={(c) => setConfs(k(), c)} />
+          <Scale label="How sure are you about your answer?" values={CONFIDENCE} format={(c) => `${c}%`} ends={["Guessing (1 in 4)", "Certain"]} value={confs[k()]} onChange={(c) => setConfs(k(), c)} />
         </Show>
         <div data-study-actions>
           <Show when={step() > 0}>
@@ -319,9 +332,9 @@ function Quiz() {
             <Button
               variant="submit"
               size="large"
-              disabled={paas() === undefined || items().some((_, i) => answers[i] === undefined || confs[i] === undefined)}
+              disabled={paas() === undefined || REVIEW_ITEMS.some((it) => review[it.key] === undefined) || items().some((_, i) => answers[i] === undefined || confs[i] === undefined)}
               onClick={() =>
-                act({ type: "understanding", answers: items().map((_, i) => answers[i]), confidences: items().map((_, i) => confs[i]), paas: paas(), itemMs: itemMs.map(Math.round), answerChanges: changes })
+                act({ type: "understanding", answers: items().map((_, i) => answers[i]), confidences: items().map((_, i) => confs[i]), paas: paas(), review: { ...review }, itemMs: itemMs.map(Math.round), answerChanges: changes })
               }
             >
               Next
@@ -377,7 +390,8 @@ function Debrief(props: { onDone: () => void }) {
     <Card title="Thank you, and a few things we couldn't tell you earlier">
       <p>
         The agent you worked with was a real AI model, but it followed hidden instructions from the study: how to split each
-        feature into steps, which design decisions to take, and when to stop for your review. In some features these
+        feature into steps, which design decisions to take, and when to stop for your review. The plan you approved was
+        written by the study, not by the model, and left those decisions out. In some features the
         instructions included a deliberately wrong design decision, a defect the happy-path tests do not catch. The study
         compares when the agent pauses for your review, and how well people understand the code and spot such defects.
       </p>
@@ -394,7 +408,6 @@ function Debrief(props: { onDone: () => void }) {
   )
 }
 
-/** Full-screen study pages shown instead of opencode: before, between and after the agent sessions. */
 export function StudyPage() {
   const [done, setDone] = createSignal(false)
   return (
@@ -407,6 +420,14 @@ export function StudyPage() {
               <Button variant="submit" size="large" onClick={() => window.location.assign("/")}>Start again</Button>
             </div>
           </Show>
+        </Card>
+      </Match>
+      <Match when={view()!.phase === "abandoned"}>
+        <Card title="This session has ended">
+          <p>
+            There was no activity for a long time, or the session reached its time limit, so it was closed. Thank you for
+            your time. If you would like to take part again or have questions, please contact the experimenter.
+          </p>
         </Card>
       </Match>
       <Match when={view()!.phase === "intro"}><Intro /></Match>

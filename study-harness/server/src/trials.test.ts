@@ -10,8 +10,6 @@ import { loadStory } from "./trial.js";
 const load = (id: string) => loadStory(trialsDir, projectDir, id);
 const ALL = ["US0", "US1", "US2", "US3", "US4", "US5", "US6"];
 
-// The questions are checked against each story's reference implementation (see reference.ts): the code the step
-// outline describes, per variant.
 describe.each(ALL)("trial %s", (id) => {
   const story = load(id);
   const ref = loadReference(story);
@@ -58,8 +56,8 @@ describe.each(ALL)("trial %s", (id) => {
       expect(new Set(it.options).size).toBe(4);
       expect(probeQuestions).not.toContain(it.question); // the understanding items must not repeat a stage-2 question
     }
-    // exactly the item about the flaw step depends on the defect
-    if (flawedDiffers) for (const it of items) expect(it.correct.Correct !== it.correct.Flawed).toBe(it.step === story.flawStep);
+    // exactly the flaw item depends on the defect
+    if (flawedDiffers) for (const it of items) expect(it.correct.Correct !== it.correct.Flawed, `${it.role} item`).toBe(it.role === "flaw");
   });
 
   it("understanding answers are what the code does, in both variants (verified by running it)", async () => {
@@ -94,6 +92,19 @@ describe.each(ALL)("trial %s", (id) => {
     const diff = ref.diff("Correct", 1, 4);
     expect(diff.some((d) => d.before === "")).toBe(true);
     expect(diff.some((d) => d.before !== "" && d.path === "README.md")).toBe(true);
+  });
+
+  it("the public plan names each step's files and states none of the story's design decisions", () => {
+    const plan = story.publicPlan;
+    const steps = [1, 2, 3, 4].map((n) => plan.slice(plan.indexOf(`\n${n}. `), n < 4 ? plan.indexOf(`\n${n + 1}. `) : undefined));
+    for (const [file, n] of story.fileSteps()) expect(steps[n - 1], `${file} in step ${n}`).toContain(file);
+    for (const leak of [...story.def.planLeaks, "outline", "plan mode"]) expect(plan).not.toMatch(new RegExp(leak, "i"));
+  });
+
+  // The participant reads them: as commit messages, and in place of a step's announcement that gives a decision away.
+  it("the step summaries and the title state none of the story's design decisions", () => {
+    for (const text of [story.def.title, ...story.def.steps.map((s) => s.summary)])
+      for (const leak of story.def.planLeaks) expect(text, text).not.toMatch(new RegExp(leak, "i"));
   });
 
   it("every step does something to the project", () => {
@@ -138,12 +149,20 @@ describe("milestone and flaw position", () => {
     expect(measured.filter((s) => s.flawStep !== null && s.flawStep !== s.milestoneStep)).toHaveLength(3);
   });
 
-  it("MILESTONE pauses after the milestone, NON_MILESTONE after one of the two other steps among 1-3", () => {
+  it("MILESTONE pauses after the milestone, NON_MILESTONE after another step among 1-3 that is not declarative", () => {
     for (const s of measured) {
       expect(s.pauseStep("MILESTONE", 0)).toBe(s.milestoneStep);
       expect(s.pauseStep("BATCH", 0)).toBe(4);
-      expect([s.pauseStep("NON_MILESTONE", 0), s.pauseStep("NON_MILESTONE", 1)].sort()).toEqual([1, 2, 3].filter((n) => n !== s.milestoneStep));
+      const candidates = [1, 2, 3].filter((n) => n !== s.milestoneStep && !s.def.steps[n - 1]!.declarative);
+      expect([...new Set([s.pauseStep("NON_MILESTONE", 0), s.pauseStep("NON_MILESTONE", 1)])].sort()).toEqual(candidates);
     }
+  });
+
+  it("the NON_MILESTONE pause contains the flaw step as often as the MILESTONE pause does (3 stories each)", () => {
+    const flawPaused = (regime: "MILESTONE" | "NON_MILESTONE") =>
+      measured.filter((s) => [0, 1].some((d) => s.pauseStep(regime, d) === s.flawStep)).map((s) => s.def.id);
+    expect(flawPaused("MILESTONE")).toEqual(["US1", "US5", "US6"]);
+    expect(flawPaused("NON_MILESTONE")).toEqual(["US2", "US3", "US4"]);
   });
 
   it("BATCH asks about the flaw step; a pause asks about the step it follows", () => {

@@ -15,10 +15,9 @@ import { loadStory, makeStoryLoader } from "./trial.js";
 const load = (id: string) => loadStory(trialsDir, projectDir, id);
 const ref = (id: string) => loadReference(load(id));
 
-/** A session's dependencies with the fake agent, which writes the reference code (see FakeAgentHost). */
 function fakeDeps(plan: SessionPlan, loader = makeStoryLoader(trialsDir, projectDir)) {
   const agent = new FakeAgentHost(referenceSteps(loader, () => [plan.practice, ...plan.trials]));
-  return { agent, endpoint: { load: () => {}, mainTexts: () => [] }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
+  return { agent, endpoint: { load: () => {}, endPlanning: () => {} }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} };
 }
 
 const PRESURVEY = {
@@ -36,9 +35,8 @@ const POSTSURVEY = {
   comment: "fine",
 };
 
-const UNDERSTANDING = { type: "understanding", answers: [0, 0, 0, 0], confidences: [50, 70, 90, 100], paas: 6, itemMs: [4000, 3000, 5000, 2000], answerChanges: [0, 1, 0, 0] };
+const UNDERSTANDING = { type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [25, 55, 85, 100, 40], paas: 6, review: { timing: 6, helped: 5, disrupted: 2 }, itemMs: [4000, 3000, 5000, 2000, 1000], answerChanges: [0, 1, 0, 0, 2] };
 
-/** begin -> presurvey -> first checkpoint */
 async function startSession(session: StudySession) {
   await session.act({ type: "begin" });
   await session.act(PRESURVEY);
@@ -117,7 +115,7 @@ describe("study flow", () => {
       expect(view.trial).toBe(i + 1);
       expect(view.practice).toBe(i === 0);
       expect(view.phase).toBe("plan");
-      expect(view.story.plan).toHaveLength(4);
+      expect(JSON.stringify(view.story)).not.toContain("summary");
       // The project on disk, for every file the feature touches.
       const touched = r.diff(t.variant, 1, 4).map((d) => d.path);
       const expectAt = (step: number) => {
@@ -147,9 +145,9 @@ describe("study flow", () => {
       expect((await app.inject({ method: "POST", url: "/_study/action", payload: UNDERSTANDING })).statusCode).toBe(409); // not before "I've reviewed"
       view = await post("/_study/action", { type: "reviewed" });
       expect(view.phase).toBe("understanding");
-      expect(view.understanding.items).toHaveLength(4);
+      expect(view.understanding.items).toHaveLength(5);
       for (const it of view.understanding.items) expect(it.options).toHaveLength(4);
-      expect((await app.inject({ method: "POST", url: "/_study/action", payload: { ...UNDERSTANDING, confidences: [50, 70, 90, 95] } })).statusCode).toBe(400);
+      expect((await app.inject({ method: "POST", url: "/_study/action", payload: { ...UNDERSTANDING, confidences: [50, 55, 85, 100] } })).statusCode).toBe(400);
       view = await post("/_study/action", UNDERSTANDING);
     }
     expect(view.phase).toBe("postsurvey");
@@ -170,7 +168,8 @@ describe("study flow", () => {
     expect(new Set(bundle.trials.map((t: { regime: string }) => t.regime))).toEqual(new Set(["BATCH", "MILESTONE", "NON_MILESTONE"]));
     for (const t of bundle.trials) {
       expect(t.paas).toBe(6);
-      expect(t.understandingConfidences).toEqual([50, 70, 90, 100]);
+      expect([t.pauseTiming, t.pauseHelped, t.pauseDisrupted]).toEqual([6, 5, 2]);
+      expect(t.understandingConfidences).toEqual([25, 55, 85, 100, 40]);
       expect(t.reviewedLines).toBeGreaterThan(0);
       expect(t.finalReviewMs).toBeGreaterThanOrEqual(0);
       if (t.regime === "BATCH") expect(t.pauseStep).toBe(4);
@@ -188,8 +187,13 @@ describe("study flow", () => {
     expect(csv).toHaveLength(7);
     expect(csv[0]).toContain("understandingScore");
     expect(csv[0]).toContain("reviewedLines");
-    expect(csv[0]).toContain("u1_answer,u1_correct,u1_confidence,u1_milestone,u1_ms,u1_changes,u2_answer");
-    expect(bundle.trials[0].understandingAnswers).toHaveLength(4);
+    expect(csv[0]).toContain("u1_answer,u1_correct,u1_confidence,u1_role,u1_step,u1_milestone,u1_ms,u1_changes,u2_answer");
+    expect(bundle.trials[0].understandingAnswers).toHaveLength(5);
+    // Each trial asks one milestone item, about its milestone step, and one about what builds on it.
+    for (const t of bundle.trials) {
+      expect(t.understandingSteps[t.understandingRoles.indexOf("open-case")]).toBe(t.milestoneStep);
+      expect(t.understandingRoles.filter((r: string) => r === "dependency")).toHaveLength(1);
+    }
     expect(bundle.trials[0].understandingScore).toBe(bundle.trials[0].understandingCorrects.filter(Boolean).length);
     // The probe was graded on the code under review, the understanding items on the finished code.
     expect(bundle.events.filter((e: { type: string }) => e.type === "live_probe")).toHaveLength(7);
@@ -288,6 +292,120 @@ describe("stage-1 dwell", () => {
     await session.act({ type: "stage1", decision: "accept" });
     expect((session.events.find((e) => e.type === "plan_approved")!.data as { ms: number }).ms).toBe(3000);
     expect((session.events.find((e) => e.type === "stage1_submit")!.data as { dwellMs: number }).dwellMs).toBe(4000);
+  });
+});
+
+describe("a participant who has gone (server protection)", () => {
+  const MIN = 60_000;
+  const limits = { warnMs: 10 * MIN, abortMs: 10 * MIN, maxSessionMs: 120 * MIN };
+  const mk = (clock: { t: number }, extra: object = {}) => {
+    const plan = generateSessionPlan({ participantId: "AFK", studySeed: "3", group: 1 });
+    return new StudySession(plan, makeStoryLoader(trialsDir, projectDir), fakeDeps(plan), () => {}, () => clock.t, false, { ...limits, ...extra });
+  };
+  const types = (s: StudySession) => s.events.map((e) => e.type);
+
+  it("asks after 10 minutes without input, and ends the session 10 minutes later without an answer", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock);
+    await startSession(s); // the practice plan is on screen
+    clock.t += 9 * MIN;
+    expect(s.watch()).toBeNull();
+    expect(s.presence({ inputAgoMs: 9 * MIN })).toEqual({ prompt: false, ended: false });
+    clock.t += 1 * MIN;
+    expect(s.watch()).toBeNull();
+    expect(s.presence({ inputAgoMs: 10 * MIN })).toEqual({ prompt: true, ended: false });
+    clock.t += 10 * MIN;
+    expect(s.watch()).toBe("abandoned");
+    expect(s.view().phase).toBe("abandoned");
+    expect(types(s)).toContain("afk_prompt");
+    const end = s.events.find((e) => e.type === "session_abandoned")!.data as { reason: string; phase: string };
+    expect(end).toMatchObject({ reason: "inactive", phase: "plan" });
+    expect(s.presence({ inputAgoMs: 0 })).toEqual({ prompt: false, ended: true });
+    // The session stays ended: no action brings it back.
+    await expect(s.act({ type: "approvePlan" })).rejects.toThrow(/abandoned/);
+  });
+
+  it("does not ask while there is input, and an answer to the prompt keeps the session going", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock);
+    await startSession(s);
+    for (let i = 0; i < 4; i++) {
+      clock.t += 5 * MIN;
+      s.presence({ inputAgoMs: 20_000 });
+      expect(s.watch()).toBeNull();
+    }
+    expect(types(s)).not.toContain("afk_prompt");
+    clock.t += 10 * MIN;
+    s.watch();
+    clock.t += 3 * MIN;
+    expect(s.presence({ inputAgoMs: 0, confirm: true })).toEqual({ prompt: false, ended: false });
+    expect(types(s)).toContain("afk_resume");
+    clock.t += 9 * MIN;
+    expect(s.watch()).toBeNull();
+    expect(s.view().phase).toBe("plan");
+  });
+
+  it("does not count the agent's working time, and counts from the moment the participant is to act", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock);
+    await startSession(s);
+    const building = s.act({ type: "approvePlan" });
+    expect(s.view().phase).toBe("working");
+    clock.t += 30 * MIN; // the agent takes long
+    expect(s.watch()).toBeNull();
+    await building; // the review comes up now, 30 minutes after the last input
+    expect(s.view().phase).toBe("stage1");
+    clock.t += 9 * MIN;
+    expect(s.watch()).toBeNull();
+    expect(types(s)).not.toContain("afk_prompt");
+    clock.t += 1 * MIN;
+    s.watch();
+    expect(types(s)).toContain("afk_prompt");
+  });
+
+  it("ends any session at its time limit, and an action counts as input", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock, { warnMs: 0 });
+    await startSession(s);
+    clock.t += 119 * MIN;
+    await s.act({ type: "approvePlan" });
+    expect(s.watch()).toBeNull();
+    clock.t += 1 * MIN;
+    expect(s.watch()).toBe("abandoned");
+    expect(s.events.find((e) => e.type === "session_abandoned")!.data).toMatchObject({ reason: "session_limit" });
+  });
+
+  it("finishes normally when the participant leaves at the debrief, since everything is recorded", async () => {
+    const clock = { t: 0 };
+    const s = mk(clock);
+    let view = s.view();
+    for (let guard = 0; view.phase !== "debrief" && guard < 100; guard++) {
+      switch (view.phase) {
+        case "intro": view = await s.act({ type: "begin" }); break;
+        case "presurvey": view = await s.act(PRESURVEY); break;
+        case "plan": view = await s.act({ type: "approvePlan" }); break;
+        case "stage1": view = await s.act({ type: "stage1", decision: "accept" }); break;
+        case "stage2": view = await s.act({ type: "stage2", probeAnswer: 0, final: "confirm" }); break;
+        case "reviewing": view = await s.act({ type: "reviewed" }); break;
+        case "understanding": view = await s.act(UNDERSTANDING); break;
+        case "postsurvey": view = await s.act(POSTSURVEY); break;
+      }
+    }
+    expect(view.phase).toBe("debrief");
+    clock.t += 10 * MIN;
+    expect(s.watch()).toBeNull(); // the prompt
+    clock.t += 10 * MIN;
+    expect(s.watch()).toBe("finish");
+    expect(s.finish().trials).toHaveLength(6);
+    expect(types(s)).not.toContain("session_abandoned");
+  }, 120_000);
+
+  it("is served to the browser at /_study/presence", async () => {
+    const app = await buildApp(fakeConfig("AFKP", "4", 0));
+    const res = await app.inject({ method: "POST", url: "/_study/presence", payload: { inputAgoMs: 1000 } });
+    expect(res.json()).toEqual({ prompt: false, ended: false });
+    expect((await app.inject({ method: "POST", url: "/_study/presence", payload: { inputAgoMs: -1 } })).statusCode).toBe(400);
+    await app.close();
   });
 });
 
@@ -407,6 +525,50 @@ describe("rejection", () => {
     expect(s.events.filter((e) => e.type === "live_checkpoint").map((e) => (e.data as { step: number }).step)).toEqual([1, 2, 2, 3]);
     expect(s.events.find((e) => e.type === "feedback_submit")!.data).toMatchObject({ text: "Use the first name only." });
   });
+
+  it("sends an agent that stops early after an unclear answer on, hidden, so the review shows the whole feature", async () => {
+    const plan = generateSessionPlan({ participantId: "RK", studySeed: "2", group: 0 });
+    const deps = fakeDeps(plan);
+    const s = new StudySession(plan, makeStoryLoader(trialsDir, projectDir), deps, () => {});
+    await startSession(s);
+    await s.act({ type: "approvePlan" });
+    await s.act({ type: "stage1", decision: "reject" });
+    const view = await s.act({ type: "stage2", probeAnswer: 0, final: "confirm" });
+    // The fake agent asks again after an answer this short, as a model did in a test session ("coc").
+    await s.composerMessage(`/api/session/${view.agentSessionId}/prompt`, JSON.stringify({ text: "coc" }));
+    for (let i = 0; i < 300 && s.view().phase !== "reviewing"; i++) await new Promise((r) => setTimeout(r, 50));
+    expect(s.view().phase).toBe("reviewing");
+    const goOn = s.events.filter((e) => e.type === "live_go_on");
+    expect(goOn).toHaveLength(1);
+    expect((goOn[0]!.data as { missing: string[] }).missing).toContain("src/lib/greeting/batch.ts");
+    expect(s.events.some((e) => e.type === "live_incomplete")).toBe(false);
+    expect(s.events.filter((e) => e.type === "live_checkpoint").map((e) => (e.data as { step: number }).step)).toEqual([1, 2, 2, 3]);
+    // Every item can be graded on the finished feature.
+    expect((s.events.find((e) => e.type === "live_key")!.data as { understanding: unknown[] }).understanding).not.toContain(null);
+  });
+});
+
+describe("an agent that stops before the pause", () => {
+  it("is sent on, hidden, so the review still pauses at the scored step", async () => {
+    const plan = generateSessionPlan({ participantId: "PG", studySeed: "2", group: 0 });
+    const deps = fakeDeps(plan);
+    deps.agent.stopAfterStep = 1; // the practice trial pauses after step 2
+    const s = new StudySession(plan, makeStoryLoader(trialsDir, projectDir), deps, () => {});
+    await startSession(s);
+    const view = await s.act({ type: "approvePlan" });
+    expect(view.phase).toBe("stage1");
+    expect(s.events.filter((e) => e.type === "live_pause_go_on")).toHaveLength(1);
+    expect(s.events.some((e) => e.type === "live_pause_missed")).toBe(false);
+    expect(s.events.filter((e) => e.type === "live_checkpoint").map((e) => [(e.data as { step: number }).step, (e.data as { held: boolean }).held])).toEqual([[1, false], [2, true]]);
+    // The participant did not see the message that sent it on.
+    expect(deps.agent.prompts.map((p) => p.text).filter((t) => t.startsWith("You stopped"))).toHaveLength(1);
+    await s.act({ type: "stage1", decision: "accept" });
+    await s.act({ type: "stage2", probeAnswer: 0, final: "confirm" });
+    expect(s.view().phase).toBe("reviewing");
+    await s.act({ type: "reviewed" });
+    await s.act(UNDERSTANDING);
+    expect(s.events.find((e) => e.type === "trial_end")!.data).toMatchObject({ pauseMissed: false, featureComplete: true });
+  });
 });
 
 describe("step check at the checkpoint", () => {
@@ -417,13 +579,13 @@ describe("step check at the checkpoint", () => {
     // The practice story (US0, paused after step 2): step 1 without its file, step 2 together with step 3's file.
     const steps = [new Map(), new Map([...ref.step("Correct", 2), ...ref.step("Correct", 3)]), ref.step("Correct", 3), ref.step("Correct", 4)];
     const agent = new FakeAgentHost(() => steps);
-    const s = new StudySession(plan, loader, { agent, endpoint: { load: () => {}, mainTexts: () => [] }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} }, () => {});
+    const s = new StudySession(plan, loader, { agent, endpoint: { load: () => {}, endPlanning: () => {} }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} }, () => {});
     const answers: string[] = [];
     await startSession(s);
     // Record what the agent is told.
     const wrapped = agent.checkpoints.handler!;
-    agent.checkpoints.handler = async (step, summary) => {
-      const a = await wrapped(step, summary);
+    agent.checkpoints.handler = async (step) => {
+      const a = await wrapped(step);
       answers.push(a);
       return a;
     };
@@ -438,26 +600,19 @@ describe("step check at the checkpoint", () => {
   });
 });
 
-describe("plan check", () => {
-  it("plans again when the plan states a design decision, and keeps the last plan after the retries", async () => {
-    const plan = generateSessionPlan({ participantId: "PL", studySeed: "2", group: 0 });
-    plan.practice = { ...plan.practice, story: "US1" }; // a story with design decisions
-    const loader = makeStoryLoader(trialsDir, projectDir);
-    const agent = new FakeAgentHost(referenceSteps(loader, () => [plan.practice, ...plan.trials]));
-    const plans = ["Step 2 deletes the SKU when the new level is 0.", "Step 2 adds reserveStock and stockOf."];
-    let loads = 0;
-    const endpoint = { load: () => void loads++, mainTexts: () => [plans[Math.min(loads, plans.length) - 1]!] };
-    const s = new StudySession(plan, loader, { agent, endpoint, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} }, () => {});
-    await startSession(s);
-    expect(s.view().phase).toBe("plan");
-    expect(s.events.filter((e) => e.type === "trial_prepare").map((e) => (e.data as { attempt: number }).attempt)).toEqual([1, 2]);
-    expect(s.events.find((e) => e.type === "live_plan_leak")!.data).toMatchObject({ attempt: 1, found: expect.arrayContaining(["delet"]), kept: false });
-
-    // Always a leak: the third plan is kept and logged.
-    const s2 = new StudySession(plan, loader, { agent, endpoint: { load: () => {}, mainTexts: () => [plans[0]!] }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} }, () => {});
-    await startSession(s2);
-    expect(s2.view().phase).toBe("plan");
-    expect(s2.events.filter((e) => e.type === "live_plan_leak").map((e) => (e.data as { kept: boolean }).kept)).toEqual([false, false, true]);
+describe("the agent UI's path", () => {
+  it("is filled into the built app when the server starts, once", async () => {
+    const { setBasePath } = await import("./app.js");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dist-"));
+    fs.mkdirSync(path.join(dir, "_assets"));
+    fs.writeFileSync(path.join(dir, "index.html"), `<script src="/__STUDY_BASE__/_assets/a.js"></script>`);
+    fs.writeFileSync(path.join(dir, "_assets", "a.js"), `const b = "/__STUDY_BASE__/";import("/__STUDY_BASE__/_assets/c.js")`);
+    fs.writeFileSync(path.join(dir, "logo.png"), "/__STUDY_BASE__/");
+    setBasePath(dir, "/study/s/u/");
+    expect(fs.readFileSync(path.join(dir, "index.html"), "utf8")).toBe(`<script src="/study/s/u/_assets/a.js"></script>`);
+    expect(fs.readFileSync(path.join(dir, "_assets", "a.js"), "utf8")).toBe(`const b = "/study/s/u/";import("/study/s/u/_assets/c.js")`);
+    expect(fs.readFileSync(path.join(dir, "logo.png"), "utf8")).toBe("/__STUDY_BASE__/");
+    setBasePath(dir, "/other/");
+    expect(fs.readFileSync(path.join(dir, "index.html"), "utf8")).toContain("/study/s/u/");
   });
 });
-

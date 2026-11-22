@@ -82,6 +82,13 @@ test("itemises the credit line", () => {
   ]);
 });
 
+test("reads the policy's durations", () => {
+  const policy = { threshold: "1h", tiers: [{ minOutage: "1h", creditPercent: 20 }] };
+  assert.equal(creditForOutage(60, 10_000, policy), 0);
+  assert.equal(creditForOutage(61, 10_000, policy), 2_000);
+  assert.throws(() => creditForOutage(61, 10_000, { ...policy, threshold: "60" }), /invalid duration part/);
+});
+
 test("rejects a reversed billing period", () => {
   assert.throws(
     () =>

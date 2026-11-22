@@ -32,7 +32,7 @@ The development server (`npm run dev`) is not available in this environment.
 
 - `duration.ts` – `parseDurationMinutes("1h 30m")` → `90`. Every part needs an explicit `d`, `h`, `m` or `s` unit.
 - `time.ts` – millisecond constants and `minutesBetween(from, to)`.
-- `types.ts` – the policy (`thresholdMinutes` plus `tiers`), `Outage`, `Invoice` and the defaults: outages of 30 minutes or less earn nothing, then 5% of the subtotal up to 4h, 10% up to 12h and 25% beyond that.
+- `types.ts` – the policy (`threshold` plus `tiers`, written as durations such as `"30m"`), `Outage`, `Invoice` and the defaults: outages of 30 minutes or less earn nothing, then 5% of the subtotal up to 4h, 10% up to 12h and 25% beyond that.
 - `invoice.ts` – `generateInvoice({ accountId, periodStartMs, periodEndMs, subtotalCents, outages, policy })`. Outages outside the period are ignored, each qualifying outage is credited at the highest tier it reaches, and the credits are summed into one negative `SLA credit` line per outage. `creditCents` is the total credited and `totalCents` is the subtotal minus the credit.
 
 ```ts
