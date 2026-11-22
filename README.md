@@ -8,7 +8,7 @@ the agent live, following a hidden script per story (the Drehbuch), and stops fo
 |---|---|
 | `study-harness/` | The study harness: study server, the study build of opencode's web app, the project, the trials, the Docker image |
 | `shared/` | The study's types and the session plan generator |
-| `docs/` | [Study design](docs/study-design.md), [harness](docs/harness.md), [data collected](docs/data.md) |
+| `docs/` | [Study design](docs/study-design.md), [analysis plan](docs/analysis-plan.md), [stimuli](docs/stimuli.md), [harness](docs/harness.md), [data collected](docs/data.md) |
 | `analysis/` | The planned analysis in R (`analyze.R`), fictitious data for it (`design.ts`, `simulate.R`) and the power simulation (`power.R`); the pilot's checks (`pilot/`) |
 
 ## Run a session (Docker)
@@ -51,5 +51,7 @@ PARTICIPANT_ID=P1 STUDY_SEED=1 STUDY_GROUP=1 EXPORT_DIR=./exports ALLOW_READABLE
 ## Documentation
 
 - [docs/study-design.md](docs/study-design.md): research question, milestone criterion, conditions, hypotheses.
+- [docs/analysis-plan.md](docs/analysis-plan.md): the planned analysis, fixed before data collection.
+- [docs/stimuli.md](docs/stimuli.md): how stories and questions are made, and the provenance of the existing ones.
 - [docs/harness.md](docs/harness.md): how the harness is built, isolation, deployment.
 - [docs/data.md](docs/data.md): what is recorded.

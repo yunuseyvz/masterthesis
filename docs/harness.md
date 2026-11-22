@@ -76,6 +76,16 @@ Key environment variables: `PARTICIPANT_ID`, `STUDY_SEED`, `STUDY_GROUP`, `LIVE_
 `LIVE_UPSTREAM`, `EXPORT_DIR`, `SANDBOX_UID`, `PROBE_UID`, `AGENT=fake` (no model, for tests). All of them are read in
 `study-harness/server/src/main.ts`.
 
+**Inactivity limits** protect the server from sessions nobody is at (minutes, `0` = off):
+
+| Variable | Default | Effect |
+|---|---|---|
+| `STUDY_AFK_WARN_MIN` | 10 | Without input while it is the participant's turn (not while the agent works), "Are you still there?" appears; Continue resets it |
+| `STUDY_AFK_ABORT_MIN` | 10 | Without an answer to that prompt, the session ends (`session_abandoned`): end page, sandbox processes killed, no bundle, so it does not count towards the group balance. At the debrief it is exported as after Finish |
+| `STUDY_MAX_SESSION_MIN` | 120 | Hard cap in every phase, also while the agent works |
+
+A closed window ends the same way. Conditioner's own idle stop is only the second line.
+
 `study-harness/server/src/live-run.ts` plays one story against the real model without a participant.
 
 ## Changing things

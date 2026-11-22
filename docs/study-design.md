@@ -34,7 +34,8 @@ item (Paas, 1–9) and three statements about the review (1–7).
 
 ## Materials
 
-- **Corpus:** six features in a small Next.js shop (`study-harness/project`), plus a practice feature (US0).
+- **Corpus:** six features in a small Next.js shop (`study-harness/project`), plus a practice feature (US0). How they
+  are made: [stimuli.md](stimuli.md).
 - **Flaw:** in the Flawed variant the agent's hidden instructions contain one plausible but wrong design decision that
   contradicts a criterion of the story; the agent's own tests do not catch it.
 - **Plan:** a fixed public text per feature that names the subtasks but not the decisions, so it is identical in both
@@ -54,7 +55,7 @@ item (Paas, 1–9) and three statements about the review (1–7).
 ## Hypotheses and analysis
 
 Mixed-effects models (`lme4`) with random intercepts for participant and feature, `position` as a covariate, MILESTONE
-as the reference level. The planned contrasts are MILESTONE vs. BATCH and MILESTONE vs. NON-MILESTONE, Holm-corrected,
+as the reference level; the full plan is [analysis-plan.md](analysis-plan.md). The planned contrasts are MILESTONE vs. BATCH and MILESTONE vs. NON-MILESTONE, Holm-corrected,
 α = .05. MILESTONE vs. NON-MILESTONE carries the claim about the place; MILESTONE vs. BATCH changes place and amount of
 code together. The code is `analysis/analyze.R`.
 
