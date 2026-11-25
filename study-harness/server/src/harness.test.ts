@@ -234,6 +234,17 @@ describe("consent", () => {
   });
 });
 
+describe("proxy token", () => {
+  it("answers only requests that carry the pod's token from Conditioner's nginx", async () => {
+    const app = await buildApp(fakeConfig("TOK", "1", 0, { proxyToken: "s3cret" }));
+    expect((await app.inject({ url: "/_study/state" })).statusCode).toBe(403);
+    expect((await app.inject({ url: "/_study/state", headers: { "x-study-proxy-token": "wrong!" } })).statusCode).toBe(403);
+    expect((await app.inject({ method: "POST", url: "/_study/action", payload: { type: "begin" } })).statusCode).toBe(403);
+    expect((await app.inject({ url: "/_study/state", headers: { "x-study-proxy-token": "s3cret" } })).json().phase).toBe("intro");
+    await app.close();
+  });
+});
+
 describe("demo mode", () => {
   it("starts a fresh session after Finish instead of stopping", async () => {
     const cfg = fakeConfig("DEMO1", "11", 5, { exitOnFinish: true, demo: true });

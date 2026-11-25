@@ -1,4 +1,4 @@
-import { randomInt } from "node:crypto";
+import { randomInt, timingSafeEqual } from "node:crypto";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -29,6 +29,8 @@ export interface ServerConfig {
   demo?: boolean;
   recording?: boolean;
   externalConsent?: boolean;
+  // Behind Conditioner: its nginx sends this per-pod token with every request, so other pods on the network can't use this one.
+  proxyToken?: string;
   // never for real participants
   showCondition?: boolean;
   basePath?: string;
@@ -60,6 +62,8 @@ const BLOCKED: [string, RegExp][] = [
   ["POST", /^\/api\/session\/[^/]+\/(archive|share)/],
 ];
 export const isBlocked = (method: string, url: string) => BLOCKED.some(([m, re]) => m === method && re.test(url));
+
+const PROXY_TOKEN_HEADER = "x-study-proxy-token";
 
 // a pod belongs to one participant, so the path is set once at start
 const BASE_PLACEHOLDER = "/__STUDY_BASE__/";
@@ -124,6 +128,14 @@ export async function buildApp(cfg: ServerConfig) {
   let group = start(cfg.participantId, cfg.studySeed, cfg.group, cfg.round).group;
 
   const app = Fastify({ logger: false });
+  if (cfg.proxyToken) {
+    const expected = Buffer.from(cfg.proxyToken);
+    // Also runs for websocket upgrades (the terminal): @fastify/http-proxy routes them through fastify.
+    app.addHook("onRequest", async (req, reply) => {
+      const got = Buffer.from(String(req.headers[PROXY_TOKEN_HEADER] ?? ""));
+      if (got.length !== expected.length || !timingSafeEqual(got, expected)) return reply.code(403).send({ error: "forbidden" });
+    });
+  }
   let watcher: NodeJS.Timeout | undefined;
   app.addHook("onClose", async () => {
     clearInterval(watcher);
@@ -203,7 +215,8 @@ export async function buildApp(cfg: ServerConfig) {
   const target = agent.proxy();
   if (target) {
     // opencode checks Origin against Host for the terminal; the proxy changes Host, so Origin must match it.
-    const auth = (headers: Record<string, unknown>) => ({ ...headers, authorization: target.authorization, ...(headers.origin ? { origin: target.url } : {}) });
+    // opencode runs as the sandbox user, so it never gets the proxy token.
+    const auth = ({ [PROXY_TOKEN_HEADER]: _token, ...headers }: Record<string, unknown>) => ({ ...headers, authorization: target.authorization, ...(headers.origin ? { origin: target.url } : {}) });
     for (const prefix of ["/api", "/auth"]) {
       app.register(fastifyHttpProxy, {
         upstream: target.url,

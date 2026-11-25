@@ -62,7 +62,7 @@ Session flow: welcome → questionnaire → practice story → six stories → p
   and git config.
 - At startup the server verifies the paths are unreadable and refuses to start otherwise.
 - Known gap: the terminal can reach the model endpoint and checkpoint server over loopback. Acceptable when
-  supervised; an egress rule is needed online.
+  supervised; online, the pod has no internet either (see Online deployment).
 
 ## Running
 
@@ -105,5 +105,10 @@ Consent is collected only by the entry page of the Conditioner fork (`/study/bea
 with required checkboxes). The pod starts only after that. `make-conditions.mjs` sets `STUDY_CONSENT=external`, so the
 questionnaire does not ask again. Local runs without that variable keep the harness's own consent checkbox.
 
-Still missing before participants: an egress rule for the sandbox uids, an allowlist for opencode's API, resume after a
-restart, consent text matching what is recorded, collecting per-pod exports, and a load test with several sessions.
+The pods' network (`internal_network`) is internal: pods reach only Conditioner's nginx and LiteLLM, not the internet.
+opencode and the project need no internet (`live-opencode.test.ts` passes without a network). Because all pods share
+that network, Conditioner gives each pod a token (`STUDY_PROXY_TOKEN`) that its nginx sends with every request; the
+harness refuses requests without it, including websockets, so one participant's terminal can't use another's pod.
+
+Still missing before participants: an allowlist for opencode's API, resume after a restart, collecting per-pod exports,
+and a load test with several sessions.

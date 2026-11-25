@@ -70,6 +70,7 @@ const app = await buildApp({
   recording: env.SESSION_RECORDING !== "0",
   // STUDY_CONSENT=external: Conditioner's entry page collected consent before the pod started.
   externalConsent: env.STUDY_CONSENT === "external",
+  proxyToken: env.STUDY_PROXY_TOKEN || undefined,
   sandbox: { uid, gid, probeUid },
   workRoot,
   // minutes; 0 = off
