@@ -23,19 +23,19 @@ The development server (`npm run dev`) is not available in this environment.
 - `src/lib/` – business logic, with no React or Next.js imports, so it can be tested directly
   - `money.ts`, `errors.ts`, `http.ts`, `validation.ts`, `pagination.ts`
   - `accounts.ts`, `catalog.ts`, `orders.ts`, `db.ts`
-  - `webhooks/` – `types.ts`, `handlers.ts`, `idempotency.ts`, `webhook.ts` (payment webhook logic)
+  - `payments/` – `types.ts`, `handlers.ts`, `once.ts`, `receive.ts` (payment logic)
   - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`
 - `test/` – unit tests
 
-## Payment webhooks
+## Payment notifications
 
-`POST /api/webhooks/payments` accepts one payment event from the provider:
+`POST /api/payments` accepts one payment event from the provider:
 
 ```json
 { "id": "evt_1", "type": "payment.succeeded", "accountId": "acc_1", "amount": "15.00" }
 ```
 
-`amount` is a decimal dollar string and is converted to integer cents without floating point. A successful delivery answers `200` with the account's new `balanceCents`. The event id is recorded in the in-memory event log (`db.webhookEvents`), so delivering the same event again answers `200` with `duplicate: true` and does not credit the balance twice. Temporary failures are retried up to three times; a malformed payload answers `400`, an unknown account `404`, and exhausted retries `500`. Provider signatures are not verified yet.
+`amount` is a decimal dollar string and is converted to integer cents without floating point. A successful delivery answers `200` with the account's new `balanceCents`. The event id is recorded in the in-memory event log (`db.paymentEvents`), so delivering the same event again answers `200` with `duplicate: true` and does not credit the balance twice. Temporary failures are retried up to three times; a malformed payload answers `400`, an unknown account `404`, and exhausted retries `500`. Provider signatures are not verified yet.
 
 ## Conventions
 

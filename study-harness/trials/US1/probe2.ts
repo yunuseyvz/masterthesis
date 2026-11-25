@@ -2,7 +2,7 @@ import { NotFoundError, OutOfStockError } from "./src/lib/errors.ts";
 import { reserveStock, stockOf } from "./src/lib/inventory/inventory.ts";
 import { createStockStore } from "./src/lib/inventory/types.ts";
 
-const store = createStockStore([{ sku: "pen", stock: 2 }]);
+const store = createStockStore([{ productId: "pen", stock: 2 }]);
 reserveStock(store, "pen", 2);
 try {
   console.log(String(stockOf(store, "pen")));

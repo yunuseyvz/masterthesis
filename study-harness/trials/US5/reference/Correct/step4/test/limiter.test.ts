@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fakeClock } from "../src/lib/clock.ts";
 import { createLimiter } from "../src/lib/ratelimit/limiter.ts";
-import { rateLimited } from "../src/lib/ratelimit/gateway.ts";
+import { rateLimited } from "../src/lib/ratelimit/wrap.ts";
 import { clientId } from "../src/lib/ratelimit/respond.ts";
 
 test("allows requests up to the limit and rejects the next", () => {
@@ -13,7 +13,7 @@ test("allows requests up to the limit and rejects the next", () => {
   assert.deepEqual(limiter.check("a"), { allowed: false, retryAfterMs: 1000 });
 });
 
-test("counts only requests inside the sliding window", () => {
+test("counts only requests inside the time window", () => {
   const clock = fakeClock(0);
   const limiter = createLimiter(clock, { limit: 2, windowMs: 1000 });
   limiter.check("a");
@@ -43,7 +43,7 @@ test("reads the client from the proxy headers", () => {
   assert.equal(clientId(new Request("http://localhost")), "unknown");
 });
 
-test("the gateway rejects a client over the limit with 429", async () => {
+test("rateLimited rejects a client over the limit with 429", async () => {
   const clock = fakeClock(0);
   const limiter = createLimiter(clock, { limit: 1, windowMs: 60_000 });
   const handler = rateLimited(() => new Response("ok"), limiter);
@@ -59,7 +59,7 @@ test("the gateway rejects a client over the limit with 429", async () => {
   assert.deepEqual(await second.json(), { ok: false, error: "too many requests" });
 });
 
-test("the gateway lets different clients through", async () => {
+test("rateLimited lets different clients through", async () => {
   const clock = fakeClock(0);
   const limiter = createLimiter(clock, { limit: 1, windowMs: 1000 });
   const handler = rateLimited(() => new Response("ok"), limiter);

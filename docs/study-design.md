@@ -46,10 +46,10 @@ item (Paas, 1–9) and three statements about the review (1–7).
 | Feature | Milestone | Open case it settles | Flaw in | The wrong decision |
 |---|---|---|---|---|
 | US1 Flash-sale reservation | 2 | an order for more than is left | 2 | sold-out items are removed: 404 instead of 409 |
-| US2 Payment webhook | 3 | a redelivery of an event that was given up | 2 | cents by rounding down: "19.99" credits 1998 |
-| US3 Tenant configuration | 2 | a limit set to `null` | 3 | a bulk operation counts as one against the quota |
-| US4 SLA credits | 1 | a duration without a unit | 3 | outages crossing the billing period are skipped |
-| US5 Rate limiter | 3 | a request exactly one window after the oldest | 3 | rejected requests count: a retrying client stays blocked |
+| US2 Payment notifications | 3 | a repeated delivery of an event that was given up | 2 | cents by rounding down: "19.99" credits 1998 |
+| US3 Seller settings | 2 | a limit set to `null` | 3 | a bulk operation counts as one against the limit |
+| US4 Outage refunds | 1 | a duration without a unit | 3 | outages crossing the billing month are skipped |
+| US5 Request limit | 3 | a request exactly one window after the oldest | 3 | rejected requests count: a retrying client stays blocked |
 | US6 Coupons | 1 | a discount of a fraction of a cent | 1 | a 100 % coupon is refused |
 
 ## Hypotheses and analysis

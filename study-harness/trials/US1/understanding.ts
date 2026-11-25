@@ -10,7 +10,7 @@ const { createStockStore } = await optional(import("./src/lib/inventory/types.ts
 const items: (() => Promise<string> | string)[] = [
   // open case (step 2): more ordered than is left
   () => {
-    const store = createStockStore([{ sku: "mug", stock: 3 }]);
+    const store = createStockStore([{ productId: "mug", stock: 3 }]);
     try {
       const left = reserveStock(store, "mug", 5);
       return left < 0 ? "5 mugs are reserved; the stock goes to -2" : "3 mugs are reserved without a note; the stock goes to 0";
@@ -21,7 +21,7 @@ const items: (() => Promise<string> | string)[] = [
   },
   // flaw (step 2): ordering an item that has just sold out
   () => {
-    const store = createStockStore([{ sku: "mug", stock: 2 }]);
+    const store = createStockStore([{ productId: "mug", stock: 2 }]);
     reserveStock(store, "mug", 2);
     try {
       reserveStock(store, "mug", 1);
@@ -32,13 +32,13 @@ const items: (() => Promise<string> | string)[] = [
   },
   // dependency (step 3): checkout reports the quantity ordered
   () => {
-    const r = checkout(createStockStore([{ sku: "mug", stock: 3 }]), JSON.stringify({ sku: "mug", quantity: 2 }));
+    const r = checkout(createStockStore([{ productId: "mug", stock: 3 }]), JSON.stringify({ productId: "mug", quantity: 2 }));
     return r.quantity === 2 && r.remaining === 1 ? "The quantity ordered" : "?";
   },
   // emergent (step 3): an unknown field in the request
   () => {
     try {
-      const r = checkout(createStockStore([{ sku: "mug", stock: 3 }]), JSON.stringify({ sku: "mug", quantity: 1, gift: true }));
+      const r = checkout(createStockStore([{ productId: "mug", stock: 3 }]), JSON.stringify({ productId: "mug", quantity: 1, gift: true }));
       return "gift" in r ? "The mug is reserved and the gift flag is kept" : "The field is ignored and the mug is reserved";
     } catch (err) {
       // Any error that is not an AppError becomes a 500 in the route.
@@ -49,7 +49,7 @@ const items: (() => Promise<string> | string)[] = [
   // interplay (step 4): the route on an invalid quantity
   async () => {
     const { POST } = await import("./src/app/api/checkout/route.ts");
-    const res: Response = await POST(new Request("http://localhost/api/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sku: "mug", quantity: 0 }) }));
+    const res: Response = await POST(new Request("http://localhost/api/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId: "mug", quantity: 0 }) }));
     return { 400: "400: invalid request", 200: "200: nothing is reserved", 409: "409: out of stock", 500: "500: server error" }[res.status] ?? `It answers ${res.status}`;
   },
 ];

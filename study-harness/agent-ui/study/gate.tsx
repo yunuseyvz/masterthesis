@@ -33,7 +33,10 @@ export function StudyGate(props: ParentProps) {
 
   createEffect(() => {
     const phase = view()?.phase
-    if (phase === "stage1" || phase === "reviewing") resetCoverage()
+    if (phase !== "stage1" && phase !== "reviewing") return
+    resetCoverage()
+    // The changes view reloads the working tree's diff (patch in review/model.ts).
+    window.dispatchEvent(new Event("study:review"))
   })
 
   createEffect(() => {

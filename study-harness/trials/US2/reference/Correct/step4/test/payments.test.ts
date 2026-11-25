@@ -1,13 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { POST } from "../src/app/api/webhooks/payments/route.ts";
+import { POST } from "../src/app/api/payments/route.ts";
 import { createAccountStore, getAccount } from "../src/lib/accounts.ts";
 import { fakeClock } from "../src/lib/clock.ts";
 import { createEventLog, resetDb } from "../src/lib/db.ts";
-import { applyPayment, dollarsToCents, parsePaymentEvent } from "../src/lib/webhooks/handlers.ts";
-import { processEventOnce } from "../src/lib/webhooks/idempotency.ts";
-import { handleWebhookRequest } from "../src/lib/webhooks/webhook.ts";
-import type { PaymentEvent, WebhookDeps } from "../src/lib/webhooks/types.ts";
+import { applyPayment, dollarsToCents, parsePaymentEvent } from "../src/lib/payments/handlers.ts";
+import { processEventOnce } from "../src/lib/payments/once.ts";
+import { handlePaymentRequest } from "../src/lib/payments/receive.ts";
+import type { PaymentEvent, PaymentDeps } from "../src/lib/payments/types.ts";
 
 const noWait = async () => {};
 
@@ -18,7 +18,7 @@ const event: PaymentEvent = {
   amount: "15.00",
 };
 
-function makeDeps(maxAttempts = 3): WebhookDeps {
+function makeDeps(maxAttempts = 3): PaymentDeps {
   return {
     accounts: createAccountStore([{ id: "acc_1", name: "Ada", balanceCents: 1000 }]),
     log: createEventLog(fakeClock()),
@@ -28,7 +28,7 @@ function makeDeps(maxAttempts = 3): WebhookDeps {
 }
 
 function post(body: unknown): Request {
-  return new Request("http://localhost/api/webhooks/payments", {
+  return new Request("http://localhost/api/payments", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
@@ -74,7 +74,7 @@ test("delivering the same event twice credits the account once", async () => {
 test("retries a temporary failure and credits exactly once", async () => {
   const deps = makeDeps();
   let calls = 0;
-  const flaky = (d: WebhookDeps, e: PaymentEvent) => {
+  const flaky = (d: PaymentDeps, e: PaymentEvent) => {
     calls += 1;
     if (calls < 3) throw new Error("gateway unavailable");
     return applyPayment(d, e);
@@ -99,7 +99,7 @@ test("gives up after the attempt limit without crediting", async () => {
   assert.equal(deps.log.get("evt_1")?.status, "failed");
   assert.equal(getAccount(deps.accounts, "acc_1").balanceCents, 1000);
 
-  // A later redelivery of a failed event may be processed.
+  // A later repeated delivery of a failed event may be processed.
   const retried = await processEventOnce(deps, event, applyPayment, noWait);
   assert.equal(retried.duplicate, false);
   assert.equal(getAccount(deps.accounts, "acc_1").balanceCents, 2500);
@@ -108,7 +108,7 @@ test("gives up after the attempt limit without crediting", async () => {
 test("does not retry permanent errors such as an unknown account", async () => {
   const deps = makeDeps();
   let calls = 0;
-  const handler = (d: WebhookDeps, e: PaymentEvent) => {
+  const handler = (d: PaymentDeps, e: PaymentEvent) => {
     calls += 1;
     return applyPayment(d, e);
   };
@@ -122,41 +122,41 @@ test("does not retry permanent errors such as an unknown account", async () => {
   assert.equal(deps.accounts.accounts.size, 1);
 });
 
-test("the webhook handler returns 200 with the new balance", async () => {
+test("the payment handler returns 200 with the new balance", async () => {
   const deps = makeDeps();
-  const response = await handleWebhookRequest(post({ ...event, amount: "15" }), deps);
+  const response = await handlePaymentRequest(post({ ...event, amount: "15" }), deps);
 
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { ok: true, duplicate: false, balanceCents: 2500 });
 });
 
-test("the webhook handler acknowledges a duplicate without crediting again", async () => {
+test("the payment handler acknowledges a duplicate without crediting again", async () => {
   const deps = makeDeps();
-  await handleWebhookRequest(post(event), deps);
+  await handlePaymentRequest(post(event), deps);
 
-  const response = await handleWebhookRequest(post(event), deps);
+  const response = await handlePaymentRequest(post(event), deps);
   assert.equal(response.status, 200);
   assert.equal((await response.json()).duplicate, true);
   assert.equal(getAccount(deps.accounts, "acc_1").balanceCents, 2500);
 });
 
-test("the webhook handler rejects a malformed payload", async () => {
+test("the payment handler rejects a malformed payload", async () => {
   const deps = makeDeps();
 
-  const badAmount = await handleWebhookRequest(post({ ...event, amount: "15.001" }), deps);
+  const badAmount = await handlePaymentRequest(post({ ...event, amount: "15.001" }), deps);
   assert.equal(badAmount.status, 400);
 
-  const badJson = await handleWebhookRequest(
-    new Request("http://localhost/api/webhooks/payments", { method: "POST", body: "{not json" }),
+  const badJson = await handlePaymentRequest(
+    new Request("http://localhost/api/payments", { method: "POST", body: "{not json" }),
     deps,
   );
   assert.equal(badJson.status, 400);
 });
 
-test("the webhook handler answers 404 for an unknown account", async () => {
+test("the payment handler answers 404 for an unknown account", async () => {
   const deps = makeDeps();
 
-  const response = await handleWebhookRequest(post({ ...event, accountId: "acc_x" }), deps);
+  const response = await handlePaymentRequest(post({ ...event, accountId: "acc_x" }), deps);
   assert.equal(response.status, 404);
 });
 

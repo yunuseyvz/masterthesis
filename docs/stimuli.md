@@ -51,8 +51,10 @@ Every story goes through these steps in order; a step starts only once the previ
 | 8 | Guessing check without code (`analysis/pilot/guess-check.ts`) | No item is solvable by everyone without code, except the flaw item in Correct |
 | 9 | Contestability check: 3–5 people judge blind whether Flawed and Correct contradict the story; a second person judges the milestone against the criterion in `docs/study-design.md` | Flawed is seen as a fault, Correct is not; the milestone meets the criterion |
 
-**Role of an LLM.** Steps 1–3 decide what a story measures and are done by hand. From step 4 an LLM may supply drafts
-(wording, options, scripts, files); they are checked and adopted by hand. Every use is recorded under
+**Role of an LLM.** Steps 1–3 decide what a story measures. Step 1 is done by hand. In steps 2 and 3 an LLM may
+word the story and its acceptance criteria and propose open cases and flaws; which open case and which flaw a story
+gets, and that no criterion settles the open case, is decided by hand against the step's check. From step 4 an LLM may
+supply drafts (wording, options, scripts, files); they are checked and adopted by hand. Every use is recorded under
 [Provenance](#provenance): model, what for, and what was adopted.
 
 Trying a draft without touching the real trials (step 6):
@@ -66,10 +68,12 @@ TRIALS_DIR=/tmp/draft npx tsx src/live-run.ts --story US1 --variant Flawed --reg
 ## Questions
 
 **Behaviour questions** (one per subtask 1–3, asked at the pause; the participant may run the code): an input and its
-consequence for the story, never a constant or a type ("What is the default?"). The question about the flaw subtask
-shows the flaw (Correct ≠ Flawed) in a different scenario from the flaw item: other numbers, preferably another
-function, because BATCH always asks it. Exception kept on purpose: US2, US4 and US6, where H1 is also reported without
-the flaw item.
+consequence for the story, never a constant or a type ("What is the default?"), and not one an acceptance criterion
+answers. Its scenario differs from every understanding item of the story, not only the flaw item: a pause question
+that rehearses an item gives the regime that asks it practice on that item. The question about the flaw subtask shows
+the flaw (Correct ≠ Flawed) in a different scenario from the flaw item: other numbers, preferably another function,
+because BATCH always asks it. Exception kept on purpose: US2, US4 and US6, where H1 is also reported without the flaw
+item.
 
 **Understanding items** name a concrete input and ask for the consequence. The answer follows from the code;
 `understanding.ts` determines it on the code as played. Story and public plan must not give it away.
@@ -97,16 +101,22 @@ The form gives nothing away: the correct option is not conspicuously longer and 
 lack; no option is obviously absurd (a number no code prints, a unit that does not fit); all four have the same form.
 The harness shuffles the order per participant.
 
-**Self-check** before step 6: Can someone answer an item from story and public plan alone? Is the correct option the
+**Self-check** before step 6: Does a pause question share its scenario with any item?
+Can someone answer an item from story and public plan alone? Is the correct option the
 longest, or the only one with an explanation? Would an experienced person see Flawed as a fault knowing only the story,
 and Correct not? Is the open case really open? Does a later non-test file build on the milestone? Does the title or a
 subtask summary (`steps[].summary`, used as commit message) reveal a decision?
 
 ## Provenance
 
+An LLM took part at three stages: the base project, the stories, and the reference code. What a story measures
+(slot, open case, flaw, correct answers) was decided by hand, and steps 6–9 check it.
+
 | Stories | By hand | With an LLM | Reference code |
 |---|---|---|---|
-| US0–US6 (as of 21.11.2026) | Slots, stories, open cases, flaws | DeepSeek V4.1 Flash 1017: drafts of texts and other material, checked and adopted by hand | Live runs of the agent (DeepSeek V4.1 Flash), checked by hand |
+| Base project (`study-harness/project/`) | Requirements (domain, size, simple structure, no setup); simplified and shortened afterwards | Claude Opus 5.5: generated the project. Prompt: [TODO: link] | – |
+| US0–US6 (as of 21.11.2026) | Idea of each story, slots, choice of open case and flaw | Claude ([TODO: model]): wording of story and acceptance criteria, proposals for open cases and flaws. Prompts: [TODO: link]. DeepSeek V4.1 Flash 1017: drafts of texts and other material, checked and adopted by hand | Live runs of the agent (DeepSeek V4.1 Flash), checked by hand |
+| US1–US6, plain terms (24.11.2026) | Which terms to replace, and the new terms | Claude Opus 5.5: renamed terms and identifiers in all trial files and the base project (SKU → product, webhook → payment notification, tenant → seller, SLA credits → outage refunds, gateway and sliding window → request wrapper and recent requests); logic, open cases, flaws and correct answers unchanged | Renamed with the rest; `npm test` passes on both variants |
 | US1–US6, options (21.11.2026) | Scenarios and correct answers unchanged | Claude Opus 5.5: rewording of 37 options in 16 items so the correct one no longer stands out by length or an added explanation; `understanding.ts` adjusted to print the new texts | Unchanged; `npm test` passes on both variants |
 
 ## Open

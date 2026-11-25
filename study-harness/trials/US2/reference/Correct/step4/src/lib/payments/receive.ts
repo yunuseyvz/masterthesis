@@ -2,14 +2,14 @@ import { AppError } from "../errors.ts";
 import { errorResponse, json } from "../http.ts";
 import { parseJsonObject } from "../validation.ts";
 import { parsePaymentEvent } from "./handlers.ts";
-import { processEventOnce } from "./idempotency.ts";
-import type { WebhookDeps } from "./types.ts";
+import { processEventOnce } from "./once.ts";
+import type { PaymentDeps } from "./types.ts";
 
 /**
  * Handles one provider delivery. Validates the event, credits it at most once,
  * and answers 200 (including for duplicates) or an error status.
  */
-export async function handleWebhookRequest(request: Request, deps: WebhookDeps): Promise<Response> {
+export async function handlePaymentRequest(request: Request, deps: PaymentDeps): Promise<Response> {
   try {
     const raw = parseJsonObject(await request.text());
     const event = parsePaymentEvent(raw);

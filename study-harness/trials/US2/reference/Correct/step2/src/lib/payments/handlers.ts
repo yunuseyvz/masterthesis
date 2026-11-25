@@ -2,7 +2,7 @@ import { adjustBalance, type Account } from "../accounts.ts";
 import { ValidationError } from "../errors.ts";
 import type { Cents } from "../money.ts";
 import { requireString } from "../validation.ts";
-import type { PaymentEvent, WebhookDeps } from "./types.ts";
+import type { PaymentEvent, PaymentDeps } from "./types.ts";
 
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
 
@@ -36,6 +36,6 @@ export function parsePaymentEvent(raw: Record<string, unknown>): PaymentEvent {
 }
 
 /** Credits the event's amount to the account and returns the updated account. */
-export function applyPayment(deps: Pick<WebhookDeps, "accounts">, event: PaymentEvent): Account {
+export function applyPayment(deps: Pick<PaymentDeps, "accounts">, event: PaymentEvent): Account {
   return adjustBalance(deps.accounts, event.accountId, dollarsToCents(event.amount));
 }

@@ -1,10 +1,11 @@
-import { createAccountStore, getAccount } from "./src/lib/accounts.ts";
+import { createAccountStore } from "./src/lib/accounts.ts";
 import { fakeClock } from "./src/lib/clock.ts";
-import { processEventOnce } from "./src/lib/webhooks/idempotency.ts";
+import { applyPayment } from "./src/lib/payments/handlers.ts";
+import { processEventOnce } from "./src/lib/payments/once.ts";
 
-// The event log's factory: in src/lib/db.ts as the outline says, or next to the webhook types.
+// The event log's factory: in src/lib/db.ts as the outline says, or next to the payment types.
 async function eventLogFactory(): Promise<(clock: unknown) => any> {
-  for (const p of ["./src/lib/db.ts", "./src/lib/webhooks/types.ts", "./src/lib/webhooks/event-log.ts", "./src/lib/webhooks/eventLog.ts"]) {
+  for (const p of ["./src/lib/db.ts", "./src/lib/payments/types.ts", "./src/lib/payments/event-log.ts", "./src/lib/payments/eventLog.ts"]) {
     const m = await import(p).catch(() => ({}));
     if (typeof (m as { createEventLog?: unknown }).createEventLog === "function") return (m as { createEventLog: (c: unknown) => any }).createEventLog;
   }
@@ -33,9 +34,13 @@ function memoryLog() {
 }
 const createEventLog = await eventLogFactory();
 
-const deps = { accounts: createAccountStore([{ id: "a", name: "A", balanceCents: 0 }]), log: createEventLog(fakeClock()), clock: fakeClock() };
-const event = { id: "e1", type: "payment.succeeded" as const, accountId: "a", amount: "10.00" };
-await processEventOnce(deps, event);
-await processEventOnce(deps, event);
-const times = getAccount(deps.accounts, "a").balanceCents / 1000;
-console.log(times === 1 ? "Once" : times === 2 ? "Twice" : times === 0 ? "Never" : String(times));
+// An event for an account that does not exist: crediting it fails with a NotFoundError on every try.
+const deps = { accounts: createAccountStore([]), log: createEventLog(fakeClock()), clock: fakeClock() };
+const event = { id: "e1", type: "payment.succeeded" as const, accountId: "missing", amount: "10.00" };
+let tries = 0;
+const handler = (d: typeof deps, e: typeof event) => {
+  tries++;
+  return applyPayment(d as never, e as never);
+};
+await processEventOnce(deps as never, event, handler as never, async () => {}).catch(() => {});
+console.log(["", "Once", "Twice", "Three times", "Four times"][tries] ?? `${tries} times`);

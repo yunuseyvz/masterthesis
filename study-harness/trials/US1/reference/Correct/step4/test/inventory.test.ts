@@ -6,9 +6,9 @@ import { reserveStock, stockOf } from "../src/lib/inventory/inventory.ts";
 import { createStockStore } from "../src/lib/inventory/types.ts";
 
 const levels = [
-  { sku: "mug", stock: 3 },
-  { sku: "pen", stock: 1 },
-  { sku: "notebook", stock: 0 },
+  { productId: "mug", stock: 3 },
+  { productId: "pen", stock: 1 },
+  { productId: "notebook", stock: 0 },
 ];
 
 test("reserves stock and reports what is left", () => {
@@ -28,7 +28,7 @@ test("refuses to reserve more than is in stock", () => {
   assert.equal(stockOf(store, "mug"), 3);
 });
 
-test("an unknown sku is not found", () => {
+test("an unknown productId is not found", () => {
   const store = createStockStore(levels);
   assert.throws(() => stockOf(store, "hat"), /not found/);
   assert.throws(() => reserveStock(store, "hat", 1), /not found/);
@@ -42,8 +42,8 @@ test("rejects a quantity that is not a positive integer", () => {
 
 test("checkout reserves the requested line", () => {
   const store = createStockStore(levels);
-  assert.deepEqual(checkout(store, JSON.stringify({ sku: "pen", quantity: 1 })), {
-    sku: "pen",
+  assert.deepEqual(checkout(store, JSON.stringify({ productId: "pen", quantity: 1 })), {
+    productId: "pen",
     quantity: 1,
     remaining: 0,
   });
@@ -53,7 +53,7 @@ test("checkout reserves the requested line", () => {
 test("checkout rejects bad bodies and unavailable stock", () => {
   const store = createStockStore(levels);
   assert.throws(() => checkout(store, "nope"), /not valid JSON/);
-  assert.throws(() => checkout(store, JSON.stringify({ sku: "mug", quantity: 0 })), /quantity must be/);
-  assert.throws(() => checkout(store, JSON.stringify({ sku: "mug", quantity: 9 })), OutOfStockError);
+  assert.throws(() => checkout(store, JSON.stringify({ productId: "mug", quantity: 0 })), /quantity must be/);
+  assert.throws(() => checkout(store, JSON.stringify({ productId: "mug", quantity: 9 })), OutOfStockError);
   assert.equal(stockOf(store, "mug"), 3);
 });

@@ -2,16 +2,16 @@ import { assertCents, sumCents, type Cents } from "../money.ts";
 import { ValidationError } from "../errors.ts";
 import { parseDurationMinutes } from "./duration.ts";
 import { minutesBetween } from "./time.ts";
-import type { Invoice, InvoiceLine, Outage, SlaPolicy, SlaTier } from "./types.ts";
+import type { Bill, BillLine, Outage, RefundPolicy, RefundTier } from "./types.ts";
 
-export interface GenerateInvoiceInput {
+export interface GenerateBillInput {
   accountId: string;
   periodStartMs: number;
   periodEndMs: number;
-  /** The invoice amount before any SLA credit. */
+  /** The bill amount before any refund. */
   subtotalCents: Cents;
   outages: Outage[];
-  policy: SlaPolicy;
+  policy: RefundPolicy;
 }
 
 /** Length of an outage in minutes. */
@@ -20,8 +20,8 @@ export function outageMinutes(outage: Outage): number {
 }
 
 /** The highest tier the outage length qualifies for, if any. */
-export function tierFor(minutes: number, policy: SlaPolicy): SlaTier | undefined {
-  let best: SlaTier | undefined;
+export function tierFor(minutes: number, policy: RefundPolicy): RefundTier | undefined {
+  let best: RefundTier | undefined;
   let bestMinutes = -1;
   for (const tier of policy.tiers) {
     const tierMinutes = parseDurationMinutes(tier.minOutage);
@@ -33,8 +33,8 @@ export function tierFor(minutes: number, policy: SlaPolicy): SlaTier | undefined
   return best;
 }
 
-/** Credit for one outage: zero inside the SLA, otherwise a share of the subtotal. */
-export function creditForOutage(minutes: number, subtotalCents: Cents, policy: SlaPolicy): Cents {
+/** Refund for one outage: zero within the allowed outage time, otherwise a share of the subtotal. */
+export function refundForOutage(minutes: number, subtotalCents: Cents, policy: RefundPolicy): Cents {
   if (minutes <= parseDurationMinutes(policy.threshold)) {
     return 0;
   }
@@ -42,47 +42,47 @@ export function creditForOutage(minutes: number, subtotalCents: Cents, policy: S
   if (!tier) {
     return 0;
   }
-  return Math.floor((assertCents(subtotalCents) * tier.creditPercent) / 100);
+  return Math.floor((assertCents(subtotalCents) * tier.refundPercent) / 100);
 }
 
 /**
- * Builds an invoice for one billing period, adding an SLA credit line when the
+ * Builds a bill for one billing month, adding a refund line when the
  * customer's outages miss the policy threshold.
  */
-export function generateInvoice(input: GenerateInvoiceInput): Invoice {
+export function generateBill(input: GenerateBillInput): Bill {
   const { accountId, periodStartMs, periodEndMs, outages, policy } = input;
   const subtotalCents = assertCents(input.subtotalCents);
 
   if (periodEndMs < periodStartMs) {
-    throw new ValidationError("billing period ends before it starts");
+    throw new ValidationError("billing month ends before it starts");
   }
 
-  const credits: Cents[] = [];
+  const refunds: Cents[] = [];
   for (const outage of outages) {
     const startedAt = Math.max(outage.startedAt, periodStartMs);
     const endedAt = Math.min(outage.endedAt, periodEndMs);
     if (endedAt <= startedAt) {
       continue;
     }
-    const credit = creditForOutage(minutesBetween(startedAt, endedAt), subtotalCents, policy);
-    if (credit > 0) {
-      credits.push(credit);
+    const refund = refundForOutage(minutesBetween(startedAt, endedAt), subtotalCents, policy);
+    if (refund > 0) {
+      refunds.push(refund);
     }
   }
 
-  const creditCents = sumCents(credits);
-  const lines: InvoiceLine[] = [{ description: "Subtotal", amountCents: subtotalCents }];
-  for (const [index, credit] of credits.entries()) {
-    lines.push({ description: `SLA credit ${index + 1}`, amountCents: -credit });
+  const refundCents = sumCents(refunds);
+  const lines: BillLine[] = [{ description: "Subtotal", amountCents: subtotalCents }];
+  for (const [index, refund] of refunds.entries()) {
+    lines.push({ description: `refund policy refund ${index + 1}`, amountCents: -refund });
   }
-  lines.push({ description: "Total", amountCents: subtotalCents - creditCents });
+  lines.push({ description: "Total", amountCents: subtotalCents - refundCents });
 
   return {
     accountId,
     periodStartMs,
     periodEndMs,
     lines,
-    creditCents,
-    totalCents: subtotalCents - creditCents,
+    refundCents,
+    totalCents: subtotalCents - refundCents,
   };
 }

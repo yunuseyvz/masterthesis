@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseDurationMinutes } from "../src/lib/sla/duration.ts";
-import { MINUTE_MS, minutesBetween } from "../src/lib/sla/time.ts";
+import { parseDurationMinutes } from "../src/lib/refunds/duration.ts";
+import { MINUTE_MS, minutesBetween } from "../src/lib/refunds/time.ts";
 
 test("parses a single unit", () => {
   assert.equal(parseDurationMinutes("45m"), 45);

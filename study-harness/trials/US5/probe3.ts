@@ -6,5 +6,5 @@ const limiter = createLimiter(clock, { limit: 1, windowMs: 1000 });
 limiter.check("c");
 clock.advance(300);
 limiter.check("c");
-clock.advance(700);
+clock.advance(900);
 console.log(limiter.check("c").allowed ? "Allowed" : "Rejected");

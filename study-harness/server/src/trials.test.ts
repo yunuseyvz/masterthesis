@@ -117,18 +117,18 @@ describe("Next.js route handlers", () => {
     const out = await runProbe(loadReference(load("US1")).workspaceAt("Correct", 4), `
       import { POST } from "./src/app/api/checkout/route.ts";
       const send = (body) => POST(new Request("http://localhost/api/checkout", { method: "POST", body: JSON.stringify(body) }));
-      const a = await send({ sku: "mug", quantity: 2 });
-      const b = await send({ sku: "nope", quantity: 1 });
+      const a = await send({ productId: "mug", quantity: 2 });
+      const b = await send({ productId: "nope", quantity: 1 });
       console.log(a.status, await a.text(), b.status);
     `);
-    expect(out).toBe('200 {"ok":true,"sku":"mug","quantity":2,"remaining":1} 404');
+    expect(out).toBe('200 {"ok":true,"productId":"mug","quantity":2,"remaining":1} 404');
   });
 
-  it("the payments webhook route credits an account once and skips a redelivery", async () => {
+  it("the payments route credits an account once and skips a repeated delivery", async () => {
     const out = await runProbe(loadReference(load("US2")).workspaceAt("Correct", 4), `
-      import { POST } from "./src/app/api/webhooks/payments/route.ts";
+      import { POST } from "./src/app/api/payments/route.ts";
       import { getDb } from "./src/lib/db.ts";
-      const send = () => POST(new Request("http://localhost/api/webhooks/payments", { method: "POST", body: JSON.stringify({ id: "evt_1", type: "payment.succeeded", accountId: "acc_1", amount: "5.00" }) }));
+      const send = () => POST(new Request("http://localhost/api/payments", { method: "POST", body: JSON.stringify({ id: "evt_1", type: "payment.succeeded", accountId: "acc_1", amount: "5.00" }) }));
       const a = await send();
       const b = await send();
       console.log(await a.text(), await b.text(), getDb().accounts.accounts.get("acc_1").balanceCents);

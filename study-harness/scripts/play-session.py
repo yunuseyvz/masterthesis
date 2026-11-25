@@ -107,7 +107,9 @@ def main() -> int:
                 click("Continue")
             wait_text("Almost done", timeout=INF)
             wait_text("How much mental effort", timeout=INF)
-            page.get_by_role("radio", name="5", exact=True).click()
+            # mental effort (1-9) and the three statements about the review (1-7)
+            for scale in page.locator("[data-study-scale]").all():
+                scale.get_by_role("radio", name="5", exact=True).click()
             shot(f"t{trial}-effort")
             click("Next")
             print(f"  trial {trial} done", flush=True)

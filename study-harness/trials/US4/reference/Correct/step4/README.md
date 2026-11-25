@@ -26,17 +26,17 @@ The development server (`npm run dev`) is not available in this environment.
   - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`
 - `test/` – unit tests
 
-## SLA credits
+## Outage refunds
 
-`src/lib/sla/` turns outages into a credit on the customer's invoice.
+`src/lib/refunds/` turns outages into a refund on the customer's bill.
 
 - `duration.ts` – `parseDurationMinutes("1h 30m")` → `90`. Every part needs an explicit `d`, `h`, `m` or `s` unit.
 - `time.ts` – millisecond constants and `minutesBetween(from, to)`.
-- `types.ts` – the policy (`threshold` plus `tiers`, written as durations such as `"30m"`), `Outage`, `Invoice` and the defaults: outages of 30 minutes or less earn nothing, then 5% of the subtotal up to 4h, 10% up to 12h and 25% beyond that.
-- `invoice.ts` – `generateInvoice({ accountId, periodStartMs, periodEndMs, subtotalCents, outages, policy })`. Outages outside the period are ignored, each qualifying outage is credited at the highest tier it reaches, and the credits are summed into one negative `SLA credit` line per outage. `creditCents` is the total credited and `totalCents` is the subtotal minus the credit.
+- `types.ts` – the policy (`threshold` plus `tiers`, written as durations such as `"30m"`), `Outage`, `Bill` and the defaults: outages of 30 minutes or less earn nothing, then 5% of the subtotal up to 4h, 10% up to 12h and 25% beyond that.
+- `bill.ts` – `generateBill({ accountId, periodStartMs, periodEndMs, subtotalCents, outages, policy })`. Outages outside the period are ignored, each qualifying outage is refunded at the highest tier it reaches, and the refunds are summed into one negative `refund policy refund` line per outage. `refundCents` is the total refunded and `totalCents` is the subtotal minus the refund.
 
 ```ts
-const invoice = generateInvoice({
+const bill = generateBill({
   accountId: "acct_1",
   periodStartMs: 0,
   periodEndMs: 30 * DAY_MS,
@@ -44,7 +44,7 @@ const invoice = generateInvoice({
   outages: [{ id: "o1", startedAt: 0, endedAt: 45 * MINUTE_MS }],
   policy: DEFAULT_POLICY,
 });
-// invoice.creditCents === 500, invoice.totalCents === 9500
+// bill.refundCents === 500, bill.totalCents === 9500
 ```
 
 ## Conventions

@@ -20,7 +20,7 @@ export class ValidationError extends AppError {
   }
 }
 
-export class QuotaExceededError extends AppError {
+export class LimitExceededError extends AppError {
   constructor(message: string) {
     super(429, message);
   }

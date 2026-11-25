@@ -1,29 +1,29 @@
 {
   "id": "US3",
-  "title": "Tenant Configuration",
+  "title": "Seller Settings",
   "project": "shopfront",
-  "brief": "As a platform admin, I want each tenant to be able to customize its feature flags and limits, so that tenants can differ from the organization defaults where they need to.\n\nAcceptance criteria:\n- A tenant that sets no value of its own gets the organization default for it.\n- A tenant's own value replaces the default, for each flag and each limit separately.\n- An operation that would take a tenant over one of its limits is rejected (429) and does not run.\n- An operation that adds several items at once is rejected unless all of them fit.",
+  "brief": "As a shop owner, I want each seller to be able to customize its own features and limits, so that sellers can differ from the shop defaults where they need to.\n\nAcceptance criteria:\n- A seller that sets no value of its own gets the shop default for it.\n- A seller's own value replaces the default, for each feature and each limit separately.\n- An operation that would take a seller over one of its limits is rejected (429) and does not run.\n- An operation that adds several items at once is rejected unless all of them fit.",
   "steps": [
     {
       "n": 1,
       "kind": "scaffold",
       "declarative": true,
-      "summary": "Add the tenant feature-flag and limit types plus the organization defaults"
+      "summary": "Add the seller feature and limit types plus the shop defaults"
     },
     {
       "n": 2,
       "kind": "milestone",
-      "summary": "Merge the organization defaults with each tenant's overrides"
+      "summary": "Merge the shop defaults with each seller's overrides"
     },
     {
       "n": 3,
       "kind": "scaffold",
-      "summary": "Add the 429 quota error and the usage checks that wrap an operation"
+      "summary": "Add the 429 limit error and the usage checks that wrap an operation"
     },
     {
       "n": 4,
       "kind": "completion",
-      "summary": "Add tests for config merging and quota checks, document the model"
+      "summary": "Add tests for config merging and limit checks, document the model"
     }
   ],
   "flawStep": 3,
@@ -48,7 +48,7 @@
   "probes": [
     {
       "step": 1,
-      "question": "What is the organization default for maxUsers?",
+      "question": "What is the shop default for maxUsers?",
       "options": [
         "5",
         "100",
@@ -63,7 +63,7 @@
     },
     {
       "step": 2,
-      "question": "A tenant overrides only { features: { refunds: false } }. Is analytics enabled for it?",
+      "question": "A seller overrides only { features: { refunds: false } }. Is analytics enabled for it?",
       "options": [
         "No",
         "Yes",
@@ -78,16 +78,16 @@
     },
     {
       "step": 3,
-      "question": "A tenant with maxUsers 5 has no users yet. withQuota is called to invite 6 users at once (amount 6). What happens?",
+      "question": "A seller with maxUsers 5 has no users yet. withinLimit is called to invite 6 users at once (amount 6). What happens?",
       "options": [
-        "It fails with a 429 QuotaExceededError",
+        "It fails with a 429 LimitExceededError",
         "The operation runs",
         "Only 5 users are added",
         "It fails with 400"
       ],
       "script": "probe3.ts",
       "expected": {
-        "Correct": "It fails with a 429 QuotaExceededError",
+        "Correct": "It fails with a 429 LimitExceededError",
         "Flawed": "The operation runs"
       }
     }
@@ -98,9 +98,9 @@
       {
         "step": 2,
         "role": "open-case",
-        "question": "A tenant overrides its limits with { maxUsers: null }. What is its effective maxUsers limit?",
+        "question": "A seller overrides its limits with { maxUsers: null }. What is its effective maxUsers limit?",
         "options": [
-          "The organization default",
+          "The shop default",
           "No limit at all",
           "0",
           "Resolving its configuration throws"
@@ -113,7 +113,7 @@
       {
         "step": 2,
         "role": "emergent",
-        "question": "A tenant's overrides contain a limit the platform does not have: { limits: { maxWidgets: 3 } }. What happens to it?",
+        "question": "A seller's overrides contain a limit the shop does not have: { limits: { maxWidgets: 3 } }. What happens to it?",
         "options": [
           "It is dropped from the effective limits",
           "It is kept in the effective limits",
@@ -128,10 +128,10 @@
       {
         "step": 3,
         "role": "dependency",
-        "question": "A tenant has overridden maxProducts with null and already has 100 products; the organization default is 100. It adds 1 product through withQuota. What happens?",
+        "question": "A seller has overridden maxProducts with null and already has 100 products; the shop default is 100. It adds 1 product through withinLimit. What happens?",
         "options": [
-          "It is rejected: quota exceeded (429)",
-          "It runs: null means the tenant has no limit",
+          "It is rejected: limit exceeded (429)",
+          "It runs: null means the seller has no limit",
           "It is rejected as invalid (400)",
           "It fails with a TypeError"
         ],
@@ -143,7 +143,7 @@
       {
         "step": 3,
         "role": "flaw",
-        "question": "A tenant with a maxProducts limit of 100 has 98 products and imports 5 at once through withQuota. What happens?",
+        "question": "A seller with a maxProducts limit of 100 has 98 products and imports 5 at once through withinLimit. What happens?",
         "options": [
           "The import is rejected (429)",
           "The import runs and all 5 are added",
@@ -158,9 +158,9 @@
       {
         "step": 3,
         "role": "interplay",
-        "question": "A tenant overrides its limits with { maxUsers: 0 } and has no users yet. It adds one user through withQuota. What happens?",
+        "question": "A seller overrides its limits with { maxUsers: 0 } and has no users yet. It adds one user through withinLimit. What happens?",
         "options": [
-          "It is rejected: quota exceeded (429)",
+          "It is rejected: limit exceeded (429)",
           "It runs: 0 counts as not set, so the default of 5 applies",
           "It runs: 0 means no limit",
           "It is rejected as invalid (400)"

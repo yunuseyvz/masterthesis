@@ -127,3 +127,34 @@ index dd9fc96..412f1d2 100644
    const OpenInAppButton = lazy(() => import("./open-in-app"))
  
    // How many "Open in" buttons each screen's panel headers show; the tab strip shows its own only while none do.
+diff --git a/packages/gui-extensions/src/review/model.ts b/packages/gui-extensions/src/review/model.ts
+index 3958b41..dd58718 100644
+--- a/packages/gui-extensions/src/review/model.ts
++++ b/packages/gui-extensions/src/review/model.ts
+@@ -102,6 +102,10 @@ export function createReviewModel(input: {
+ 
+     if (project?.vcs) list.push("git")
+ 
++    // Study mode (beacon): the working tree holds exactly what the agent wrote since the last review; the turn's
++    // changes would add the steps before it, and a branch is never made.
++    if (document.body.dataset.study === "1") return list
++
+     if (
+       project?.vcs &&
+       vcs()?.branch.current &&
+@@ -208,6 +212,15 @@ export function createReviewModel(input: {
+     { equals: (previous, next) => previous.directory === next.directory && previous.data === next.data },
+   )
+ 
++  // Study mode (beacon): a review starts while the agent's turn is still open, after the steps before it were
++  // committed; no filesystem event or focus change reloads the working tree's diff then, so the study asks for it.
++  const reload = () => {
++    refresh()
++    if (view().server.connected && view().project?.vcs) void diffQuery.refetch()
++  }
++  window.addEventListener("study:review", reload)
++  onCleanup(() => window.removeEventListener("study:review", reload))
++
+   // Opening the side region refreshes changes a tree already shows. Otherwise it loads them once, so the
+   // pinned tab reads "Files Changed N": v2 opened the region on the review tab before selecting another.
+   // A region restored open does not load them until something shows them.

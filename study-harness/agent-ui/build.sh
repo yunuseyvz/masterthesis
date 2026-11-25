@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds opencode's web app in study mode: upstream opencode at a pinned version, plus this folder's `study/`
 # module and `opencode.patch` (hooks at the app root and the composer region; the file extension opens its file tree
-# in study mode). Output: agent-ui/dist.
+# in study mode; the changes view shows only the working tree and reloads when a review starts). Output: agent-ui/dist.
 #
 # Usage: agent-ui/build.sh            (clones into agent-ui/.cache on first run; needs git, node, network)
 set -euo pipefail

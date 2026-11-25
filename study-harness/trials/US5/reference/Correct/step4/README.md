@@ -24,7 +24,7 @@ The development server (`npm run dev`) is not available in this environment.
   - `money.ts`, `errors.ts`, `http.ts`, `validation.ts`, `pagination.ts`
   - `accounts.ts`, `catalog.ts`, `orders.ts`, `db.ts`
   - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`
-  - `ratelimit/` – per-client request limiting (`types.ts`, `respond.ts`, `limiter.ts`, `gateway.ts`)
+  - `ratelimit/` – per-client request limiting (`types.ts`, `respond.ts`, `limiter.ts`, `wrap.ts`)
 - `test/` – unit tests
 
 ## Rate limiting
@@ -33,12 +33,12 @@ Wrap an API route handler with `rateLimited` to cap requests per client:
 
 ```ts
 import { json } from "../../../lib/http.ts";
-import { rateLimited } from "../../../lib/ratelimit/gateway.ts";
+import { rateLimited } from "../../../lib/ratelimit/wrap.ts";
 
 export const GET = rateLimited(async () => json(200, { ok: true }));
 ```
 
-A client is identified by the first `x-forwarded-for` entry, then `x-real-ip`. The default is 60 requests per 60-second sliding window; requests over the limit receive `429` with a `Retry-After` header (in seconds) and a JSON body. Pass `createLimiter(clock, { limit, windowMs })` to `rateLimited` as the second argument to override the defaults. History is kept in memory, so it resets on restart and is not shared between instances.
+A client is identified by the first `x-forwarded-for` entry, then `x-real-ip`. The default is 60 requests per 60 seconds; requests over the limit receive `429` with a `Retry-After` header (in seconds) and a JSON body. Pass `createLimiter(clock, { limit, windowMs })` to `rateLimited` as the second argument to override the defaults. History is kept in memory, so it resets on restart and is not shared between instances.
 
 ## Conventions
 

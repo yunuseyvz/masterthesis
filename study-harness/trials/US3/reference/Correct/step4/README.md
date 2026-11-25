@@ -26,18 +26,18 @@ The development server (`npm run dev`) is not available in this environment.
   - `audit.ts`, `events.ts`, `ids.ts`, `serialize.ts`, `logger.ts`, `clock.ts`
 - `test/` – unit tests
 
-## Tenant configuration
+## Seller configuration
 
-Each tenant can customize its feature flags and limits. A tenant only stores the fields it wants to change; its
-effective configuration is the organization defaults in `src/lib/tenants/types.ts` with those overrides applied,
+Each seller can customize its own features and limits. A seller only stores the fields it wants to change; its
+effective configuration is the shop defaults in `src/lib/sellers/types.ts` with those overrides applied,
 field by field.
 
-- `src/lib/tenants/types.ts` – `TenantFeatureFlags`, `TenantLimits`, `Tenant`, and `ORGANIZATION_DEFAULTS`
-- `src/lib/tenants/config.ts` – `resolveTenantConfig` (defaults + overrides), plus `isFeatureEnabled` and `limitFor`
-- `src/lib/tenants/quota.ts` – `assertWithinQuota` and `withQuota`, which run an operation only while the tenant is
+- `src/lib/sellers/types.ts` – `SellerFeatures`, `SellerLimits`, `Seller`, and `SHOP_DEFAULTS`
+- `src/lib/sellers/config.ts` – `resolveSellerConfig` (defaults + overrides), plus `isFeatureEnabled` and `limitFor`
+- `src/lib/sellers/limits.ts` – `assertWithinLimit` and `withinLimit`, which run an operation only while the seller is
   within its effective limit
 
-Quota checks throw `QuotaExceededError` (HTTP 429) when `used + amount` would pass the limit.
+Limit checks throw `LimitExceededError` (HTTP 429) when `used + amount` would pass the limit.
 
 ## Conventions
 

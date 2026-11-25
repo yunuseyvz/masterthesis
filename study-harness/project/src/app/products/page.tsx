@@ -8,7 +8,7 @@ export default function ProductsPage() {
       <h1>Products</h1>
       <div className="grid">
         {products.map((p) => (
-          <ProductCard key={p.sku} product={p} />
+          <ProductCard key={p.productId} product={p} />
         ))}
       </div>
     </section>

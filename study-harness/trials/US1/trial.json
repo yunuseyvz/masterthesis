@@ -46,7 +46,7 @@
   "probes": [
     {
       "step": 1,
-      "question": "A stock store is created with createStockStore([{ sku: \"mug\", stock: 3 }, { sku: \"mug\", stock: 5 }]), the same SKU twice. How many mugs does it hold?",
+      "question": "A stock store is created with createStockStore([{ productId: \"mug\", stock: 3 }, { productId: \"mug\", stock: 5 }]), the same product twice. How many mugs does it hold?",
       "options": [
         "5",
         "3",
@@ -76,7 +76,7 @@
     },
     {
       "step": 3,
-      "question": "checkout receives the body {\"sku\": \"mug\", \"quantity\": \"2\"} (the quantity as text). What happens?",
+      "question": "checkout receives the body {\"productId\": \"mug\", \"quantity\": \"2\"} (the quantity as text). What happens?",
       "options": [
         "Rejected with 400",
         "2 mugs are reserved",
@@ -126,10 +126,10 @@
       {
         "step": 3,
         "role": "dependency",
-        "question": "checkout answers with { sku, quantity, remaining }. What is quantity?",
+        "question": "checkout answers with { productId, quantity, remaining }. What is quantity?",
         "options": [
           "The quantity ordered",
-          "The quantity actually reserved",
+          "At most the stock that was left",
           "The stock before the reservation",
           "The stock left after the reservation"
         ],
@@ -141,7 +141,7 @@
       {
         "step": 3,
         "role": "emergent",
-        "question": "A checkout request carries a field the shop does not know: { \"sku\": \"mug\", \"quantity\": 1, \"gift\": true }. What happens?",
+        "question": "A checkout request carries a field the shop does not know: { \"productId\": \"mug\", \"quantity\": 1, \"gift\": true }. What happens?",
         "options": [
           "The field is ignored and the mug is reserved",
           "It is rejected as an invalid request (400)",

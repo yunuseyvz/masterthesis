@@ -11,7 +11,7 @@ export interface Coupon {
 }
 
 export interface OrderItem {
-  sku: string;
+  productId: string;
   name: string;
   quantity: number;
   unitPriceCents: Cents;

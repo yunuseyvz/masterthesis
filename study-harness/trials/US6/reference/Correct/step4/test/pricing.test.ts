@@ -6,20 +6,20 @@ import { summarizeOrder } from "../src/lib/pricing/order.ts";
 import { discountFor } from "../src/lib/pricing/pricing.ts";
 
 const catalog = createCatalog([
-  { sku: "mug", name: "Mug", priceCents: 1200 },
-  { sku: "pen", name: "Pen", priceCents: 300 },
+  { productId: "mug", name: "Mug", priceCents: 1200 },
+  { productId: "pen", name: "Pen", priceCents: 300 },
 ]);
 
 const order = createOrder("o1", "acc_1", [
-  { sku: "mug", quantity: 2 },
-  { sku: "pen", quantity: 3 },
+  { productId: "mug", quantity: 2 },
+  { productId: "pen", quantity: 3 },
 ]);
 
 test("summarises an order without a coupon", () => {
   const summary = summarizeOrder(catalog, order);
   assert.deepEqual(summary.items, [
-    { sku: "mug", name: "Mug", quantity: 2, unitPriceCents: 1200, lineTotalCents: 2400 },
-    { sku: "pen", name: "Pen", quantity: 3, unitPriceCents: 300, lineTotalCents: 900 },
+    { productId: "mug", name: "Mug", quantity: 2, unitPriceCents: 1200, lineTotalCents: 2400 },
+    { productId: "pen", name: "Pen", quantity: 3, unitPriceCents: 300, lineTotalCents: 900 },
   ]);
   assert.equal(summary.subtotalCents, 3300);
   assert.equal(summary.discountCents, 0);

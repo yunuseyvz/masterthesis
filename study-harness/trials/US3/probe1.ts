@@ -1,3 +1,3 @@
-import { ORGANIZATION_DEFAULTS } from "./src/lib/tenants/types.ts";
+import { SHOP_DEFAULTS } from "./src/lib/sellers/types.ts";
 
-console.log(String(ORGANIZATION_DEFAULTS.limits.maxUsers));
+console.log(String(SHOP_DEFAULTS.limits.maxUsers));

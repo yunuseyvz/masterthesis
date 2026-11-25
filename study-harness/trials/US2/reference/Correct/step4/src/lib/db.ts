@@ -1,12 +1,12 @@
 import { createAccountStore, type AccountStore } from "./accounts.ts";
 import { createCatalog, type Catalog } from "./catalog.ts";
 import { systemClock, type Clock } from "./clock.ts";
-import type { EventLog, EventLogEntry, ProcessedStatus } from "./webhooks/types.ts";
+import type { EventLog, EventLogEntry, ProcessedStatus } from "./payments/types.ts";
 
 export interface Db {
   accounts: AccountStore;
   catalog: Catalog;
-  webhookEvents: EventLog;
+  paymentEvents: EventLog;
 }
 
 /** In-memory log of payment events, keyed by the provider's event id. */
@@ -44,11 +44,11 @@ export function getDb(): Db {
       { id: "acc_2", name: "Grace Hopper", balanceCents: 2500 },
     ]),
     catalog: createCatalog([
-      { sku: "mug", name: "Enamel mug", priceCents: 1200 },
-      { sku: "pen", name: "Fountain pen", priceCents: 3400 },
-      { sku: "notebook", name: "Dot-grid notebook", priceCents: 1800 },
+      { productId: "mug", name: "Enamel mug", priceCents: 1200 },
+      { productId: "pen", name: "Fountain pen", priceCents: 3400 },
+      { productId: "notebook", name: "Dot-grid notebook", priceCents: 1800 },
     ]),
-    webhookEvents: createEventLog(systemClock),
+    paymentEvents: createEventLog(systemClock),
   };
   return instance;
 }

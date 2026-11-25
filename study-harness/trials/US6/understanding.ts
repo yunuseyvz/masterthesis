@@ -10,10 +10,10 @@ const { discountFor } = await optional(import("./src/lib/pricing/pricing.ts"));
 
 const percent = (value: number) => ({ code: "C", kind: "percentage" as const, value });
 const catalog = createCatalog([
-  { sku: "mug", name: "Mug", priceCents: 1200 },
-  { sku: "a", name: "A", priceCents: 333 },
-  { sku: "b", name: "B", priceCents: 333 },
-  { sku: "c", name: "C", priceCents: 333 },
+  { productId: "mug", name: "Mug", priceCents: 1200 },
+  { productId: "a", name: "A", priceCents: 333 },
+  { productId: "b", name: "B", priceCents: 333 },
+  { productId: "c", name: "C", priceCents: 333 },
 ]);
 // Describes discountFor's answer, or "rejected" for a ValidationError.
 function discount(amount: number, value: number): string {
@@ -33,7 +33,7 @@ const items: (() => Promise<string> | string)[] = [
   // flaw (step 1): a 100 % coupon on an order
   () => {
     try {
-      return String(summarizeOrder(catalog, createOrder("o", "acc", [{ sku: "mug", quantity: 2 }]), percent(100)).totalCents);
+      return String(summarizeOrder(catalog, createOrder("o", "acc", [{ productId: "mug", quantity: 2 }]), percent(100)).totalCents);
     } catch (err) {
       return err instanceof ValidationError ? "It is rejected as an invalid coupon" : "? it throws";
     }
@@ -44,11 +44,11 @@ const items: (() => Promise<string> | string)[] = [
     return d === "rejected" ? "It is rejected as an invalid coupon" : d;
   },
   // dependency (step 3): the order applies the rounded discount once, to the subtotal
-  () => String(summarizeOrder(catalog, createOrder("o", "acc", [{ sku: "a", quantity: 1 }, { sku: "b", quantity: 1 }, { sku: "c", quantity: 1 }]), percent(10)).totalCents),
+  () => String(summarizeOrder(catalog, createOrder("o", "acc", [{ productId: "a", quantity: 1 }, { productId: "b", quantity: 1 }, { productId: "c", quantity: 1 }]), percent(10)).totalCents),
   // interplay (step 3): an item the catalog does not have
   () => {
     try {
-      const s = summarizeOrder(catalog, createOrder("o", "acc", [{ sku: "mug", quantity: 1 }, { sku: "nope", quantity: 1 }]));
+      const s = summarizeOrder(catalog, createOrder("o", "acc", [{ productId: "mug", quantity: 1 }, { productId: "nope", quantity: 1 }]));
       return s.items.length === 1 ? "It skips the item" : "It counts the item as 0 cents";
     } catch (err) {
       return err instanceof NotFoundError ? "It throws a NotFoundError (404)" : err instanceof ValidationError ? "It throws a ValidationError (400)" : "? it throws";

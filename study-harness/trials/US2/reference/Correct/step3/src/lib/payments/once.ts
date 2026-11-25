@@ -1,9 +1,9 @@
 import type { Account } from "../accounts.ts";
 import { AppError } from "../errors.ts";
 import { applyPayment } from "./handlers.ts";
-import type { PaymentEvent, WebhookDeps } from "./types.ts";
+import type { PaymentEvent, PaymentDeps } from "./types.ts";
 
-export type PaymentHandler = (deps: WebhookDeps, event: PaymentEvent) => Account;
+export type PaymentHandler = (deps: PaymentDeps, event: PaymentEvent) => Account;
 
 export interface ProcessResult {
   /** True when this delivery was already handled (or is being handled). */
@@ -19,13 +19,13 @@ const RETRY_BASE_DELAY_MS = 50;
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
- * Processes an event at most once. Redeliveries of a `processing` or `processed`
+ * Processes an event at most once. Repeated deliveries of a `processing` or `processed`
  * event are ignored; a `failed` event may be tried again. Temporary failures are
  * retried a bounded number of times, while AppErrors (bad input, unknown account)
  * are permanent and fail immediately.
  */
 export async function processEventOnce(
-  deps: WebhookDeps,
+  deps: PaymentDeps,
   event: PaymentEvent,
   handler: PaymentHandler = applyPayment,
   wait: (ms: number) => Promise<void> = sleep,

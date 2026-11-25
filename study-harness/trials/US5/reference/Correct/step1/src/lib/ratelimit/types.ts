@@ -1,4 +1,4 @@
-/** Length of the sliding window, in milliseconds. */
+/** Length of the time window, in milliseconds. */
 export const WINDOW_MS = 60_000;
 
 /** Requests one client may make per window by default. */

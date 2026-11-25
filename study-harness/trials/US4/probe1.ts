@@ -1,4 +1,4 @@
-import { parseDurationMinutes } from "./src/lib/sla/duration.ts";
+import { parseDurationMinutes } from "./src/lib/refunds/duration.ts";
 
 try {
   console.log(String(parseDurationMinutes("2h 15m")));

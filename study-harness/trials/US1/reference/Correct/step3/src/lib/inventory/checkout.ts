@@ -3,7 +3,7 @@ import { reserveStock } from "./inventory.ts";
 import type { StockStore } from "./types.ts";
 
 export interface Reservation {
-  sku: string;
+  productId: string;
   quantity: number;
   remaining: number;
 }
@@ -11,8 +11,8 @@ export interface Reservation {
 /** Validates a checkout body and reserves its single line. */
 export function checkout(store: StockStore, body: string): Reservation {
   const data = parseJsonObject(body);
-  const sku = requireString(data.sku, "sku");
+  const productId = requireString(data.productId, "productId");
   const quantity = requireInt(data.quantity, "quantity", 1);
-  const remaining = reserveStock(store, sku, quantity);
-  return { sku, quantity, remaining };
+  const remaining = reserveStock(store, productId, quantity);
+  return { productId, quantity, remaining };
 }

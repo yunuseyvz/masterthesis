@@ -32,16 +32,16 @@ The development server (`npm run dev`) is not available in this environment.
 `POST /api/checkout` reserves one line of stock:
 
 ```json
-{ "sku": "mug", "quantity": 2 }
+{ "productId": "mug", "quantity": 2 }
 ```
 
 A successful reservation returns `200` with the remaining stock:
 
 ```json
-{ "ok": true, "sku": "mug", "quantity": 2, "remaining": 1 }
+{ "ok": true, "productId": "mug", "quantity": 2, "remaining": 1 }
 ```
 
-Failures use the standard `{ "ok": false, "error": "..." }` shape: `400` for a malformed body or a quantity that is not a positive integer, `404` for an unknown SKU, and `409` when there is not enough stock. A reservation decrements the shared in-memory stock in `src/lib/db.ts` immediately; there is no expiry or release step.
+Failures use the standard `{ "ok": false, "error": "..." }` shape: `400` for a malformed body or a quantity that is not a positive integer, `404` for an unknown product, and `409` when there is not enough stock. A reservation decrements the shared in-memory stock in `src/lib/db.ts` immediately; there is no expiry or release step.
 
 ## Conventions
 

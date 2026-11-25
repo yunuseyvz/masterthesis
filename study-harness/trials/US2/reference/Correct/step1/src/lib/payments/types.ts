@@ -22,7 +22,7 @@ export interface EventLogEntry {
   at: number;
 }
 
-/** The event log that makes redelivering the same event safe. */
+/** The event log that makes delivering again the same event safe. */
 export interface EventLog {
   readonly entries: Map<string, EventLogEntry>;
   get(eventId: string): EventLogEntry | undefined;
@@ -32,8 +32,8 @@ export interface EventLog {
   fail(eventId: string): EventLogEntry;
 }
 
-/** Everything the webhook handler needs, injected so tests stay deterministic. */
-export interface WebhookDeps {
+/** Everything the payment handler needs, injected so tests stay deterministic. */
+export interface PaymentDeps {
   accounts: AccountStore;
   log: EventLog;
   clock: Clock;

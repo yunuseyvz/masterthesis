@@ -47,7 +47,7 @@ const items: (() => Promise<string> | string)[] = [
   },
   // dependency (step 4): waiting as long as Retry-After says
   async () => {
-    const { rateLimited } = await import("./src/lib/ratelimit/gateway.ts");
+    const { rateLimited } = await import("./src/lib/ratelimit/wrap.ts");
     const clock = fakeClock(0);
     const handler = rateLimited(() => new Response("ok"), createLimiter(clock, { limit: 1, windowMs: 1000 }));
     const request = () => new Request("http://localhost/api", { headers: { "x-forwarded-for": "10.0.0.1" } });
@@ -61,10 +61,10 @@ const items: (() => Promise<string> | string)[] = [
   },
   // interplay (steps 2 and 4): clients without proxy headers
   async () => {
-    const { rateLimited } = await import("./src/lib/ratelimit/gateway.ts");
+    const { rateLimited } = await import("./src/lib/ratelimit/wrap.ts");
     const handler = rateLimited(() => new Response("ok"), createLimiter(fakeClock(0), { limit: 1, windowMs: 1000 }));
     const a: Response = await handler(new Request("http://localhost/api"));
-    if (a.status !== 200) return "The gateway rejects requests without proxy headers";
+    if (a.status !== 200) return "rateLimited rejects requests without proxy headers";
     const b: Response = await handler(new Request("http://localhost/api"));
     return b.status === 429 ? "No: both count as the same client (\"unknown\")" : "Yes: each one is limited on its own";
   },

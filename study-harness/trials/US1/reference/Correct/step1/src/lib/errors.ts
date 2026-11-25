@@ -21,7 +21,7 @@ export class ValidationError extends AppError {
 }
 
 export class OutOfStockError extends AppError {
-  constructor(sku: string, requested: number, available: number) {
-    super(409, `not enough stock for ${sku}: requested ${requested}, available ${available}`);
+  constructor(productId: string, requested: number, available: number) {
+    super(409, `not enough stock for ${productId}: requested ${requested}, available ${available}`);
   }
 }

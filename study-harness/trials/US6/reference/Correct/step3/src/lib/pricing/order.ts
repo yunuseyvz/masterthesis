@@ -6,9 +6,9 @@ import type { Coupon, OrderItem, OrderSummary } from "./types.ts";
 /** Totals an order's lines and applies an optional coupon to the subtotal. */
 export function summarizeOrder(catalog: Catalog, order: Order, coupon?: Coupon): OrderSummary {
   const items: OrderItem[] = order.lines.map((line) => {
-    const product = getProduct(catalog, line.sku);
+    const product = getProduct(catalog, line.productId);
     return {
-      sku: line.sku,
+      productId: line.productId,
       name: product.name,
       quantity: line.quantity,
       unitPriceCents: product.priceCents,

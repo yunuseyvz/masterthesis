@@ -13,7 +13,7 @@ export interface RateLimiter {
   reset(): void;
 }
 
-/** Keeps a sliding window of request times per client. */
+/** Keeps the recent request times per client. */
 export function createLimiter(clock: Clock, options: RateLimitOptions = {}): RateLimiter {
   const limit = Math.max(1, options.limit ?? RATE_LIMIT_PER_MINUTE);
   const windowMs = Math.max(1, options.windowMs ?? WINDOW_MS);

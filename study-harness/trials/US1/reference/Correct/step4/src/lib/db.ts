@@ -18,14 +18,14 @@ export function getDb(): Db {
       { id: "acc_2", name: "Grace Hopper", balanceCents: 2500 },
     ]),
     catalog: createCatalog([
-      { sku: "mug", name: "Enamel mug", priceCents: 1200 },
-      { sku: "pen", name: "Fountain pen", priceCents: 3400 },
-      { sku: "notebook", name: "Dot-grid notebook", priceCents: 1800 },
+      { productId: "mug", name: "Enamel mug", priceCents: 1200 },
+      { productId: "pen", name: "Fountain pen", priceCents: 3400 },
+      { productId: "notebook", name: "Dot-grid notebook", priceCents: 1800 },
     ]),
     inventory: createStockStore([
-      { sku: "mug", stock: 3 },
-      { sku: "pen", stock: 2 },
-      { sku: "notebook", stock: 0 },
+      { productId: "mug", stock: 3 },
+      { productId: "pen", stock: 2 },
+      { productId: "notebook", stock: 0 },
     ]),
   };
   return instance;

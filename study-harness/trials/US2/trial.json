@@ -1,14 +1,14 @@
 {
   "id": "US2",
-  "title": "Payment Webhook",
+  "title": "Payment Notifications",
   "project": "shopfront",
-  "brief": "As a payments engineer, I want the webhook endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.\n\nAcceptance criteria:\n- The account is credited with exactly the amount the customer paid, to the cent.\n- An event that is delivered more than once credits the account only once.\n- A temporary failure is retried; an invalid event is rejected and never credited.",
+  "brief": "As a shop owner, I want the payment endpoint to credit a customer's account when a payment event arrives, so that customers see their balance update. The payment provider may deliver the same event more than once, and processing can fail temporarily.\n\nAcceptance criteria:\n- The account is credited with exactly the amount the customer paid, to the cent.\n- An event that is delivered more than once credits the account only once.\n- A temporary failure is retried; an invalid event is rejected and never credited.",
   "steps": [
     {
       "n": 1,
       "kind": "scaffold",
       "declarative": true,
-      "summary": "Add the webhook types and the event-log contract"
+      "summary": "Add the payment types and the event-log contract"
     },
     {
       "n": 2,
@@ -18,7 +18,7 @@
     {
       "n": 3,
       "kind": "milestone",
-      "summary": "Deduplicate deliveries and retry only temporary failures"
+      "summary": "Skip repeated deliveries and retry only temporary failures"
     },
     {
       "n": 4,
@@ -27,7 +27,7 @@
     }
   ],
   "flawStep": 2,
-  "testFile": "test/webhook.test.ts",
+  "testFile": "test/payments.test.ts",
   "outline": {
     "Correct": "outline-correct.md",
     "Flawed": "outline-flawed.md"
@@ -77,12 +77,12 @@
     },
     {
       "step": 3,
-      "question": "The same payment event is delivered twice and both deliveries are processed. How many times is the account credited?",
+      "question": "A payment event arrives for an account that does not exist, so crediting it fails. How many times does processEventOnce try to credit it?",
       "options": [
         "Once",
         "Twice",
-        "Never",
-        "Three times"
+        "Three times",
+        "Four times"
       ],
       "script": "probe3.ts",
       "expected": {
@@ -142,7 +142,7 @@
       {
         "step": 4,
         "role": "dependency",
-        "question": "A delivery reaches the webhook endpoint, but processing it fails temporarily on every attempt. What does the endpoint answer?",
+        "question": "A delivery reaches the payment endpoint, but processing it fails temporarily on every attempt. What does the endpoint answer?",
         "options": [
           "5xx: the provider delivers it again",
           "200: the provider stops delivering it",
@@ -157,7 +157,7 @@
       {
         "step": 4,
         "role": "emergent",
-        "question": "The provider sends the webhook endpoint an event of type \"payment.refunded\". What does the endpoint answer?",
+        "question": "The provider sends the payment endpoint an event of type \"payment.refunded\". What does the endpoint answer?",
         "options": [
           "400: rejected as an invalid event",
           "200: accepted and ignored",
