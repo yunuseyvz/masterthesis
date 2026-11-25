@@ -101,14 +101,18 @@ The harness runs as one container per participant behind [Conditioner](https://g
 LMU repository), with a LiteLLM gateway holding the real model key. Files are in `study-harness/deploy/`
 (`conditioner.patch`, `litellm.yaml`, `make-conditions.mjs`: 12 conditions, group × round).
 
-Consent is collected only by the entry page of the Conditioner fork (`/study/beacon`: `info.html` and `consent.html`,
-with required checkboxes). The pod starts only after that. `make-conditions.mjs` sets `STUDY_CONSENT=external`, so the
+Consent is collected only by the entry page of the Conditioner fork (served at the site root, study
+`agentic-coding`: `info.html` and `consent.html`, with required checkboxes). The pod starts only after that. `make-conditions.mjs` sets `STUDY_CONSENT=external`, so the
 questionnaire does not ask again. Local runs without that variable keep the harness's own consent checkbox.
 
 The pods' network (`internal_network`) is internal: pods reach only Conditioner's nginx and LiteLLM, not the internet.
 opencode and the project need no internet (`live-opencode.test.ts` passes without a network). Because all pods share
 that network, Conditioner gives each pod a token (`STUDY_PROXY_TOKEN`) that its nginx sends with every request; the
 harness refuses requests without it, including websockets, so one participant's terminal can't use another's pod.
+
+After the debrief, the harness sends the browser to Conditioner's completion URL (it reaches the browser only then,
+since it carries a key), which opens a compensation form outside the pod: PayPal email or matriculation number, stored
+without participant ID or timestamp (see the fork's README).
 
 Still missing before participants: an allowlist for opencode's API, resume after a restart, collecting per-pod exports,
 and a load test with several sessions.
