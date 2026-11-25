@@ -155,7 +155,10 @@ export async function buildApp(cfg: ServerConfig) {
     return reply.code(500).send({ error: "internal error" });
   });
 
-  const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}), ...(cfg.externalConsent ? { externalConsent: true } : {}), ...(cfg.completionUrl ? { completionUrl: cfg.completionUrl } : {}) });
+  // The completion URL carries Conditioner's completion key (it ends the session and opens the compensation form), so
+  // the browser gets it only once the session is over.
+  const ended = (v: object) => ["debrief", "finished"].includes((v as { phase?: string }).phase ?? "");
+  const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}), ...(cfg.externalConsent ? { externalConsent: true } : {}), ...(cfg.completionUrl && ended(v) ? { completionUrl: cfg.completionUrl } : {}) });
   // Everything else on this origin is opencode, so the browser never talks to it directly or sees its password.
   app.get("/_study/state", async () => decorate(session.view()));
   app.post("/_study/action", async (req) => decorate(await session.act(req.body)));

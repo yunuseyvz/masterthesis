@@ -245,6 +245,30 @@ describe("proxy token", () => {
   });
 });
 
+describe("completion URL", () => {
+  it("reaches the browser only at the debrief, since it ends the session and opens the compensation form", async () => {
+    const app = await buildApp(fakeConfig("CU", "3", 1, { completionUrl: "https://example.org/__complete/s/u?k=secret" }));
+    const post = async (payload: unknown) => (await app.inject({ method: "POST", url: "/_study/action", payload: payload as object })).json();
+    let view = (await app.inject({ url: "/_study/state" })).json();
+    for (let guard = 0; view.phase !== "debrief" && guard < 100; guard++) {
+      expect(view.completionUrl, view.phase).toBeUndefined();
+      switch (view.phase) {
+        case "intro": view = await post({ type: "begin" }); break;
+        case "presurvey": view = await post(PRESURVEY); break;
+        case "plan": view = await post({ type: "approvePlan" }); break;
+        case "stage1": view = await post({ type: "stage1", decision: "accept" }); break;
+        case "stage2": view = await post({ type: "stage2", probeAnswer: 0, final: "confirm" }); break;
+        case "reviewing": view = await post({ type: "reviewed" }); break;
+        case "understanding": view = await post(UNDERSTANDING); break;
+        case "postsurvey": view = await post(POSTSURVEY); break;
+      }
+    }
+    expect(view.phase).toBe("debrief");
+    expect(view.completionUrl).toBe("https://example.org/__complete/s/u?k=secret");
+    await app.close();
+  }, 120_000);
+});
+
 describe("demo mode", () => {
   it("starts a fresh session after Finish instead of stopping", async () => {
     const cfg = fakeConfig("DEMO1", "11", 5, { exitOnFinish: true, demo: true });

@@ -24,13 +24,16 @@ for (let group = 0; group < 6; group++)
     });
 
 console.log(JSON.stringify([{
-  study_name: "Agentic Interventions",
-  study_slug: "beacon",
+  // Shown to participants (page title) and in their URLs: generic on purpose.
+  study_name: "Working with an AI coding agent",
+  study_slug: "agentic-coding",
   supervisor: "",
   // A technical cap, not the planned N (about 30).
   stop_at_n: 36,
-  info_html: "studies/beacon/info.html",
-  consent_html: "studies/beacon/consent.html",
+  info_html: "studies/agentic-coding/info.html",
+  consent_html: "studies/agentic-coding/consent.html",
+  // Compensation form after completion, by session length (Conditioner rounds up to 15 minutes).
+  compensation_eur_per_hour: 12,
   ...(completionRedirect ? { completion_redirect: completionRedirect } : {}),
   conditions,
 }], null, 2));
