@@ -15,7 +15,8 @@ A session that is aborted has a log but no bundle and no CSV rows. All timestamp
 
 ## Direct
 
-- **Before:** consent, demographics, NCS-6, attention check, S-TIAS.
+- **Before:** consent (online on Conditioner's entry page, locally in the questionnaire), demographics, NCS-6,
+  attention check, S-TIAS.
 - **Per story:** plan approval, accept/reject, behaviour question, reversal, answer to the agent after a rejection,
   five understanding questions with confidence, mental effort (Paas), three statements about the review.
 - **After:** preference ranking, optional comment.

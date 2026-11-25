@@ -223,6 +223,17 @@ describe("study flow", () => {
   });
 });
 
+describe("consent", () => {
+  it("tells the questionnaire not to ask when Conditioner's entry page collected consent", async () => {
+    const asks = await buildApp(fakeConfig("C1", "1", 0));
+    expect((await asks.inject({ url: "/_study/state" })).json().externalConsent).toBeUndefined();
+    await asks.close();
+    const entry = await buildApp(fakeConfig("C2", "1", 0, { externalConsent: true }));
+    expect((await entry.inject({ url: "/_study/state" })).json().externalConsent).toBe(true);
+    await entry.close();
+  });
+});
+
 describe("demo mode", () => {
   it("starts a fresh session after Finish instead of stopping", async () => {
     const cfg = fakeConfig("DEMO1", "11", 5, { exitOnFinish: true, demo: true });

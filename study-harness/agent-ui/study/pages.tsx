@@ -179,7 +179,9 @@ function PreSurvey() {
     attention: 0,
     stias: [0, 0, 0],
   })
-  const page1 = () => s.consent && s.age && s.years && s.ai && s.review && s.ts > 0
+  // Behind Conditioner the entry page asked already.
+  const askConsent = () => !view()?.externalConsent
+  const page1 = () => (s.consent || !askConsent()) && s.age && s.years && s.ai && s.review && s.ts > 0
   const page2 = () => s.ncs.every((v) => v > 0) && s.attention > 0
   const page3 = () => s.stias.every((v) => v > 0)
   const statements: { text: string; attention?: boolean; idx?: number }[] = []
@@ -190,15 +192,17 @@ function PreSurvey() {
 
   return (
     <Show when={!busy()} fallback={<Preparing />}>
-      <Card step={`Questionnaire · ${step() + 1} of 3`} title={["Before we start", "How do you approach thinking tasks?", "AI coding assistants"][step()]!}>
+      <Card step={`Questionnaire · ${step() + 1} of 3`} title={[askConsent() ? "Before we start" : "About you", "How do you approach thinking tasks?", "AI coding assistants"][step()]!}>
         <Switch>
           <Match when={step() === 0}>
-            <p>{CONSENT + (view()?.recording ? CONSENT_RECORDING : "")}</p>
-            <label data-study-consent>
-              <input type="checkbox" checked={s.consent} onChange={(e) => set("consent", e.currentTarget.checked)} />
-              <span>I have read this and agree to take part.</span>
-            </label>
-            <h2>About you</h2>
+            <Show when={askConsent()}>
+              <p>{CONSENT + (view()?.recording ? CONSENT_RECORDING : "")}</p>
+              <label data-study-consent>
+                <input type="checkbox" checked={s.consent} onChange={(e) => set("consent", e.currentTarget.checked)} />
+                <span>I have read this and agree to take part.</span>
+              </label>
+              <h2>About you</h2>
+            </Show>
             <Choice label="Age group" options={AGE} value={s.age} onChange={(v) => set("age", v)} />
             <Choice label="Years of programming experience" options={YEARS} value={s.years} onChange={(v) => set("years", v)} />
             <Choice label="How often do you use AI coding assistants?" options={FREQ} value={s.ai} onChange={(v) => set("ai", v)} />

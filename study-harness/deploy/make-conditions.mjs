@@ -18,7 +18,7 @@ for (let group = 0; group < 6; group++)
       exposed_port: 5185,
       idle_timeout_seconds: 3600,
       podman_args: [
-        ...env({ STUDY_GROUP: group, STUDY_ROUND: round, LISTEN_SOCKET: "", LISTEN_HOST: "0.0.0.0", EXPORT_DIR: "/data/exports", LIVE_MODEL: "study-chat", LIVE_UPSTREAM: "http://litellm:4000/v1", SESSION_RECORDING: 0 }),
+        ...env({ STUDY_GROUP: group, STUDY_ROUND: round, LISTEN_SOCKET: "", LISTEN_HOST: "0.0.0.0", EXPORT_DIR: "/data/exports", LIVE_MODEL: "study-chat", LIVE_UPSTREAM: "http://litellm:4000/v1", SESSION_RECORDING: 0, STUDY_CONSENT: "external" }),
         ...isolation,
       ],
     });

@@ -57,10 +57,12 @@ def main() -> int:
         wait_text("Welcome to Shopfront")
         shot("intro")
         click("Start")
-        wait_text("Before we start")
+        page.locator("[data-study-field]").first.wait_for()
         shot("survey-1")
 
-        page.locator("[data-study-consent] input").check()
+        # absent with STUDY_CONSENT=external
+        if page.locator("[data-study-consent] input").count():
+            page.locator("[data-study-consent] input").check()
         for field in page.locator("[data-study-field]").all():
             chips = field.locator("[data-study-chip]")
             if chips.count():

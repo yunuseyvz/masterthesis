@@ -18,6 +18,8 @@ export interface ViewState {
   nTrials: number;
   practice: boolean;
   recording?: boolean;
+  // consent was given on Conditioner's entry page, so the questionnaire does not ask again
+  externalConsent?: boolean;
   debugTag?: string;
   sessions: { trial: number; title: string; project: string }[];
   story?: { title: string; brief: string; project: string };

@@ -28,6 +28,7 @@ export interface ServerConfig {
   exitOnFinish: boolean;
   demo?: boolean;
   recording?: boolean;
+  externalConsent?: boolean;
   // never for real participants
   showCondition?: boolean;
   basePath?: string;
@@ -142,7 +143,7 @@ export async function buildApp(cfg: ServerConfig) {
     return reply.code(500).send({ error: "internal error" });
   });
 
-  const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}), ...(cfg.completionUrl ? { completionUrl: cfg.completionUrl } : {}) });
+  const decorate = <T extends object>(v: T) => ({ ...v, ...(cfg.demo ? { demo: true } : {}), ...(cfg.recording ? { recording: true } : {}), ...(cfg.externalConsent ? { externalConsent: true } : {}), ...(cfg.completionUrl ? { completionUrl: cfg.completionUrl } : {}) });
   // Everything else on this origin is opencode, so the browser never talks to it directly or sees its password.
   app.get("/_study/state", async () => decorate(session.view()));
   app.post("/_study/action", async (req) => decorate(await session.act(req.body)));

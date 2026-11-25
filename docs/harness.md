@@ -101,5 +101,9 @@ The harness runs as one container per participant behind [Conditioner](https://g
 LMU repository), with a LiteLLM gateway holding the real model key. Files are in `study-harness/deploy/`
 (`conditioner.patch`, `litellm.yaml`, `make-conditions.mjs`: 12 conditions, group × round).
 
+Consent is collected only by the entry page of the Conditioner fork (`/study/beacon`: `info.html` and `consent.html`,
+with required checkboxes). The pod starts only after that. `make-conditions.mjs` sets `STUDY_CONSENT=external`, so the
+questionnaire does not ask again. Local runs without that variable keep the harness's own consent checkbox.
+
 Still missing before participants: an egress rule for the sandbox uids, an allowlist for opencode's API, resume after a
 restart, consent text matching what is recorded, collecting per-pod exports, and a load test with several sessions.
