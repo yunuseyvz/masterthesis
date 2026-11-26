@@ -2,6 +2,7 @@ import { For, Match, Show, Switch, createSignal } from "solid-js"
 import { Button } from "@opencode/ui/button"
 import { DockPrompt } from "@opencode/session-ui/dock-prompt"
 import { act, busy, view } from "./store"
+import { notePracticeFiles, practiceTasksDone } from "./tour"
 
 // Ctrl+` is opencode's terminal shortcut, which participants would not know.
 function openTerminal() {
@@ -10,6 +11,7 @@ function openTerminal() {
 }
 
 function openFiles() {
+  notePracticeFiles()
   const click = (label: string) => document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)?.click()
   if (!document.querySelector('[data-component="session-review-v2"]')) click("Toggle review")
   // The panel renders its buttons on the next frame after it opens.
@@ -18,7 +20,7 @@ function openFiles() {
 
 function ToolButtons() {
   return (
-    <div style={{ display: "flex", gap: "4px" }}>
+    <div style={{ display: "flex", gap: "4px" }} data-study-tour="tools">
       <Button variant="ghost" size="large" onClick={openFiles}>
         Files
       </Button>
@@ -79,6 +81,8 @@ function Prompt(props: { title: string; text: string; hint?: string; children?: 
 export function StudyDock() {
   const [probe, setProbe] = createSignal<number | undefined>()
   const v = () => view()!
+  // The practice's first review waits until the participant has tried the tools (tour.tsx).
+  const locked = () => v().practice && !practiceTasksDone()
 
   return (
     <Switch>
@@ -97,7 +101,7 @@ export function StudyDock() {
             <>
               <div />
               <div data-slot="question-footer-actions">
-                <Button variant="submit" size="large" onClick={() => act({ type: "approvePlan" })}>
+                <Button variant="submit" size="large" data-study-tour="approve" onClick={() => act({ type: "approvePlan" })}>
                   Approve plan
                 </Button>
               </div>
@@ -113,11 +117,11 @@ export function StudyDock() {
           footer={
             <>
               <ToolButtons />
-              <div data-slot="question-footer-actions">
-                <Button variant="neutral" size="large" onClick={() => act({ type: "stage1", decision: "reject" })}>
+              <div data-slot="question-footer-actions" data-study-tour="decide" title={locked() ? "First try the tools once (practice only)" : undefined}>
+                <Button variant="neutral" size="large" disabled={locked()} onClick={() => act({ type: "stage1", decision: "reject" })}>
                   Reject / flag defect
                 </Button>
-                <Button variant="submit" size="large" onClick={() => act({ type: "stage1", decision: "accept" })}>
+                <Button variant="submit" size="large" disabled={locked()} onClick={() => act({ type: "stage1", decision: "accept" })}>
                   {v().finished ? "Accept" : "Accept and continue"}
                 </Button>
               </div>

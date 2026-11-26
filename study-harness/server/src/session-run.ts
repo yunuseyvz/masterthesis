@@ -83,8 +83,6 @@ const REJECT_AT = 2;
 
 const started = Date.now();
 try {
-  await phase("intro");
-  await act({ type: "begin" });
   await phase("presurvey");
   await act({
     type: "presurvey",
@@ -94,6 +92,8 @@ try {
     attention: 4,
     stias: [5, 5, 4],
   });
+  await phase("intro");
+  await act({ type: "begin" });
 
   for (let i = 0; i < 7; i++) {
     await phase("plan");
@@ -113,6 +113,10 @@ try {
     await act({ type: "reviewed" });
     await phase("understanding");
     await act({ type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [55, 55, 55, 55, 55], paas: 5, review: { timing: 4, helped: 4, disrupted: 4 }, itemMs: [1000, 1000, 1000, 1000, 1000], answerChanges: [0, 0, 0, 0, 0] });
+    if (i === 0) {
+      await phase("ready");
+      await act({ type: "continue" });
+    }
     if (i < 6) await phase("plan");
   }
 

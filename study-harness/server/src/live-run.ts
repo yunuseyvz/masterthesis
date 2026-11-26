@@ -70,8 +70,8 @@ session = new StudySession(plan, loadStory, { agent, ...live, workRoot: path.joi
 
 const started = Date.now();
 try {
-  await session.act({ type: "begin" });
   await session.act({ type: "presurvey", consent: true, demographics: { ageGroup: "25-34", programmingYears: "3-5", aiAssistantUse: "weekly", codeReviewFrequency: "weekly", tsFamiliarity: 4 }, ncs: [4, 3, 2, 2, 5, 4], attention: 4, stias: [5, 5, 4] });
+  await session.act({ type: "begin" });
   const dir = path.join(out, "work", "00-" + story.def.id);
   await session.act({ type: "approvePlan" });
   const atReview = execFileSync("git", ["status", "--porcelain", "--untracked-files=all"], { cwd: dir, encoding: "utf8" }).trim();

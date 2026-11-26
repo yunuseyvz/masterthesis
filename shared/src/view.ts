@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Confidence, Style, UNDERSTANDING_ITEMS, type Decision } from "./schema.js";
 
 export type Phase =
-  | "intro" | "presurvey" | "plan" | "working" | "stage1" | "stage2" | "feedback" | "reviewing" | "understanding" | "postsurvey" | "debrief" | "finished" | "abandoned";
+  | "presurvey" | "intro" | "plan" | "working" | "stage1" | "stage2" | "feedback" | "reviewing" | "understanding" | "ready" | "postsurvey" | "debrief" | "finished" | "abandoned";
 
 export const Presence = z.object({
   inputAgoMs: z.number().int().min(0).max(24 * 60 * 60 * 1000),
@@ -43,6 +43,8 @@ const Scale = (max: number) => z.number().int().min(1).max(max);
 
 export const Action = z.discriminatedUnion("type", [
   z.object({ type: z.literal("begin") }),
+  // from the "You're ready" page after the practice to the first measured feature
+  z.object({ type: z.literal("continue") }),
   z.object({ type: z.literal("approvePlan") }),
   z.object({ type: z.literal("reviewed") }),
   z.object({

@@ -4,6 +4,7 @@ import { useLanguage } from "@/runtime/i18n/language"
 import { ServerConnection } from "@/runtime/server/registry"
 import { sessionHref } from "@/shell/routes/session"
 import { StudyPage } from "./pages"
+import { PracticeTour } from "./tour"
 import { active, afk, error, load, stillHere, view } from "./store"
 import { Button } from "@opencode/ui/button"
 import { markRecording, resetCoverage, startRecording, startTelemetry } from "./telemetry"
@@ -109,6 +110,9 @@ export function StudyGate(props: ParentProps) {
             </div>
           </Show>
           {props.children}
+          <Show when={view()!.practice}>
+            <PracticeTour />
+          </Show>
         </Match>
       </Switch>
     </>

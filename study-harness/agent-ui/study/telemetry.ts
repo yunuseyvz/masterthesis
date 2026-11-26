@@ -17,6 +17,8 @@ type UiEvent =
   | { type: "tool_expand"; data: { label: string } }
 
 function send(e: UiEvent) {
+  // The practice guide (tour.tsx) listens too.
+  window.dispatchEvent(new CustomEvent("study:ui", { detail: e }))
   void fetch("/_study/event", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(e), keepalive: true }).catch(() => {})
 }
 

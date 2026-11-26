@@ -148,7 +148,7 @@ export const DEFAULT_LIMITS: SessionLimits = { warnMs: 10 * 60_000, abortMs: 10 
 export type WatchOutcome = "finish" | "abandoned" | null;
 
 export class StudySession {
-  private _phase: Phase = "intro";
+  private _phase: Phase = "presurvey";
   // an agent turn that ends after abandonment must not revive the session
   private get phase(): Phase {
     return this._phase;
@@ -193,6 +193,10 @@ export class StudySession {
     this.limits = { ...DEFAULT_LIMITS, ...limits };
     this.startedAt = this.lastInput = this.phaseSince = this.now();
     this.log("session_start", { participantId: plan.participantId, studySeed: plan.studySeed, group: plan.group, plan });
+    this.shownAt = this.startedAt;
+    this.log("presurvey_shown", {});
+    // The practice's plan is prepared while the participant fills in the questionnaire and reads the introduction.
+    this.prepare(0);
   }
 
   presence(raw: unknown): { prompt: boolean; ended: boolean } {
@@ -553,7 +557,8 @@ export class StudySession {
 
   private sessionsSoFar(): ViewState["sessions"] {
     if (this.phase === "intro" || this.phase === "presurvey") return [];
-    return this.allTrials.slice(0, this.trialIdx + 1).map((t, i) => {
+    // On the "ready" page the next feature has not started yet.
+    return this.allTrials.slice(0, this.phase === "ready" ? this.trialIdx : this.trialIdx + 1).map((t, i) => {
       const def = this.loadStory(t.story).def;
       return { trial: i + 1, title: def.title, project: def.project };
     });
@@ -563,12 +568,12 @@ export class StudySession {
     const base: ViewState = {
       phase: this.phase,
       participantId: this.plan.participantId,
-      trial: this.phase === "intro" || this.phase === "presurvey" ? 0 : Math.min(this.trialIdx, this.allTrials.length - 1) + 1,
+      trial: this.phase === "intro" || this.phase === "presurvey" ? 0 : this.phase === "ready" ? 1 : Math.min(this.trialIdx, this.allTrials.length - 1) + 1,
       nTrials: this.plan.trials.length,
       practice: this.trialIdx === 0,
       sessions: this.sessionsSoFar(),
     };
-    if (!this.current || ["intro", "presurvey", "postsurvey", "debrief", "finished", "abandoned"].includes(this.phase)) return base;
+    if (!this.current || ["intro", "presurvey", "ready", "postsurvey", "debrief", "finished", "abandoned"].includes(this.phase)) return base;
 
     const story = this.story;
     if (this.showCondition) base.debugTag = `${REGIME_LETTER[this.trial.regime]}·${this.trial.variant === "Flawed" ? "F" : "C"}`;
@@ -598,10 +603,14 @@ export class StudySession {
     switch (action.type) {
       case "begin":
         this.require("intro");
-        this.phase = "presurvey";
-        this.shownAt = this.now();
-        this.log("presurvey_shown", {});
-        this.prepare(0);
+        this.log("intro_done", { ms: this.now() - this.shownAt });
+        await this.startTrial();
+        break;
+
+      case "continue":
+        this.require("ready");
+        this.log("ready_done", { ms: this.now() - this.shownAt });
+        await this.startTrial();
         break;
 
       case "presurvey": {
@@ -617,7 +626,9 @@ export class StudySession {
           attentionCheckPassed: answers.attention === 4, // item instructs "select Agree (4)"
         };
         this.log("presurvey_submit", this.preSurvey);
-        await this.startTrial();
+        this.phase = "intro";
+        this.shownAt = this.now();
+        this.log("intro_shown", {});
         break;
       }
 
@@ -788,6 +799,12 @@ export class StudySession {
           this.phase = "postsurvey";
           this.shownAt = this.now();
           this.log("postsurvey_shown", {});
+        } else if (this.trialIdx === 1) {
+          // After the practice: a summary of the task before the measured features, which show no more guidance.
+          this.current = null;
+          this.phase = "ready";
+          this.shownAt = this.now();
+          this.log("ready_shown", {});
         } else {
           await this.startTrial();
         }

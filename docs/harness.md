@@ -39,7 +39,10 @@ browser ── HTTP/WS ──► study server (Fastify)
 5. Five understanding questions with confidence, then mental effort. Answers are graded by running the trial's scripts
    on the code the agent wrote.
 
-Session flow: welcome → questionnaire → practice story → six stories → preference ranking → debrief.
+Session flow: questionnaire → welcome (Shopfront) → practice story with a guide → "You're ready" summary → six stories →
+preference ranking → debrief. The guide (`agent-ui/study/tour.tsx`) runs only in the practice: a spotlight and a card
+per part of the screen, and in the first review three tasks (open a changed file, open a file via Files, run `npm test`)
+before Accept and Reject unlock. The practice's plan is prepared while the questionnaire is filled in.
 
 ## Design decisions
 

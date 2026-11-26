@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Plays one whole study session in a real browser against a running harness (http://localhost:5185).
 
-For a mechanical end-to-end test of the UI: it clicks through consent, the survey, the practice feature and the six
-measured features, answers every question, submits the postsurvey and finishes. Screenshots of every question page
+For a mechanical end-to-end test of the UI: it clicks through the survey (and its consent box, if shown), the
+introduction, the practice feature (closing its guide and skipping its tasks), the "ready" page and the six measured features, answers every question, submits the postsurvey and finishes. Screenshots of every question page
 go to /tmp/session-browser/. The data are not meant for analysis.
 
 Usage: python3 study-harness/scripts/play-session.py [--url http://localhost:5185] [--shots /tmp/session-browser]
@@ -54,9 +54,19 @@ def main() -> int:
             for i in range(count):
                 scales().nth(i).locator("button").nth(value_index).click()
 
-        wait_text("Welcome to Shopfront")
-        shot("intro")
-        click("Start")
+        def close_guide():
+            """The practice's guide (tour.tsx): skip its tasks and click through its cards."""
+            card = page.locator("[data-study-tour-card]")
+            for _ in range(20):
+                page.wait_for_timeout(500)
+                if not card.count() or not card.is_visible():
+                    return
+                for name in ("Skip the tasks", "Next", "Got it"):
+                    button = card.get_by_role("button", name=name)
+                    if button.count():
+                        button.click()
+                        break
+
         page.locator("[data-study-field]").first.wait_for()
         shot("survey-1")
 
@@ -79,24 +89,36 @@ def main() -> int:
         shot("survey-3")
 
         answer_scales(3)  # value 4
-        click("Start practice")
+        click("Next")
+        wait_text("Welcome to Shopfront")
+        shot("intro")
+        click("Start the practice")
 
         for trial in range(7):
+            guided = trial == 0
             wait_text("Approve the plan?", timeout=INF)
             shot(f"t{trial}-plan")
+            if guided:
+                close_guide()
             click("Approve plan")
 
             wait_text("Review what it wrote", timeout=INF)
             shot(f"t{trial}-review")
+            if guided:
+                close_guide()
             click("Accept")
 
             wait_text("Before you finalize", timeout=INF)
+            if guided:
+                close_guide()
             page.locator("[data-slot=question-options] button, [role=radiogroup] button").first.click()
             shot(f"t{trial}-probe")
             click("Confirm my decision")
 
             wait_text("I've finished reviewing", timeout=INF)
             shot(f"t{trial}-final")
+            if guided:
+                close_guide()
             click("I've finished reviewing")
 
             wait_text("Question 1 of", timeout=INF)
@@ -114,6 +136,10 @@ def main() -> int:
                 scale.get_by_role("radio", name="5", exact=True).click()
             shot(f"t{trial}-effort")
             click("Next")
+            if guided:
+                wait_text("You're ready", timeout=INF)
+                shot("ready")
+                click("Start feature 1")
             print(f"  trial {trial} done", flush=True)
 
         wait_text("Your preferences", timeout=INF)

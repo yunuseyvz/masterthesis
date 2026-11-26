@@ -88,8 +88,8 @@ async function setup(name: string, port: number, feedback?: { text: string; fix:
   });
   const dir = path.join(tmp, "work", name, "00-US0");
   const post = async (payload: unknown) => (await app.inject({ method: "POST", url: "/_study/action", payload: payload as object })).json();
-  await post({ type: "begin" });
-  const view = await post({ type: "presurvey", consent: true, demographics: { ageGroup: "25-34", programmingYears: "3-5", aiAssistantUse: "weekly", codeReviewFrequency: "weekly", tsFamiliarity: 4 }, ncs: [4, 3, 2, 2, 5, 4], attention: 4, stias: [5, 5, 4] });
+  await post({ type: "presurvey", consent: true, demographics: { ageGroup: "25-34", programmingYears: "3-5", aiAssistantUse: "weekly", codeReviewFrequency: "weekly", tsFamiliarity: 4 }, ncs: [4, 3, 2, 2, 5, 4], attention: 4, stias: [5, 5, 4] });
+  const view = await post({ type: "begin" });
   return {
     tmp, story, steps, fix, model, dir, post, view, app,
     git: (...args: string[]) => execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim(),

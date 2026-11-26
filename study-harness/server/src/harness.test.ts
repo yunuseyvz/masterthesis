@@ -38,8 +38,8 @@ const POSTSURVEY = {
 const UNDERSTANDING = { type: "understanding", answers: [0, 0, 0, 0, 0], confidences: [25, 55, 85, 100, 40], paas: 6, review: { timing: 6, helped: 5, disrupted: 2 }, itemMs: [4000, 3000, 5000, 2000, 1000], answerChanges: [0, 1, 0, 0, 2] };
 
 async function startSession(session: StudySession) {
-  await session.act({ type: "begin" });
   await session.act(PRESURVEY);
+  await session.act({ type: "begin" });
 }
 
 const fakeConfig = (participantId: string, studySeed: string, group: number, extra: object = {}) => ({
@@ -100,12 +100,14 @@ describe("study flow", () => {
 
     expect(JSON.stringify((await app.inject({ url: "/_study/state" })).json())).not.toMatch(/Flawed|variant|regime/);
     expect((await app.inject({ method: "POST", url: "/_study/action", payload: { type: "stage1", decision: "accept" } })).statusCode).toBe(409);
-    expect((await app.inject({ method: "POST", url: "/_study/action", payload: PRESURVEY })).statusCode).toBe(409); // before begin
+    expect((await app.inject({ method: "POST", url: "/_study/action", payload: { type: "begin" } })).statusCode).toBe(409); // the questionnaire comes first
 
-    let view = await post("/_study/action", { type: "begin" });
+    let view = (await app.inject({ url: "/_study/state" })).json();
     expect(view.phase).toBe("presurvey");
     expect((await app.inject({ method: "POST", url: "/_study/action", payload: { ...PRESURVEY, consent: false } })).statusCode).toBe(400);
     view = await post("/_study/action", PRESURVEY);
+    expect(view.phase).toBe("intro");
+    view = await post("/_study/action", { type: "begin" });
 
     for (let i = 0; i < 7; i++) {
       const t = i === 0 ? flowPlan.practice : flowPlan.trials[i - 1]!;
@@ -149,6 +151,13 @@ describe("study flow", () => {
       for (const it of view.understanding.items) expect(it.options).toHaveLength(4);
       expect((await app.inject({ method: "POST", url: "/_study/action", payload: { ...UNDERSTANDING, confidences: [50, 55, 85, 100] } })).statusCode).toBe(400);
       view = await post("/_study/action", UNDERSTANDING);
+      if (i === 0) {
+        // After the practice, a summary page before the measured features.
+        expect(view.phase).toBe("ready");
+        expect(view.sessions).toHaveLength(1);
+        expect((await app.inject({ method: "POST", url: "/_study/action", payload: { type: "approvePlan" } })).statusCode).toBe(409);
+        view = await post("/_study/action", { type: "continue" });
+      }
     }
     expect(view.phase).toBe("postsurvey");
     expect(view.sessions).toHaveLength(7);
@@ -209,8 +218,8 @@ describe("study flow", () => {
     const post = async (url: string, payload?: unknown) => (await app.inject({ method: "POST", url, payload: payload as object })).json();
     const readEvents = () => fs.readFileSync(path.join(cfg.exportDir, "PT2_7.events.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
 
-    await post("/_study/action", { type: "begin" });
     await post("/_study/action", PRESURVEY);
+    await post("/_study/action", { type: "begin" });
     await post("/_study/action", { type: "approvePlan" });
     // practice trial (US0, Correct, paused at its milestone, step 2): answer with the displayed option that equals the true output
     const view = await post("/_study/action", { type: "stage1", decision: "accept" });
@@ -240,7 +249,7 @@ describe("proxy token", () => {
     expect((await app.inject({ url: "/_study/state" })).statusCode).toBe(403);
     expect((await app.inject({ url: "/_study/state", headers: { "x-study-proxy-token": "wrong!" } })).statusCode).toBe(403);
     expect((await app.inject({ method: "POST", url: "/_study/action", payload: { type: "begin" } })).statusCode).toBe(403);
-    expect((await app.inject({ url: "/_study/state", headers: { "x-study-proxy-token": "s3cret" } })).json().phase).toBe("intro");
+    expect((await app.inject({ url: "/_study/state", headers: { "x-study-proxy-token": "s3cret" } })).json().phase).toBe("presurvey");
     await app.close();
   });
 });
@@ -261,6 +270,7 @@ describe("completion URL", () => {
         case "reviewing": view = await post({ type: "reviewed" }); break;
         case "understanding": view = await post(UNDERSTANDING); break;
         case "postsurvey": view = await post(POSTSURVEY); break;
+        case "ready": view = await post({ type: "continue" }); break;
       }
     }
     expect(view.phase).toBe("debrief");
@@ -287,6 +297,7 @@ describe("demo mode", () => {
         case "reviewing": view = await post("/_study/action", { type: "reviewed" }); break;
         case "understanding": view = await post("/_study/action", UNDERSTANDING); break;
         case "postsurvey": view = await post("/_study/action", POSTSURVEY); break;
+        case "ready": view = await post("/_study/action", { type: "continue" }); break;
       }
     }
     expect(view.phase).toBe("debrief");
@@ -294,10 +305,10 @@ describe("demo mode", () => {
     expect(fs.existsSync(path.join(cfg.exportDir, "DEMO1_11.json"))).toBe(true);
 
     const fresh = (await app.inject({ url: "/_study/state" })).json();
-    expect(fresh.phase).toBe("intro");
+    expect(fresh.phase).toBe("presurvey");
     expect(fresh.participantId).not.toBe("DEMO1");
     expect(fresh.participantId).toMatch(/^[A-Z2-9]{6}$/);
-    expect((await post("/_study/action", { type: "begin" })).phase).toBe("presurvey");
+    expect((await post("/_study/action", PRESURVEY)).phase).toBe("intro");
     await app.close();
   }, 120_000);
 });
@@ -435,6 +446,7 @@ describe("a participant who has gone (server protection)", () => {
         case "reviewing": view = await s.act({ type: "reviewed" }); break;
         case "understanding": view = await s.act(UNDERSTANDING); break;
         case "postsurvey": view = await s.act(POSTSURVEY); break;
+        case "ready": view = await s.act({ type: "continue" }); break;
       }
     }
     expect(view.phase).toBe("debrief");
@@ -512,6 +524,7 @@ describe("code regions for review telemetry", () => {
       await s.act({ type: "stage2", probeAnswer: 0, final: "confirm" });
       await s.act({ type: "reviewed" });
       await s.act(UNDERSTANDING);
+      if (i === 0) await s.act({ type: "continue" });
     }
     const hunks = loadReference(loader(trials[k]!.story)).hunks(trials[k]!.variant, 1, 4);
     const seen = hunks[0]!;

@@ -1,8 +1,8 @@
 import { createSignal } from "solid-js"
 
 export type StudyPhase =
-  | "intro"
   | "presurvey"
+  | "intro"
   | "plan"
   | "working"
   | "stage1"
@@ -10,6 +10,7 @@ export type StudyPhase =
   | "feedback"
   | "reviewing"
   | "understanding"
+  | "ready"
   | "postsurvey"
   | "debrief"
   | "finished"
@@ -24,6 +25,7 @@ export interface StudyView {
   practice: boolean
   debugTag?: string
   recording?: boolean
+  externalConsent?: boolean
   completionUrl?: string
   story?: { title: string; brief: string; project: string }
   agentSessionId?: string

@@ -98,7 +98,8 @@ Every use of an LLM is recorded under Provenance in [stimuli.md](stimuli.md).
 
 ## 6. Instruments and data
 
-Session flow: consent → questionnaire → practice (US0) → six features → preference ranking → debrief.
+Session flow: consent (Conditioner's entry page) → questionnaire → introduction → guided practice (US0) → summary page →
+six features → preference ranking → debrief.
 
 | When | What |
 |---|---|

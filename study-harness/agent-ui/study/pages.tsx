@@ -118,6 +118,7 @@ function Options(props: { options: string[]; value?: number; onChange: (i: numbe
 
 function Intro() {
   return (
+    <Show when={!busy()} fallback={<Preparing />}>
     <Card title="Welcome to Shopfront">
       <p data-study-intro>
         You have just joined <b>Shopfront</b>, a small online shop, as a developer. The team works with an AI coding
@@ -160,13 +161,56 @@ function Intro() {
           </p>
         </section>
       </div>
-      <p data-study-lead>First a short questionnaire, then a practice feature to get to know the interface.</p>
+      <p data-study-lead>First a practice feature: a guide shows you around the interface step by step.</p>
       <div data-study-actions>
         <Button variant="submit" size="large" disabled={busy()} onClick={() => act({ type: "begin" })}>
-          Start
+          Start the practice
         </Button>
       </div>
     </Card>
+    </Show>
+  )
+}
+
+function Ready() {
+  return (
+    <Show when={!busy()} fallback={<Preparing />}>
+      <Card step="Practice done" title="You're ready">
+        <p data-study-intro>
+          Now come {view()!.nTrials} features of Shopfront. Each works like the practice, but without the guide:
+        </p>
+        <section data-study-panel>
+          <ol data-study-steps>
+            <li>
+              <b>Approve the plan</b>
+              <span>Read the user story and the agent's plan, then let the agent start.</span>
+            </li>
+            <li>
+              <b>Review when the agent stops</b>
+              <span>
+                Use the changes view, Files and the terminal. Sometimes the agent stops partway, sometimes only at the end.
+              </span>
+            </li>
+            <li>
+              <b>Decide</b>
+              <span>
+                <b>Accept</b> if the code is fine. <b>Reject</b> if something is wrong: the agent asks what to change and fixes it.
+              </span>
+            </li>
+            <li>
+              <b>Answer the questions</b>
+              <span>One short question before you go on, then the colleague's questions with the code hidden.</span>
+            </li>
+          </ol>
+        </section>
+        <p data-study-lead>Treat it as real: accepting broken code costs the shop; rejecting good code delays a feature.</p>
+        <div data-study-actions>
+          <Button variant="submit" size="large" disabled={busy()} onClick={() => act({ type: "continue" })}>
+            Start feature 1
+          </Button>
+        </div>
+      </Card>
+    </Show>
   )
 }
 
@@ -254,7 +298,7 @@ function PreSurvey() {
                 })
               }
             >
-              Start practice
+              Next
             </Button>
           </Show>
         </div>
@@ -320,6 +364,12 @@ function Quiz() {
             </>
           }
         >
+          <Show when={v().practice && step() === 0}>
+            <p data-study-practice>
+              Practice: from now on the code is hidden. Answer from what you remember of the review, then say how sure you are. A
+              guess is fine.
+            </p>
+          </Show>
           <p data-study-lead>A colleague on the support desk asks you about the feature you just reviewed.</p>
           <p data-study-question>{items()[k()]!.question}</p>
           <Options options={items()[k()]!.options} value={answers[k()]} onChange={pick} />
@@ -435,6 +485,7 @@ export function StudyPage() {
         </Card>
       </Match>
       <Match when={view()!.phase === "intro"}><Intro /></Match>
+      <Match when={view()!.phase === "ready"}><Ready /></Match>
       <Match when={view()!.phase === "presurvey"}><PreSurvey /></Match>
       <Match when={view()!.phase === "understanding"}><Quiz /></Match>
       <Match when={view()!.phase === "postsurvey"}><PostSurvey /></Match>
