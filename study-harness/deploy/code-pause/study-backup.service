@@ -1,0 +1,6 @@
+[Unit]
+Description=Copy the study exports out of the pod volumes and dump the databases
+
+[Service]
+Type=oneshot
+ExecStart=%h/bin/study-backup.sh

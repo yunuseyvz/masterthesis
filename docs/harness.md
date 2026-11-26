@@ -23,8 +23,8 @@ browser ── HTTP/WS ──► study server (Fastify)
 | `study-harness/agent-ui/` | Study module and patch for opencode's web app |
 | `study-harness/trials/` | `drehbuch.md` and one folder per story: `trial.json`, outlines, probes, understanding scripts, `reference/` |
 | `study-harness/project/` | The Next.js project every trial starts from |
-| `study-harness/scripts/` | `run-session.sh`, `forward.mjs`, `play-session.py` |
-| `study-harness/deploy/` | Conditioner patch, LiteLLM config, condition generator |
+| `study-harness/scripts/` | `run-session.sh`, `forward.mjs`, `play-session.py`, `fetch-study-data.sh` |
+| `study-harness/deploy/` | Conditioner patch, LiteLLM config, condition generator, `code-pause/` (backups on the study VM) |
 | `analysis/` | Analysis, simulation and power code |
 
 ## How a trial runs
@@ -117,5 +117,15 @@ After the debrief, the harness sends the browser to Conditioner's completion URL
 since it carries a key), which opens a compensation form outside the pod: PayPal email or matriculation number, stored
 without participant ID or timestamp (see the fork's README).
 
-Still missing before participants: an allowlist for opencode's API, resume after a restart, collecting per-pod exports,
-and a load test with several sessions.
+**Data.** Each pod writes its exports to `/data/exports` in its own volume; the screen recordings go to Conditioner's
+database (`SESSION_RECORDING=0`). On the study VM, `deploy/code-pause/study-backup.sh` runs nightly at 03:15 (user
+timer `study-backup.timer`, before the 5–6 am reboot window). It copies every volume's exports to `~/exports/<user id>/`
+(never deleting there, so the copy outlives a deleted pod) and dumps the `provisioning` and `litellm` databases plus a
+tarball of `~/exports` to `~/backups/`, kept 7 days. Data leave the VM only through
+`study-harness/scripts/fetch-study-data.sh [DEST]` (SSH over eduVPN, default `~/study-data`), which first collects
+the latest exports and lists completed sessions (Conditioner's `session_end`) that have no `<id>_<seed>.json`. Install
+or update on the VM: copy the script to `~/bin/` and the two units to `~/.config/systemd/user/`, then
+`systemctl --user daemon-reload && systemctl --user enable --now study-backup.timer`.
+
+Still missing before participants: an allowlist for opencode's API, resume after a restart, and a load test with
+several sessions.
