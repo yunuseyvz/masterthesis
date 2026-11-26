@@ -113,6 +113,10 @@ opencode and the project need no internet (`live-opencode.test.ts` passes withou
 that network, Conditioner gives each pod a token (`STUDY_PROXY_TOKEN`) that its nginx sends with every request; the
 harness refuses requests without it, including websockets, so one participant's terminal can't use another's pod.
 
+**Monitoring.** Behind Conditioner, the study page (`agent-ui/study/progress.ts`) sends its phase, trial and whether
+"Are you still there?" is showing to `/__tracking/<study>/<user>/progress` on every change, never answers. The
+dashboard shows from this where each participant is and flags sessions that look stuck.
+
 After the debrief, the harness sends the browser to Conditioner's completion URL (it reaches the browser only then,
 since it carries a key), which opens a compensation form outside the pod: PayPal email or matriculation number, stored
 without participant ID or timestamp (see the fork's README).
@@ -123,7 +127,8 @@ timer `study-backup.timer`, before the 5–6 am reboot window). It copies every 
 (never deleting there, so the copy outlives a deleted pod) and dumps the `provisioning` and `litellm` databases plus a
 tarball of `~/exports` to `~/backups/`, kept 7 days. Data leave the VM only through
 `study-harness/scripts/fetch-study-data.sh [DEST]` (SSH over eduVPN, default `~/study-data`), which first collects
-the latest exports and lists completed sessions (Conditioner's `session_end`) that have no `<id>_<seed>.json`. Install
+the latest exports and lists completed sessions (Conditioner's `session_end`) that have no `<id>_<seed>.json`. Each run reports its outcome to
+Conditioner's dashboard (`POST 127.0.0.1:8180/monitor/report/backup`, or `.../collect`), also when it fails. Install
 or update on the VM: copy the script to `~/bin/` and the two units to `~/.config/systemd/user/`, then
 `systemctl --user daemon-reload && systemctl --user enable --now study-backup.timer`.
 

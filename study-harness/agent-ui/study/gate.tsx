@@ -5,6 +5,7 @@ import { ServerConnection } from "@/runtime/server/registry"
 import { sessionHref } from "@/shell/routes/session"
 import { StudyPage } from "./pages"
 import { PracticeTour } from "./tour"
+import { startProgress } from "./progress"
 import { active, afk, error, load, stillHere, view } from "./store"
 import { Button } from "@opencode/ui/button"
 import { markRecording, resetCoverage, startRecording, startTelemetry } from "./telemetry"
@@ -20,6 +21,7 @@ export function StudyGate(props: ParentProps) {
     document.body.dataset.study = "1"
     language.setLocale("en")
     startTelemetry()
+    startProgress()
     const onTab = (e: MouseEvent) => {
       if (e.target instanceof Element && e.target.closest('[data-slot="titlebar-tab-item"]') && (e.type === "contextmenu" || e.button === 1)) {
         e.preventDefault()
