@@ -662,6 +662,31 @@ describe("step check at the checkpoint", () => {
   });
 });
 
+describe("an answer the script cannot grade", () => {
+  it("is recorded as missing, not as wrong", async () => {
+    const plan = generateSessionPlan({ participantId: "UG", studySeed: "2", group: 0 });
+    const loader = makeStoryLoader(trialsDir, projectDir);
+    const ref = loadReference(loader("US0"));
+    // The practice story (US0) without a batch function: the interplay item's script prints no answer on this code.
+    const steps = [1, 2, 3, 4].map((n) => ref.step("Correct", n));
+    steps[2] = new Map([...steps[2]!].map(([f, c]) => [f, f.endsWith("batch.ts") ? "export {};\n" : c]));
+    const agent = new FakeAgentHost(() => steps);
+    const s = new StudySession(plan, loader, { agent, endpoint: { load: () => {}, endPlanning: () => {} }, checkpoints: agent.checkpoints, workRoot: fs.mkdtempSync(path.join(os.tmpdir(), "work-")), sandbox: {} }, () => {});
+    await startSession(s);
+    await s.act({ type: "approvePlan" });
+    await s.act({ type: "stage1", decision: "accept" });
+    await s.act({ type: "stage2", probeAnswer: 0, final: "confirm" });
+    await s.act({ type: "reviewed" });
+    await s.act(UNDERSTANDING);
+    const key = (s.events.find((e) => e.type === "live_key")!.data as { understanding: (string | null)[] }).understanding;
+    const end = s.events.find((e) => e.type === "trial_end")!.data as { understandingCorrects: (boolean | null)[]; understandingScore: number };
+    expect(key[4]).toMatch(/^\?/);
+    expect(end.understandingCorrects[4]).toBeNull();
+    expect(end.understandingCorrects.slice(0, 4).every((c) => typeof c === "boolean")).toBe(true);
+    expect(end.understandingScore).toBe(end.understandingCorrects.filter((c) => c === true).length);
+  });
+});
+
 describe("the agent UI's path", () => {
   it("is filled into the built app when the server starts, once", async () => {
     const { setBasePath } = await import("./app.js");

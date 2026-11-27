@@ -84,7 +84,8 @@ export const TrialResult = z.object({
   terminalCommandsProbe: z.number().int().nonnegative(),
   stage2ProbeLatencyMs: z.number().nonnegative(),
   probeAnswer: z.number().int().min(-1).max(3), // -1 = "I don't know"
-  probeCorrect: z.boolean(),
+  // null: the script printed no answer on the code under review, so the answer cannot be graded
+  probeCorrect: z.boolean().nullable(),
   feedback: z.string().optional(),
   feedbackMs: z.number().nonnegative().optional(),
   // False: the understanding items asked about an unfinished feature, so the trial is excluded.
@@ -93,7 +94,8 @@ export const TrialResult = z.object({
   understandingRoles: z.array(ItemRole).length(UNDERSTANDING_ITEMS),
   understandingSteps: z.array(z.number().int().min(1).max(4)).length(UNDERSTANDING_ITEMS),
   understandingAnswers: z.array(z.number().int().min(0).max(3)).length(UNDERSTANDING_ITEMS),
-  understandingCorrects: z.array(z.boolean()).length(UNDERSTANDING_ITEMS),
+  // null as for probeCorrect, on the finished code
+  understandingCorrects: z.array(z.boolean().nullable()).length(UNDERSTANDING_ITEMS),
   understandingConfidences: z.array(Confidence).length(UNDERSTANDING_ITEMS),
   understandingScore: z.number().int().min(0).max(UNDERSTANDING_ITEMS),
   finalReviewMs: z.number().nonnegative(),

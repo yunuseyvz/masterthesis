@@ -13,6 +13,9 @@ Each session writes to `exports/`:
 
 A session that is aborted has a log but no bundle and no CSV rows. All timestamps are server receipt times.
 
+Answers are graded on the code as played. When a question's script prints no answer on that code, the answer is
+missing (`null` in the bundle, an empty cell in `trials.csv`), not wrong.
+
 ## Direct
 
 - **Before:** consent (online on Conditioner's entry page, locally in the questionnaire), demographics, NCS-6,

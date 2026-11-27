@@ -690,7 +690,7 @@ export class StudySession {
         // Graded by what the code under review did when the question was shown (a fix after feedback must not change
         // the answer).
         const executed = c.probeOutcome ?? null;
-        const probeCorrect = canonical !== -1 && gradeable(executed) && c.probeOptions![canonical] === executed;
+        const probeCorrect = gradeable(executed) ? canonical !== -1 && c.probeOptions![canonical] === executed : null;
         const finalDecision: Decision = action.final === "confirm" ? s1.decision : s1.decision === "accept" ? "reject" : "accept";
         const reviewed = this.trial.regime === "BATCH" ? [1, 4] : [c.pauseStep, c.pauseStep];
         this.pending = {
@@ -772,9 +772,10 @@ export class StudySession {
         this.require("understanding");
         const canonical = action.answers.map((a, k) => this.trial.understandingOptionOrders[k]![a]!);
         const key = this.current!.understandingKey;
-        // Correct is the option the code as played makes true (an item whose script failed counts as wrong; see live_key).
+        // Correct is the option the code as played makes true; an item whose script printed no answer is not graded
+        // (null; see live_key).
         const options = this.current!.understandingOptions!;
-        const corrects = canonical.map((c, k) => gradeable(key![k]) && options[k]![c] === key![k]);
+        const corrects = canonical.map((c, k) => (gradeable(key![k]) ? options[k]![c] === key![k] : null));
         const result: TrialResult = {
           ...(this.pending as Omit<TrialResult, "featureComplete" | "understandingRoles" | "understandingSteps" | "understandingAnswers" | "understandingCorrects" | "understandingConfidences" | "understandingScore" | "paas" | "pauseTiming" | "pauseHelped" | "pauseDisrupted" | "understandingItemMs" | "understandingAnswerChanges">),
           featureComplete: this.current!.complete !== false,
