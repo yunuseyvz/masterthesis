@@ -1,4 +1,8 @@
 // Prints the true option text of every understanding item, in trial.json order.
+import { STATUS_CODES } from "node:http";
+
+// Any other status in the options' form ("404: not found"); "?" (not graded) when it has no name.
+const statusText = (status: number) => (STATUS_CODES[status] ? `${status}: ${STATUS_CODES[status]!.toLowerCase()}` : `? it answers ${status}`);
 
 // A module of the agent's code, or an empty one if it is missing: then only the items that use it fail.
 const optional = <T,>(m: Promise<T>): Promise<T> => m.catch(() => ({}) as T);
@@ -80,7 +84,7 @@ const items: (() => Promise<string> | string)[] = [
     const res: Response = await handlePaymentRequest(delivery({ ...event, type: "payment.refunded" }), deps);
     const balance = getAccount(deps.accounts, "a").balanceCents;
     if (res.status === 200) return balance === 500 ? "200: accepted and ignored" : "200: the account is debited";
-    return { 400: "400: rejected as an invalid event", 500: "500: it fails with a server error" }[res.status] ?? `It answers ${res.status}`;
+    return { 400: "400: rejected as an invalid event", 500: "500: it fails with a server error" }[res.status] ?? statusText(res.status);
   },
 ];
 

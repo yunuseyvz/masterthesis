@@ -1,4 +1,8 @@
 // Prints the true option text of every understanding item, in trial.json order.
+import { STATUS_CODES } from "node:http";
+
+// Any other status in the options' form ("404: not found"); "?" (not graded) when it has no name.
+const statusText = (status: number) => (STATUS_CODES[status] ? `${status}: ${STATUS_CODES[status]!.toLowerCase()}` : `? it answers ${status}`);
 
 // A module of the agent's code, or an empty one if it is missing: then only the items that use it fail.
 const optional = <T,>(m: Promise<T>): Promise<T> => m.catch(() => ({}) as T);
@@ -50,7 +54,7 @@ const items: (() => Promise<string> | string)[] = [
   async () => {
     const { POST } = await import("./src/app/api/checkout/route.ts");
     const res: Response = await POST(new Request("http://localhost/api/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId: "mug", quantity: 0 }) }));
-    return { 400: "400: invalid request", 200: "200: nothing is reserved", 409: "409: out of stock", 500: "500: server error" }[res.status] ?? `It answers ${res.status}`;
+    return { 400: "400: invalid request", 200: "200: nothing is reserved", 409: "409: out of stock", 500: "500: server error" }[res.status] ?? statusText(res.status);
   },
 ];
 const out: (string | null)[] = [];

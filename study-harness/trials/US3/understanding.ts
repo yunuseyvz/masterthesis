@@ -49,13 +49,13 @@ const items: (() => Promise<string> | string)[] = [
   // flaw (step 3): a bulk import that does not fit
   async () => {
     const r = await attempt({}, "maxProducts", 98, 5, "The import runs and all 5 are added");
-    return { "rejected 429": "The import is rejected (429)", "rejected 400": "The import is rejected as invalid (400)" }[r] ?? r;
+    return { "rejected 429": "The import is rejected (429)", "rejected 400": "The import is rejected as invalid (400)", TypeError: "The import fails with a TypeError" }[r] ?? r;
   },
   // interplay (steps 2 and 3): a limit of 0 is a value, not "not set"
   async () => {
     const limit = resolveSellerConfig(seller({ limits: { maxUsers: 0 } })).limits.maxUsers;
     const r = await attempt({ limits: { maxUsers: 0 } }, "maxUsers", 0, 1, limit === 0 || limit === null ? "It runs: 0 means no limit" : "It runs: 0 counts as not set, so the default of 5 applies");
-    return { "rejected 429": "It is rejected: limit exceeded (429)", "rejected 400": "It is rejected as invalid (400)" }[r] ?? r;
+    return { "rejected 429": "It is rejected: limit exceeded (429)", "rejected 400": "It is rejected as invalid (400)", TypeError: "It fails with a TypeError" }[r] ?? r;
   },
 ];
 const out: (string | null)[] = [];

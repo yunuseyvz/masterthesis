@@ -54,7 +54,7 @@ const items: (() => Promise<string> | string)[] = [
   () => {
     try {
       const s = share(bill([{ startedAt: DAY, endedAt: DAY + 20 * MIN }, { startedAt: 2 * DAY, endedAt: 2 * DAY + 20 * MIN }]).refundCents);
-      return { 0: "Nothing: each outage is measured on its own", 5: "5% of the subtotal: together they last 40 minutes", 10: "10% of the subtotal" }[s] ?? s;
+      return { 0: "Nothing: each outage is measured on its own", 5: "5% of the subtotal: together they last 40 minutes", 10: "10% of the subtotal", 25: "25% of the subtotal" }[s] ?? s;
     } catch {
       return "Generating the bill fails";
     }

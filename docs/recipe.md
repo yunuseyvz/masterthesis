@@ -175,6 +175,7 @@ Decisions that shaped the study, with their reason. Details in the linked docume
 | 22.11.2026 | The changes view shows only the working tree and reloads at each review | In the walkthrough a pause showed no code, or all earlier subtasks together |
 | 24.11.2026 | Stories use everyday shop terms (product, seller, refund, bill) instead of business jargon (SKU, tenant, SLA, invoice, gateway); logic, open cases, flaws and answers unchanged | Jargon from one domain would make understanding depend on domain knowledge, a confounder |
 | 24.11.2026 | Base project and the LLM's part in steps 2–3 recorded as they happened | The stories' wording, criteria and proposals for open cases and flaws came from an LLM; the documents must say so |
+| 27.11.2026 | Scripts print an outcome no option names in the options' form, or with `?` (not graded) | Raw outputs such as `It answers 404` replaced a wrong option and stood out as the right one |
 | 27.11.2026 | The final look shows the whole feature in every condition | Before, the steps before a pause never appeared in the changes view. NON_MILESTONE pauses later on average (step 2.5 vs. 2.0), so 8 of 30 items asked about code it never showed as a diff (MILESTONE: 1), and in 3.5 of 6 stories the milestone's code itself; the comparison would have measured exposure, not the place of the pause |
 
 ## Open

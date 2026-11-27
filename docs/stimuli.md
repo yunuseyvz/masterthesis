@@ -101,9 +101,15 @@ The form gives nothing away: the correct option is not conspicuously longer and 
 lack; no option is obviously absurd (a number no code prints, a unit that does not fit); all four have the same form.
 The harness shuffles the order per participant.
 
+**Outcomes no option names.** When the code as played does something no option says, the outcome a script prints
+replaces a wrong option. It must then look like the others: a script prints it in the options' form (`404: not found`,
+`25% of the subtotal`, `Five times`), or starts it with `?` when it has no such form. A `?` answer is not graded
+(missing, not wrong), so a raw text never stands out as the right answer.
+
 **Self-check** before step 6: Does a pause question share its scenario with any item?
 Can someone answer an item from story and public plan alone? Is the correct option the
-longest, or the only one with an explanation? Would an experienced person see Flawed as a fault knowing only the story,
+longest, or the only one with an explanation? Does every outcome a script can print have the options' form, or start
+with `?`? Would an experienced person see Flawed as a fault knowing only the story,
 and Correct not? Is the open case really open? Does a later non-test file build on the milestone? Does the title or a
 subtask summary (`steps[].summary`, used as commit message) reveal a decision?
 
