@@ -205,7 +205,7 @@ report <- function(d) {
   cat("\n== H4: confidence vs correctness (overconfidence = confidence - correct, in points)\n")
   items$over <- items$confidence - 100 * items$correct
   print(with(items, tapply(over, list(regime, item_type), function(x) round(mean(x), 1))))
-  m3 <- lmer(over ~ regime * item_type + position_c + (1 | participant_id) + (1 | story), data = items)
+  m3 <- lmer(over ~ regime * item_type + position_c + (1 | participant_id) + (1 | story) + (1 | story:item), data = items)
   print(coef(summary(m3))[c("regimeBATCH", "regimeNON_MILESTONE"), ], digits = 3)
   cat("\nExploratory: Brier score (0 is best) and resolution (AUROC of confidence for a correct answer, .5 = none)\n")
   print(data.frame(
