@@ -107,7 +107,7 @@ The harness runs as one container per participant behind Conditioner, in the pri
 real model key. The fork carries the deployment (`deploy/`: compose, nginx, `litellm.yaml`) and the study's entry
 pages (`studies/agentic-coding/`). Its `conditions.json` comes from `study-harness/deploy/make-conditions.mjs`: 12
 conditions, group × round, round first. In Conditioner a "condition" is an assignment slot, here a counterbalancing
-sequence, not one of the three regimes.
+sequence, not one of the three regimes; the fork's dashboard calls them sequences.
 
 **Balance.** A new participant gets the condition with the fewest participants holding a slot, ties to the earliest in
 the file. Everyone holds one except dropouts (their pod stopped before the debrief) and participants released on the
