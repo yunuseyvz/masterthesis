@@ -40,7 +40,9 @@ missing (`null` in the bundle, an empty cell in `trials.csv`), not wrong.
   was accepted after failing its check twice (`pauseStepForced`). Per item: whether its script printed an answer
   (`uK_gradeable`) and whether that answer was none of the options and replaced a wrong one (`uK_adapted`).
 
-"On screen" is not "read": the code-on-screen measures are an upper bound on attention.
+"On screen" is not "read": the code-on-screen measures are an upper bound on attention. How long the flaw was on screen
+is not measured live: the per-hunk times in each `review_window` event, with the code as played (`code.jsonl`), give it
+afterwards.
 
 The columns of `trials.csv` are defined by `CSV_COLUMNS` in `study-harness/server/src/export.ts`, the events by
 `UiEvent` in `shared/src/view.ts` and the session events logged in `study-harness/server/src/machine.ts`.

@@ -29,9 +29,9 @@ const CSV_COLUMNS: (keyof TrialResult)[] = [
   "position", "story", "regime", "variant", "milestoneStep", "flawStep", "pauseStep", "flawStepReviewed", "probeStep", "initialDecision", "finalDecision",
   "decisionReversed", "reviewedLines", "planMs", "stage1DwellMs", "changesViewMsStage1", "diffCoverageStage1",
   "filesOpenedStage1", "terminalCommandsStage1", "testRunsStage1", "testFailRunsStage1", "hunksStage1", "hunksViewedStage1",
-  "flawRegionMsStage1", "flawRegionSeenStage1", "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1",
+  "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1",
   "stage2ProbeLatencyMs", "terminalCommandsProbe", "probeAnswer", "probeCorrect", "finalReviewMs", "changesViewMsFinal",
-  "hunksFinal", "hunksViewedFinal", "flawRegionMsFinal", "flawRegionSeenFinal", "unfocusedMsFinal", "idleMsFinal",
+  "hunksFinal", "hunksViewedFinal", "unfocusedMsFinal", "idleMsFinal",
   "featureComplete", "pauseMissed", "flawAtDecision", "flawAtEnd", "openCaseAsScripted", "pauseStepForced", "understandingScore", "paas", "pauseTiming", "pauseHelped", "pauseDisrupted",
 ];
 

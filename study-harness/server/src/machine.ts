@@ -49,13 +49,11 @@ class Window {
   chatBacks = 0;
   toolExpands = 0;
   fileMs = new Map<string, number>();
-  flawMs = 0;
   readonly hunks: (Region & { ms: number })[];
   constructor(
     readonly name: string,
     readonly start: number,
     hunks: Region[] = [],
-    readonly flaw: Region[] = [],
   ) {
     this.hunks = hunks.map((h) => ({ ...h, ms: 0 }));
   }
@@ -70,8 +68,6 @@ class Window {
       testFails: this.testFails,
       hunks: this.hunks.length,
       hunksViewed: this.hunks.filter((h) => h.ms >= SEEN_MS).length,
-      flawMs: this.flawMs,
-      flawSeen: this.flawMs >= SEEN_MS,
       unfocusedMs: this.ms.unfocused,
       idleMs: this.ms.idle,
       chatBacks: this.chatBacks,
@@ -298,8 +294,8 @@ export class StudySession {
       this.window = new Window(name, this.now());
       return;
     }
-    // The code under review is what is not committed yet. Where the flaw is in the agent's code is not known, so
-    // the flaw region stays empty.
+    // The code under review is what is not committed yet. How long the flaw was on screen is computed afterwards, from
+    // the per-hunk times (review_window) and the code as played (code.jsonl).
     const diff = uncommitted(this.current!.dir, this.deps.sandbox);
     const hunks = diff.flatMap((d) => toRanges(changedLines(d.before, d.after), 6).map((r) => ({ file: d.path, ...r })));
     if (name === "stage1") this.current!.reviewedLines = diff.reduce((n, d) => n + changedLines(d.before, d.after).length, 0);
@@ -316,7 +312,6 @@ export class StudySession {
     const views = this.onScreen.views;
     for (const v of views) w.fileMs.set(v.file, (w.fileMs.get(v.file) ?? 0) + dt);
     for (const h of w.hunks) if (views.some((v) => overlaps(h, v))) h.ms += dt;
-    if (w.flaw.some((r) => views.some((v) => overlaps(r, v)))) w.flawMs += dt;
   }
 
   private setState(key: State, on: boolean) {
@@ -344,7 +339,6 @@ export class StudySession {
       ...summary,
       fileMs: Object.fromEntries(w.fileMs),
       hunkMs: w.hunks,
-      flawRegion: w.flaw,
     });
     return summary;
   }
@@ -781,8 +775,6 @@ export class StudySession {
           testFailRunsStage1: s1.ui.testFails,
           hunksStage1: s1.ui.hunks,
           hunksViewedStage1: s1.ui.hunksViewed,
-          flawRegionMsStage1: s1.ui.flawMs,
-          flawRegionSeenStage1: s1.ui.flawSeen,
           unfocusedMsStage1: s1.ui.unfocusedMs,
           idleMsStage1: s1.ui.idleMs,
           chatScrollBacksStage1: s1.ui.chatBacks,
@@ -820,8 +812,6 @@ export class StudySession {
           changesViewMsFinal: fw.changesMs,
           hunksFinal: fw.hunks,
           hunksViewedFinal: fw.hunksViewed,
-          flawRegionMsFinal: fw.flawMs,
-          flawRegionSeenFinal: fw.flawSeen,
           unfocusedMsFinal: fw.unfocusedMs,
           idleMsFinal: fw.idleMs,
         } satisfies Partial<TrialResult>);

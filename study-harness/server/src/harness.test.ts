@@ -571,8 +571,8 @@ describe("code regions for review telemetry", () => {
     t += 4000; // still idle at the decision: counts up to it
     await s.act({ type: "stage1", decision: "accept" });
     const s1 = [...s.events].reverse().find((e) => e.type === "stage1_submit")!.data as { ui: Record<string, unknown> };
-    // The hunks are the uncommitted changes the agent made; the flaw's place in its code is not known (no flaw region).
-    expect(s1.ui).toMatchObject({ hunks: hunks.length, hunksViewed: 1, flawMs: 0, flawSeen: false, unfocusedMs: 3000, idleMs: 4000, chatBacks: 1, toolExpands: 1, testFails: 1 });
+    // The hunks are the uncommitted changes the agent made.
+    expect(s1.ui).toMatchObject({ hunks: hunks.length, hunksViewed: 1, unfocusedMs: 3000, idleMs: 4000, chatBacks: 1, toolExpands: 1, testFails: 1 });
     const detail = [...s.events].reverse().find((e) => e.type === "review_window")!.data as { fileMs: Record<string, number> };
     expect(detail.fileMs[seen.file]).toBe(2000);
 
