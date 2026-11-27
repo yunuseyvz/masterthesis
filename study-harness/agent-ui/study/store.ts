@@ -59,6 +59,8 @@ async function call<T>(path: string, body?: unknown, method = "POST"): Promise<T
     headers: body === undefined ? undefined : { "content-type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
+  // Behind a study platform: it ended the session (Conditioner's dashboard), and a reload shows its end page.
+  if (res.status === 401) location.reload()
   if (!res.ok) throw new Error(`${path}: ${res.status} ${await res.text()}`)
   return res.json() as Promise<T>
 }
