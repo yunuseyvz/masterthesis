@@ -95,7 +95,7 @@ Every use of an LLM is recorded under Provenance in [stimuli.md](stimuli.md).
 4. **NON_MILESTONE pause step:** never after a declarative subtask; where two subtasks qualify (only US1), the round
    alternates them.
 5. **Option order:** shuffled per participant from the seed.
-6. **Assignment:** `run-session.sh` (or Conditioner's 12 conditions, group × round) fills the groups in turn, so at any
+6. **Assignment:** `run-session.sh` (or Conditioner's six groups, with the round alternating within each) fills the groups in turn, so at any
    N they differ by at most one person.
 
 ## 6. Instruments and data

@@ -58,7 +58,8 @@ const app = await buildApp({
   basePath: env.STUDY_SLUG && platformUser ? `/study/${env.STUDY_SLUG}/${encodeURIComponent(platformUser)}/` : "/",
   completionUrl: env.STUDY_COMPLETION_URL,
   group: env.STUDY_GROUP !== undefined ? Number(env.STUDY_GROUP) : undefined,
-  round: env.STUDY_ROUND !== undefined ? Number(env.STUDY_ROUND) : undefined,
+  // Behind Conditioner: alternates with the participant's number within their group (STUDY_CONDITION_NUMBER).
+  round: env.STUDY_ROUND !== undefined ? Number(env.STUDY_ROUND) : env.STUDY_CONDITION_NUMBER !== undefined ? Number(env.STUDY_CONDITION_NUMBER) % 2 : undefined,
   exportDir,
   trialsDir,
   projectDir,
