@@ -124,7 +124,7 @@ session).
    Rscript analysis/simulate.R design.csv trials.csv
    Rscript analysis/analyze.R trials.csv
    ```
-4. **Power by simulation:** `Rscript analysis/power.R 250 24,30,36` (about 45 min on 4 cores); results in
+4. **Power by simulation:** `Rscript analysis/power.R 250 24,30,36` (about 40 min on 4 cores); results in
    `analysis/scenario/power.txt`.
 
 ## 8. Checks before the pilot
@@ -175,6 +175,9 @@ Decisions that shaped the study, with their reason. Details in the linked docume
 | 22.11.2026 | The changes view shows only the working tree and reloads at each review | In the walkthrough a pause showed no code, or all earlier subtasks together |
 | 24.11.2026 | Stories use everyday shop terms (product, seller, refund, bill) instead of business jargon (SKU, tenant, SLA, invoice, gateway); logic, open cases, flaws and answers unchanged | Jargon from one domain would make understanding depend on domain knowledge, a confounder |
 | 24.11.2026 | Base project and the LLM's part in steps 2–3 recorded as they happened | The stories' wording, criteria and proposals for open cases and flaws came from an LLM; the documents must say so |
+| 27.11.2026 | An answer whose script prints no answer on the code as played is missing, not wrong | Counted as wrong, a gap in the grading looked like a gap in understanding, and the CSV could not tell them apart |
+| 27.11.2026 | H3 uses the flaw as played at the decision; the assigned variant is a sensitivity analysis | A flaw the agent did not write, or wrote unasked in a Correct trial, decides what there was to detect |
+| 27.11.2026 | H1 is also reported beyond the paused step, power is simulated for a pause that only helps what it shows, and a null H1b is read through an equivalence test (±5 points) | MILESTONE pauses after the step of more items (14 vs. 10 of 30); at about 50 % power a plain null on H1b would say nothing |
 | 27.11.2026 | Scripts print an outcome no option names in the options' form, or with `?` (not graded) | Raw outputs such as `It answers 404` replaced a wrong option and stood out as the right one |
 | 27.11.2026 | The final look shows the whole feature in every condition | Before, the steps before a pause never appeared in the changes view. NON_MILESTONE pauses later on average (step 2.5 vs. 2.0), so 8 of 30 items asked about code it never showed as a diff (MILESTONE: 1), and in 3.5 of 6 stories the milestone's code itself; the comparison would have measured exposure, not the place of the pause |
 

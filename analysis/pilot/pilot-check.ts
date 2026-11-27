@@ -36,12 +36,15 @@ if (fs.existsSync(csv)) {
   const rows = lines.map((l) => Object.fromEntries(l.split(",").map((v, i) => [cols[i], v])) as Record<string, string>);
   const nItems = cols.filter((c) => /^u\d+_correct$/.test(c)).length;
   type Item = { story: string; k: number; role: string; regime: string; correct: boolean; confidence: number; ms: number };
+  // An answer its script could not grade is empty in the CSV: missing, not wrong.
   const items: Item[] = rows.flatMap((r) =>
     Array.from({ length: nItems }, (_, i) => ({
-      story: r.story!, k: i + 1, role: r[`u${i + 1}_role`]!, regime: r.regime!,
+      story: r.story!, k: i + 1, role: r[`u${i + 1}_role`]!, regime: r.regime!, graded: r[`u${i + 1}_correct`] !== "",
       correct: r[`u${i + 1}_correct`] === "true", confidence: Number(r[`u${i + 1}_confidence`]), ms: Number(r[`u${i + 1}_ms`]),
-    })),
+    })).filter((x) => x.graded),
   );
+  const ungraded = rows.length * nItems - items.length;
+  if (ungraded > 0) console.log(`\n${ungraded} answer(s) could not be graded on the code as played (left out below)`);
   const pct = (xs: Item[]) => `${Math.round((100 * xs.filter((x) => x.correct).length) / xs.length)} %`.padStart(5);
   console.log(`\n== Items (${new Set(rows.map((r) => r.participant_id)).size} people, ${rows.length} trials)`);
   console.log("  story item role        n  correct  confidence  median s");

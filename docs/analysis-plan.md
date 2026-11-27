@@ -49,6 +49,10 @@ Decided before the data are seen:
   unfinished (`featureComplete` false), and a pause regime whose pause the agent never reached (`pauseMissed` true;
   the review then came at the end of its turn). The harness reminds the agent twice, hidden from the participant,
   before it gives up. Excluded trials are reported per regime. Times are not trimmed.
+- Every answer is graded on the code as played. When an item's script prints no answer on that code (the agent built
+  something the script cannot run), the answer is **missing, not wrong**: left out of the item-level models and
+  counted per regime. Trials whose reviewed step was accepted after failing its check twice (`pauseStepForced`) stay
+  in and are counted per regime.
 
 ## 3. Hypotheses and models
 
@@ -81,6 +85,27 @@ correct.
 that question is close to the flaw item asked later (US2, US4, US6 kept theirs; `docs/stimuli.md`). The same
 model without the flaw items (four per trial) shows whether H1 depends on that practice.
 
+**Sensitivity: without adapted items.** Where the code as played did something no option said, that outcome replaced a
+wrong option (`uK_adapted`). The same model without those items.
+
+**Sensitivity: beyond the paused step.** MILESTONE pauses after the step that decides 14 of the 30 items,
+NON_MILESTONE after one that decides 10 on average (`uK_step`). A pause, with its behaviour question, may help the
+items about the step it follows whatever that step is, so H1b could come from where the items lie alone. On the two
+pause regimes only:
+
+```
+correct ~ regime + reviewed + position + (1 | participant) + (1 | feature) + (1 | feature:item)
+```
+
+`reviewed` is 1 when the pause followed the item's step. The regime coefficient is H1b beyond that; reported next to
+H1b, not Holm-corrected.
+
+**Equivalence.** The smallest difference that matters is 5 points of share correct (`SESOI_POINTS` in `analyze.R`),
+fixed before data. For each H1 contrast, two one-sided tests: the contrast is equivalent when its 90 % CI lies within
+±5 points, turned into log-odds at MILESTONE's share correct for a typical participant and item (the model's
+intercept). A non-significant H1b is read as "no difference that matters" only if it is equivalent, otherwise as
+inconclusive. At N = 24–36 the test cannot succeed (§5), so in practice it marks a null H1b as inconclusive.
+
 What can dilute H1: every regime ends with a final look at the whole feature (without a decision), and a NON_MILESTONE
 pause can show the code of the dependency item (usually written after the milestone), which a MILESTONE pause never
 shows. H1 then rests on the milestone pause
@@ -104,7 +129,8 @@ review elsewhere does not.
 **Exploratory: the milestone, or just having looked at it?** A pause also helps an item about the paused subtask
 when that subtask is not the milestone (NON_MILESTONE). An item's subtask is the one whose code decides its answer
 (`uK_step`). `correct ~ reviewed * item_type + …` separates the "reviewed this subtask" effect from the "milestone"
-effect.
+effect, on the items of the two pause regimes: BATCH has no pause, and its items would count as not reviewed although
+its review showed every step.
 
 **Exploratory: what builds on the milestone.** The dependency item asks what later code relies on in the milestone's
 decision. The code that decides its answer is usually written after the milestone, so a NON_MILESTONE pause after that
@@ -123,6 +149,14 @@ reject ~ regime * flawed + flawed:flaw_position + position + (1 | participant) +
 
 The `flawed` coefficient is d′ in the reference regime, `regimeX:flawed` the difference in d′; the intercept gives
 the criterion c (tendency to reject). d′ per person is not estimable (one Correct and one Flawed trial per regime).
+
+**The flaw as played.** `flawed` is whether the code under review had the flaw at that decision (`flawAtDecision`,
+from the flaw step's behaviour question, whose answers differ between the variants): the agent may not write a flaw it
+was told to, or make the wrong decision unasked in a Correct trial. Where the flaw step was not written yet, the
+decision could not depend on it, and the assigned variant stands; trials where the code does something else
+(`unknown`) are left out. Sensitivity: the same model on the assigned variant. Reported with it, per variant: the flaw
+at the decision and in the graded code (`flawAtEnd`), and the share of trials whose open case came out as scripted
+(`openCaseAsScripted`).
 
 **Where the flaw lies relative to the pause** (`flaw_position`, from `flawStep` and `pauseStep`): in the review (the
 paused subtask, or BATCH, which shows all of them), written before the pause (in the files, not in the review), or not
@@ -183,3 +217,14 @@ real design, each analysed exactly as above. With an assumed +9 / +7 points on a
 NON_MILESTONE) and +16 on the milestone item, N = 30 finds H1a in 67 %, H1b in 51 %, H2 in about 45 % of studies;
 N = 36 in 78 %, 57 % and about 57 %; N = 24 in 51 %, 38 % and about 35 %. 80 % power for H1b needs about +12 points, for H2 about +24. The assumptions are
 guesses until the pilot; rerun with its variances.
+
+**Where the items lie.** In the scenario `reviewed only` a pause helps the items about the step it follows (+0.3
+log-odds) and the milestone nothing beyond that. There H1b comes out significant in 2–6 % of studies (N = 24–36), so
+the placement of the items barely inflates it; H1a and H2 (both contrasts) in 6–11 %. H1b beyond the paused step has
+43 % power at N = 30 (medium), and 4–8 % false positives.
+
+**Equivalence.** The equivalence test (±5 points) succeeds in none of the simulated studies at N = 24–36, not even
+without any effect: the 90 % CI of H1b spans about ±0.3 log-odds (about ±7 points), wider than the bounds. A
+non-significant H1b therefore stays inconclusive at this N; the test keeps it from being read as "no effect".
+Showing equivalence at ±5 points would take roughly five times as many participants (from the width of the CI, not
+simulated).

@@ -61,20 +61,23 @@ code together. The code is `analysis/analyze.R`.
 
 | | Outcome | Model |
 |---|---|---|
-| H1 | Understanding of the feature (all five items) | logistic, item level; also without the flaw item |
+| H1 | Understanding of the feature (all five items) | logistic, item level; also without the flaw item, and beyond the paused step; a null H1b read through an equivalence test (±5 points) |
 | H2 | Understanding of the milestone item | as H1, with item type |
-| H3 | Fault detection | probit signal detection on the first decision, with the flaw's position relative to the review; exploratory |
+| H3 | Fault detection | probit signal detection on the first decision and the flaw as played, with the flaw's position relative to the review; exploratory |
 | H4 | Confidence vs. correctness | linear, confidence minus 100 × correct |
 | H5 | Reversals | logistic if at least 10 reversals, otherwise descriptive |
 
 Descriptive only: time, mental effort, the three statements, preference.
 
 **Exclusions** (fixed before data collection): failed attention check (replaced); sessions that do not reach Finish
-(slot re-run); trials where the agent left the feature unfinished or never reached the pause. Data collection ends by
-schedule, not by results; the hypotheses are analysed once.
+(slot re-run); trials where the agent left the feature unfinished or never reached the pause. An answer whose script
+cannot grade it on the code as played is missing, not wrong. Data collection ends by schedule, not by results; the
+hypotheses are analysed once.
 
 **Power**, by simulation (`analysis/power.R`): with +9 / +7 points on all items and +16 on the milestone item,
-N = 30 finds H1a in 67 %, H1b in 51 % and H2 in about 45 % of studies. The assumptions are guesses until the pilot.
+N = 30 finds H1a in 67 %, H1b in 51 % and H2 in about 45 % of studies. If a pause helps only the items about the
+step it follows, H1b comes out significant in 2–6 %. The equivalence test never succeeds at this N, so a null H1b
+stays inconclusive. The assumptions are guesses until the pilot.
 
 ## Limits
 

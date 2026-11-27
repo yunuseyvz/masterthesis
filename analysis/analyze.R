@@ -8,10 +8,13 @@ suppressPackageStartupMessages({
 })
 
 REGIMES <- c("MILESTONE", "BATCH", "NON_MILESTONE") # MILESTONE first: the reference of every contrast
+# The smallest difference in share correct that matters, in percentage points; fixed before data (equivalence test).
+SESOI_POINTS <- 5
 ctrl <- glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5))
 
 read_trials <- function(path, exclude = character()) {
-  d <- read.csv(path, stringsAsFactors = FALSE)
+  # An empty cell is a missing value (an answer the script could not grade).
+  d <- read.csv(path, stringsAsFactors = FALSE, na.strings = c("NA", ""))
   d <- d[!d$participant_id %in% exclude, ]
   for (c in names(d)) if (all(d[[c]] %in% c("true", "false", NA))) d[[c]] <- d[[c]] == "true"
   # Trials where the agent left the feature unfinished or the pause was missed are excluded.
@@ -22,6 +25,10 @@ read_trials <- function(path, exclude = character()) {
   }
   d$regime <- factor(d$regime, levels = REGIMES)
   d$flawed <- as.integer(d$variant == "Flawed")
+  # The flaw as played at the first decision (H3). Where its step was not written yet, the decision could not depend
+  # on it, so the assigned variant stands; "unknown" (the code does something else) is left out.
+  d$flawed_played <- ifelse(d$flawAtDecision %in% c("present", "absent"), as.integer(d$flawAtDecision == "present"),
+                            ifelse(d$flawAtDecision == "unwritten", d$flawed, NA))
   d$reject <- as.integer(d$initialDecision == "reject")
   d$position_c <- d$position - 3.5
   # Where the flaw subtask lies relative to what the review showed: in it (BATCH always), written before the pause
@@ -31,17 +38,23 @@ read_trials <- function(path, exclude = character()) {
   d
 }
 
-# One row per understanding item: trial x item k. An item is "reviewed" when the pause followed the step it asks about.
-items_long <- function(d) {
+# One row per understanding item: trial x item k. An item is "reviewed" when the pause followed the step it asks about
+# (BATCH has no pause: 0). Answers the script could not grade on the code as played are missing, not wrong: left out.
+items_long <- function(d, quiet = FALSE) {
   n_items <- sum(grepl("^u[0-9]+_correct$", names(d)))
-  do.call(rbind, lapply(seq_len(n_items), function(k) data.frame(
+  items <- do.call(rbind, lapply(seq_len(n_items), function(k) data.frame(
     participant_id = d$participant_id, story = d$story, regime = d$regime, position_c = d$position_c, item = k,
     role = d[[paste0("u", k, "_role")]],
     correct = as.integer(d[[paste0("u", k, "_correct")]]),
     confidence = d[[paste0("u", k, "_confidence")]],
     item_type = factor(ifelse(d[[paste0("u", k, "_milestone")]], "milestone", "other"), levels = c("milestone", "other")),
-    reviewed = as.integer(d$regime != "BATCH" & d$pauseStep == d[[paste0("u", k, "_step")]])
+    reviewed = as.integer(d$regime != "BATCH" & d$pauseStep == d[[paste0("u", k, "_step")]]),
+    adapted = as.logical(d[[paste0("u", k, "_adapted")]])
   )))
+  missing <- is.na(items$correct)
+  if (any(missing) && !quiet) message(sprintf("left out %d ungraded answer(s): %s", sum(missing),
+    paste(names(table(items$regime[missing])), table(items$regime[missing]), sep = " ", collapse = ", ")))
+  items[!missing, ]
 }
 
 holm <- function(p) p.adjust(p, "holm")
@@ -61,6 +74,36 @@ fit_feature <- function(items) {
         data = items, family = binomial, control = ctrl)
 }
 
+# H1b beyond the paused step: the two pause regimes only, with "the pause followed the item's step" as a covariate.
+# MILESTONE has more items about its paused step (14 of 30) than NON_MILESTONE (10), so H1b could come from that alone.
+fit_beyond <- function(items) {
+  paused <- droplevels(items[items$regime != "BATCH", ])
+  glmer(correct ~ regime + reviewed + position_c + (1 | participant_id) + (1 | story) + (1 | story:item),
+        data = paused, family = binomial, control = ctrl)
+}
+beyond_contrast <- function(m) {
+  s <- coef(summary(m))[c("regimeNON_MILESTONE", "reviewed"), ]
+  data.frame(term = c("MILESTONE vs NON_MILESTONE", "pause followed the item's step"),
+             log_odds = c(-s[1, "Estimate"], s[2, "Estimate"]), z = c(-s[1, "z value"], s[2, "z value"]),
+             p = s[, "Pr(>|z|)"], row.names = NULL)
+}
+
+# Equivalence (two one-sided tests) for the H1 contrasts, so that a non-significant one can be read: the contrast is
+# equivalent when its 90 % CI lies within +-SESOI_POINTS, turned into log-odds at MILESTONE's share correct for a
+# typical participant and item (random effects at zero, centred position).
+equivalence <- function(m) {
+  p0 <- plogis(fixef(m)[["(Intercept)"]])
+  low <- qlogis(p0) - qlogis(min(p0 + SESOI_POINTS / 100, 0.999)) # the other regime 5 points better
+  high <- qlogis(p0) - qlogis(max(p0 - SESOI_POINTS / 100, 0.001)) # the other regime 5 points worse
+  s <- coef(summary(m))[c("regimeBATCH", "regimeNON_MILESTONE"), ]
+  est <- -s[, "Estimate"]
+  se <- s[, "Std. Error"]
+  p <- pmax(pnorm((est - low) / se, lower.tail = FALSE), pnorm((est - high) / se))
+  data.frame(contrast = c("MILESTONE vs BATCH", "MILESTONE vs NON_MILESTONE"), log_odds = est,
+             ci90_low = est - qnorm(0.95) * se, ci90_high = est + qnorm(0.95) * se, bound_low = low, bound_high = high,
+             p_tost = p, equivalent = p < 0.05, row.names = NULL)
+}
+
 # H2: the milestone item. Milestone is the reference item type, so the regime coefficients are the contrasts on it.
 fit_decision <- function(items) {
   glmer(correct ~ regime * item_type + position_c + (1 | participant_id) + (1 | story) + (1 | story:item),
@@ -69,7 +112,12 @@ fit_decision <- function(items) {
 
 # H3. Equal-variance signal detection as a probit model: the flawed coefficient is d', the intercept is -c.
 # With MILESTONE as reference, regimeX:flawed is d'(X) - d'(MILESTONE) when the flaw subtask was in the review;
-# flawed:flaw_rel takes out the trials where it was not.
+# flawed:flaw_rel takes out the trials where it was not. `flawed` is the flaw as played (as_played) or as assigned.
+as_played <- function(d) {
+  d <- d[!is.na(d$flawed_played), ]
+  d$flawed <- d$flawed_played
+  d
+}
 fit_sdt <- function(d) {
   rel <- if (length(unique(d$flaw_rel)) > 1) " + flawed:flaw_rel" else ""
   glmer(as.formula(paste0("reject ~ regime * flawed", rel, " + position_c + (1 | participant_id) + (1 | story)")),
@@ -108,13 +156,19 @@ report <- function(d) {
   print(regime_contrasts(fit_feature(items)), digits = 3)
   cat("\nSensitivity: without the flaw item\n")
   print(regime_contrasts(fit_feature(items[items$role != "flaw", ])), digits = 3)
+  cat("\nSensitivity: without items whose options the code as played changed\n")
+  print(regime_contrasts(fit_feature(items[!items$adapted, ])), digits = 3)
+  cat("\nSensitivity: H1b beyond the paused step (pause regimes only)\n")
+  print(beyond_contrast(fit_beyond(items)), digits = 3)
+  cat(sprintf("\nEquivalence (TOST, +-%d points; read a non-significant H1 contrast only through this)\n", SESOI_POINTS))
+  print(equivalence(fit_feature(items)), digits = 3)
 
   cat("\n== H2: the milestone item\n")
   print(regime_contrasts(fit_decision(items)), digits = 3)
 
-  cat("\n== Exploratory: milestone or just reviewed? (items, all regimes)\n")
+  cat("\n== Exploratory: milestone or just reviewed? (items of the pause regimes)\n")
   m1b <- glmer(correct ~ reviewed * item_type + position_c + (1 | participant_id) + (1 | story) + (1 | story:item),
-               data = items, family = binomial, control = ctrl)
+               data = items[items$regime != "BATCH", ], family = binomial, control = ctrl)
   print(coef(summary(m1b))[-1, ], digits = 3)
 
   cat("\n== Exploratory: share correct by item role\n")
@@ -125,19 +179,28 @@ report <- function(d) {
                   error = function(e) NULL)
   if (is.null(m1c)) cat("model did not fit\n") else print(coef(summary(m1c))[-1, ], digits = 3)
 
-  cat("\n== H3: fault detection (initial decision), d' when the flaw subtask was in the review\n")
+  cat("\n== The trial as played\n")
+  print(table(variant = d$variant, at_decision = d$flawAtDecision))
+  print(table(variant = d$variant, at_end = d$flawAtEnd))
+  cat(sprintf("open case as scripted: %s; a reviewed step accepted after failing its check: %d trial(s)\n",
+              pct(d$openCaseAsScripted[!is.na(d$openCaseAsScripted)]), sum(d$pauseStepForced)))
+  print(with(d, tapply(pauseStepForced, regime, sum)))
+
+  cat("\n== H3: fault detection (initial decision), d' when the flaw subtask was in the review; flaw as played\n")
   print(table(regime = d$regime, flaw = d$flaw_rel))
-  m2 <- fit_sdt(d)
+  m2 <- fit_sdt(as_played(d))
   print(dprime_by_regime(m2), digits = 3)
   print(sdt_contrasts(m2), digits = 3)
   b <- fixef(m2)
   cat(sprintf("d' lower by %.2f when the flaw subtask was written before the pause, by %.2f when after\n",
               -b["flawed:flaw_relbefore"], -b["flawed:flaw_relafter"]))
   cat("\nOnly reviews that contained the flaw subtask:\n")
-  seen <- d[d$flawStepReviewed, ]
-  print(table(regime = seen$regime, variant = seen$variant))
+  seen <- as_played(d[d$flawStepReviewed, ])
+  print(table(regime = seen$regime, flawed = seen$flawed))
   m2s <- fit_sdt(seen)
   print(dprime_by_regime(m2s), digits = 3)
+  cat("\nSensitivity: the flaw as assigned (variant)\n")
+  print(sdt_contrasts(fit_sdt(d)), digits = 3)
 
   cat("\n== H4: confidence vs correctness (overconfidence = confidence - correct, in points)\n")
   items$over <- items$confidence - 100 * items$correct
