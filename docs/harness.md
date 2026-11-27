@@ -86,7 +86,7 @@ Key environment variables: `PARTICIPANT_ID`, `STUDY_SEED`, `STUDY_GROUP`, `LIVE_
 | Variable | Default | Effect |
 |---|---|---|
 | `STUDY_AFK_WARN_MIN` | 10 | Without input while it is the participant's turn (not while the agent works), "Are you still there?" appears; Continue resets it |
-| `STUDY_AFK_ABORT_MIN` | 10 | Without an answer to that prompt, the session ends (`session_abandoned`): end page, sandbox processes killed, no bundle, so it does not count towards the group balance. At the debrief it is exported as after Finish |
+| `STUDY_AFK_ABORT_MIN` | 10 | Without an answer to that prompt, the session ends (`session_abandoned`): end page, sandbox processes killed, no bundle, so it does not count towards the group balance (online, Conditioner frees its slot once the pod has stopped). At the debrief it is exported as after Finish |
 | `STUDY_MAX_SESSION_MIN` | 120 | Hard cap in every phase, also while the agent works |
 
 A closed window ends the same way. Conditioner's own idle stop is only the second line.
@@ -102,9 +102,18 @@ A closed window ends the same way. Conditioner's own idle stop is only the secon
 
 ## Online deployment (Conditioner)
 
-The harness runs as one container per participant behind [Conditioner](https://github.com/mimuc/conditioner) (private
-LMU repository), with a LiteLLM gateway holding the real model key. Files are in `study-harness/deploy/`
-(`conditioner.patch`, `litellm.yaml`, `make-conditions.mjs`: 12 conditions, group × round).
+The harness runs as one container per participant behind Conditioner, in the private fork
+[yunuseyvz/conditioner-agentic](https://github.com/yunuseyvz/conditioner-agentic), with a LiteLLM gateway holding the
+real model key. The fork carries the deployment (`deploy/`: compose, nginx, `litellm.yaml`) and the study's entry
+pages (`studies/agentic-coding/`). Its `conditions.json` comes from `study-harness/deploy/make-conditions.mjs`: 12
+conditions, group × round, round first. In Conditioner a "condition" is an assignment slot, here a counterbalancing
+sequence, not one of the three regimes.
+
+**Balance.** A new participant gets the condition with the fewest participants holding a slot, ties to the earliest in
+the file. Everyone holds one except dropouts (their pod stopped before the debrief) and participants released on the
+dashboard; release the slot of someone excluded, for example after a failed attention check (in the nightly
+exports), and the next participant takes it. `stop_at_n` (36) counts slots held, and at most `POD_CAPACITY` pods (3)
+run at once: a participant beyond that gets a "try again later" page, without a slot.
 
 Consent is collected only by the entry page of the Conditioner fork (served at the site root, study
 `agentic-coding`: `info.html` and `consent.html`, with required checkboxes). The pod starts only after that. `make-conditions.mjs` sets `STUDY_CONSENT=external`, so the
@@ -122,6 +131,8 @@ dashboard shows from this where each participant is and flags sessions that look
 After the debrief, the harness sends the browser to Conditioner's completion URL (it reaches the browser only then,
 since it carries a key), which opens a compensation form outside the pod: PayPal email or matriculation number, stored
 without participant ID or timestamp (see the fork's README).
+
+Conditioner stops a pod 135 min after it started (`SESSION_CEILING_SECONDS`), after the harness's own 120-min limit.
 
 **Data.** Each pod writes its exports to `/data/exports` in its own volume; the screen recordings go to Conditioner's
 database (`SESSION_RECORDING=0`). On the study VM, `deploy/code-pause/study-backup.sh` runs nightly at 03:15 (user

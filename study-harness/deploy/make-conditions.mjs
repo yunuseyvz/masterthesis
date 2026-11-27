@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // Writes the study's entry for Conditioner's conditions.json: one condition per
-// counterbalancing group and round, all with the same image. N should be a multiple of 12.
+// counterbalancing group and round, all with the same image. Conditioner gives a new participant the condition with
+// the fewest participants holding a slot, ties to the earliest in this file. Round-first order (g0r0 … g5r0, then
+// g0r1 … g5r1) fills the six groups in turn, so they differ by at most one; a dropout frees their slot, and the
+// next participant takes it.
 //
 // Usage: node study-harness/deploy/make-conditions.mjs [completion redirect] > conditions.json
 const [completionRedirect] = process.argv.slice(2);
@@ -10,8 +13,8 @@ const isolation = ["--cap-drop", "ALL", ...["SETUID", "SETGID", "CHOWN", "DAC_OV
 const env = (values) => Object.entries(values).flatMap(([k, v]) => ["--env", `${k}=${v}`]);
 
 const conditions = [];
-for (let group = 0; group < 6; group++)
-  for (let round = 0; round < 2; round++)
+for (let round = 0; round < 2; round++)
+  for (let group = 0; group < 6; group++)
     conditions.push({
       condition_name: `g${group}r${round}`,
       image_ref: "localhost/beacon:latest",
@@ -27,8 +30,9 @@ console.log(JSON.stringify([{
   // Shown to participants (page title) and in their URLs: generic on purpose.
   study_name: "Working with an AI coding agent",
   study_slug: "agentic-coding",
-  supervisor: "",
-  // A technical cap, not the planned N (about 30).
+  // Shown on the dashboard only
+  supervisor: "Prof. Dr. Albrecht Schmidt; Thomas Weber, Isabel Wanderwitz",
+  // Participants holding a slot (not dropouts or released ones). A technical cap, not the planned N (about 30).
   stop_at_n: 36,
   info_html: "studies/agentic-coding/info.html",
   consent_html: "studies/agentic-coding/consent.html",

@@ -10,9 +10,11 @@ research questions.
 
 ## 1. Design and data
 
-- **N is not fixed:** as many people as the thesis allows, about 30 planned. Sessions run in group order (0–5) by
-  `study-harness/scripts/run-session.sh`, so at any N the six groups differ by at most one person; the mixed models
-  do not need equal groups. The N reached and the power at it are reported as a limitation. Counts below are for
+- **N is not fixed:** as many people as the thesis allows, about 30 planned. Sessions run in group order (0–5): locally
+  `study-harness/scripts/run-session.sh` picks the next group, and online Conditioner gives a new participant the
+  group and round with the fewest participants holding a slot, round first (`study-harness/deploy/make-conditions.mjs`).
+  So at any N the six groups differ by at most one person, except for a short time after a dropout, until the next
+  participant takes the free slot; the mixed models do not need equal groups. The N reached and the power at it are reported as a limitation. Counts below are for
   N = 30.
 - Per person: 6 measured features, 2 per regime (BATCH, MILESTONE, NON_MILESTONE), in each regime one Correct and one
   Flawed. The practice feature (`US0`) is not analysed.
@@ -39,10 +41,12 @@ Decided before the data are seen:
   participants ends. The hypotheses are analysed once, after that. During data collection only exclusions and
   technical faults are checked (`featureComplete`, `pauseMissed`, the attention check), never the outcomes, since
   stopping when a result looks good would raise the false-positive rate.
-- A person who fails the attention check (pre-survey) is excluded and replaced: the next session gets the same group
-  and round again (`--group`, `--round`).
-- A session that does not reach Finish writes no `trials.csv` rows; the slot is re-run automatically. This includes a
-  session the server ends because nobody is there (`session_abandoned`: 10 min without input, then 10 min without an
+- A person who fails the attention check (pre-survey) is excluded and replaced: locally the next session gets the same
+  group and round again (`--group`, `--round`); online their slot is released on Conditioner's dashboard (the data
+  stay), and the next participant takes it.
+- A session that does not reach Finish writes no `trials.csv` rows, and its slot is filled again: locally it is re-run,
+  online Conditioner frees the slot of a pod that stopped before the debrief. Nobody plays twice: a pod started again
+  shows only the end (`session_refused`). This includes a session the server ends because nobody is there (`session_abandoned`: 10 min without input, then 10 min without an
   answer to "Are you still there?", or 120 min in total). A session that ends this way at the debrief is complete and is
   exported as after Finish.
 - Two trial-level exclusions, both about the condition actually played: a trial whose feature the agent left
