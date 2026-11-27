@@ -12,7 +12,10 @@ Each session writes to `exports/`:
 | `<id>_<seed>.json` | At Finish: session plan, trial results, surveys, full event log |
 | `trials.csv` | At Finish: one row per measured trial, appended across sessions |
 
-A session that is aborted has a log but no bundle and no CSV rows. All timestamps are server receipt times.
+A session that is aborted has a log but no bundle and no CSV rows. All timestamps are server receipt times. A pod that
+the platform starts again appends to the same log: `session_refused` when an earlier run got as far as a trial (the
+session isn't played again), `session_restarted` when it ended during the questionnaire. `session_start` carries the
+harness's git commit (`version`).
 
 Answers are graded on the code as played. When a question's script prints no answer on that code, the answer is
 missing (`null` in the bundle, an empty cell in `trials.csv`), not wrong.
@@ -31,7 +34,8 @@ missing (`null` in the bundle, an empty cell in `trials.csv`), not wrong.
 - **Review behaviour:** changes view open, scroll coverage, files opened, hunks on screen for at least 1 s,
   terminal commands, test runs and failures, unfocused time, idle time (beyond 30 s), chat scroll-backs, tool
   expansions, clicks.
-- **Agent and server:** every model call, checkpoint, hidden reminder, opencode event and blocked API request.
+- **Agent and server:** every model call (with the model that answered), checkpoint, hidden reminder, opencode event
+  and blocked API request.
 - **Measurement windows:** `stage1` (scored review), `probe` (behaviour question), `final` (finished feature).
 - **The trial as played:** whether the code had the flaw at the first decision (`flawAtDecision`: present, absent,
   unwritten when its step came after the pause, unknown) and in the graded code (`flawAtEnd`), from the flaw step's
@@ -47,13 +51,32 @@ afterwards.
 The columns of `trials.csv` are defined by `CSV_COLUMNS` in `study-harness/server/src/export.ts`, the events by
 `UiEvent` in `shared/src/view.ts` and the session events logged in `study-harness/server/src/machine.ts`.
 
+## Online, recorded by Conditioner
+
+Behind Conditioner the harness's own recording is off (`SESSION_RECORDING=0`), and the fork records instead, in its
+database:
+
+- **Input:** its `tracker.js`, injected into every page of the pod, logs every key press, including in password
+  fields, plus mouse movements, clicks and scrolling (`activity_events`).
+- **Page recording:** rrweb, with input values masked but page content and canvases, so also the terminal, about once
+  a second (`recording_chunks`).
+- **Model traffic:** LiteLLM logs each request's time, tokens, cost and status under Conditioner's user ID
+  (`LiteLLM_SpendLogs`), but not its text (`store_prompts_in_spend_logs: false`); the harness's own log has the calls.
+- **Session:** consent time, pod starts and stops, completion, and the study app's progress reports (phase and trial,
+  never answers).
+- **Compensation:** PayPal e-mail or matriculation number, in tables without the user ID or a timestamp.
+
+The consent text on the entry page names all of this.
+
 ## Not collected
 
-No name, e-mail or contact data (a random participant ID is used), no camera, microphone or other windows, no
-password input (masked), no clipboard. The terminal's contents are not recorded, but its commands and test results are
-logged. The optional comment is free text and may contain personal data.
+No name or contact data in the study data (a random participant ID is used, which the debrief shows for deletion
+requests), no camera, microphone or other windows, no clipboard. Run locally, nothing records the terminal's contents
+or password input (the harness's recording masks inputs), only the terminal's commands and test results; online, see
+above. The optional comment is free text and may contain personal data.
 
 ## Open
 
-The recording and the command log are the most sensitive data. Retention, access and deletion have to match the ethics
-protocol, and the consent text has to name what is recorded.
+The page recording, the key presses and the command log are the most sensitive data. Anonymised data are kept and may
+be published (for example on OSF); when the pseudonymous raw data are deleted, and with them the chance to withdraw,
+is still to be set and named in the consent text.

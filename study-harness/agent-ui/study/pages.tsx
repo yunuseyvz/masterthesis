@@ -10,6 +10,9 @@ const CONSENT =
   "under your participant ID, without your name, and used only for this master's thesis research."
 const CONSENT_RECORDING =
   " The study window is also recorded (what is on screen and your mouse and keyboard input in it, not your camera or microphone)."
+// Online nobody is there to ask: questions and requests to delete data go here, with the participant ID.
+const CONTACT = "yunus.yavuz@campus.lmu.de"
+const Contact = () => <a href={`mailto:${CONTACT}`}>{CONTACT}</a>
 
 // NCS-6 (Coelho et al., 2018). Items 3 and 4 are reverse-keyed (scored on the server).
 const NCS_ITEMS = [
@@ -450,9 +453,13 @@ function Debrief(props: { onDone: () => void }) {
         compares when the agent pauses for your review, and how well people understand the code and spot such defects.
       </p>
       <p>
-        Your answers and interaction data are stored under your participant ID only. If you have questions or want your data
-        removed, tell the experimenter now or contact them later.
+        Your answers and interaction data are stored under your participant ID only, <code>{view()!.participantId}</code>.
+        If you have questions or want your data removed, write to <Contact /> and give that ID; please keep it, since it
+        is not linked to your name.
       </p>
+      <Show when={view()!.completionUrl}>
+        <p>Please click Finish: it records that you have completed the study and opens the form for your compensation.</p>
+      </Show>
       <div data-study-actions>
         <Button variant="submit" size="large" disabled={busy()} onClick={() => finish().then(props.onDone)}>
           Finish
@@ -489,13 +496,15 @@ export function StudyPage() {
           <Show when={view()!.earlier} fallback={
             <p>
               There was no activity for a long time, or the session reached its time limit, so it was closed. Thank you
-              for your time. If you would like to take part again or have questions, please contact the experimenter.
+              for your time. If you have questions, write to <Contact /> and give your participant
+              ID, <code>{view()!.participantId}</code>.
             </p>
           }>
             {/* Ended in an earlier run of the pod: by then the participant knows some of the stories. */}
             <p>
               Your session ended earlier and cannot be continued, because you have already seen some of the tasks. Thank
-              you for your time. If you have questions, please contact the experimenter.
+              you for your time. If you have questions, write to <Contact /> and give your participant
+              ID, <code>{view()!.participantId}</code>.
             </p>
           </Show>
         </Card>
