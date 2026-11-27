@@ -148,6 +148,7 @@ export class LiveEndpoint {
       ms: call.chunks.at(-1)?.t ?? null,
       tools: r.tools.map((t) => t.name),
       finish: r.finish ?? null,
+      model: r.model ?? null,
       usage: usageOf(call) ?? null,
     });
     // The agent wrote a decision into its text. The participant read `shown` instead (see `shown`); not the planning

@@ -67,6 +67,8 @@ export interface ParsedResponse {
   tools: { id?: string; name: string; args: string }[];
   finish?: string;
   usage?: unknown;
+  // the model that answered, as the upstream names it (may differ from the one asked for)
+  model?: string;
   reasoning?: { field: string; text: string };
 }
 
@@ -74,13 +76,14 @@ export function parseChunks(chunks: readonly Chunk[]): ParsedResponse {
   const out: ParsedResponse = { text: "", tools: [] };
   for (const c of chunks) {
     if (c.data === "[DONE]") continue;
-    let ev: { usage?: unknown; choices?: { delta?: { content?: string; reasoning_content?: string; reasoning?: string; tool_calls?: { index?: number; id?: string; function?: { name?: string; arguments?: string } }[] }; finish_reason?: string }[] };
+    let ev: { model?: string; usage?: unknown; choices?: { delta?: { content?: string; reasoning_content?: string; reasoning?: string; tool_calls?: { index?: number; id?: string; function?: { name?: string; arguments?: string } }[] }; finish_reason?: string }[] };
     try {
       ev = JSON.parse(c.data);
     } catch {
       continue;
     }
     if (ev.usage) out.usage = ev.usage;
+    if (ev.model) out.model = ev.model;
     const choice = ev.choices?.[0];
     if (!choice) continue;
     if (choice.delta?.content) out.text += choice.delta.content;

@@ -65,7 +65,7 @@ describe("live endpoint", () => {
         const body = JSON.parse(raw) as { messages: { role: string; content: string }[] };
         seen.push({ system: body.messages.find((m) => m.role === "system")?.content ?? "", auth: req.headers.authorization });
         res.writeHead(200, { "content-type": "text/event-stream" });
-        res.write(`data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: "ok" }, finish_reason: "stop" }], usage: { prompt_tokens: 10, completion_tokens: 2 } })}\n\n`);
+        res.write(`data: ${JSON.stringify({ model: "study-model-0901", choices: [{ index: 0, delta: { content: "ok" }, finish_reason: "stop" }], usage: { prompt_tokens: 10, completion_tokens: 2 } })}\n\n`);
         res.end("data: [DONE]\n\n");
       });
     });
@@ -84,6 +84,8 @@ describe("live endpoint", () => {
     expect(seen[0]!.auth).toBe("Bearer secret");
     expect(live.calls()).toHaveLength(2);
     expect(logs.filter((l) => l.type === "live_call").map((l) => [l.data.thread, l.data.usage])).toEqual([["main", { prompt: 10, completion: 2, cached: undefined }], [expect.stringMatching(/^n:/), { prompt: 10, completion: 2, cached: undefined }]]);
+    // the model that answered, as the upstream names it
+    expect(logs.find((l) => l.type === "live_call")!.data.model).toBe("study-model-0901");
   });
 
   async function planSetup(answers: ({ text: string } | { tool: string; text?: string } | { status: number } | { hang: true })[], load: { planDeadlineMs?: number } = {}) {
