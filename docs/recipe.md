@@ -58,6 +58,8 @@ agent live.
    the pause does not depend on the model stopping by itself.
 4. **What a pause shows:** after each subtask the server commits the work, so at a pause the working tree holds exactly
    the paused subtask. The changes view shows only the working tree ("Git changes") and reloads when a review starts.
+   Before the final look the server resets these commits (the files stay), so in every condition it shows the whole
+   feature.
 5. **Plan on screen:** fixed public text per feature, the same in both variants; the model's own plan is not shown.
 6. **Grading on the code as played:** answers are scored by running each feature's scripts on the code the agent
    actually wrote, as a separate user in a private directory.
@@ -173,10 +175,9 @@ Decisions that shaped the study, with their reason. Details in the linked docume
 | 22.11.2026 | The changes view shows only the working tree and reloads at each review | In the walkthrough a pause showed no code, or all earlier subtasks together |
 | 24.11.2026 | Stories use everyday shop terms (product, seller, refund, bill) instead of business jargon (SKU, tenant, SLA, invoice, gateway); logic, open cases, flaws and answers unchanged | Jargon from one domain would make understanding depend on domain knowledge, a confounder |
 | 24.11.2026 | Base project and the LLM's part in steps 2–3 recorded as they happened | The stories' wording, criteria and proposals for open cases and flaws came from an LLM; the documents must say so |
+| 27.11.2026 | The final look shows the whole feature in every condition | Before, the steps before a pause never appeared in the changes view. NON_MILESTONE pauses later on average (step 2.5 vs. 2.0), so 8 of 30 items asked about code it never showed as a diff (MILESTONE: 1), and in 3.5 of 6 stories the milestone's code itself; the comparison would have measured exposure, not the place of the pause |
 
 ## Open
 
-- The final review after a pause shows only the code written since the pause in the changes view; earlier subtasks are
-  reachable through Files. Whether it should show the whole feature is not decided.
 - Evaluation matrix, guessing check, contestability check and second rater have not run yet.
 - Before going online: see "Still missing" in [harness.md](harness.md).

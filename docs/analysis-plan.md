@@ -81,8 +81,9 @@ correct.
 that question is close to the flaw item asked later (US2, US4, US6 kept theirs; `docs/stimuli.md`). The same
 model without the flaw items (four per trial) shows whether H1 depends on that practice.
 
-What can dilute H1: the review at the end shows all code, and a NON_MILESTONE pause can show the code of the dependency
-item (usually written after the milestone), which a MILESTONE pause never shows. H1 then rests on the milestone pause
+What can dilute H1: every regime ends with a final look at the whole feature (without a decision), and a NON_MILESTONE
+pause can show the code of the dependency item (usually written after the milestone), which a MILESTONE pause never
+shows. H1 then rests on the milestone pause
 helping beyond the code it shows.
 
 ### H2: understanding of the milestone

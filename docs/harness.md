@@ -36,6 +36,8 @@ browser ── HTTP/WS ──► study server (Fastify)
    step. BATCH reviews once at the end.
 4. Accept or reject, behaviour question, optionally reverse. After a rejection the agent asks what to change, the
    participant answers once in opencode's composer, and the agent fixes the step.
+   The agent then finishes the feature, and a final look without a decision shows the whole feature in every
+   condition: the commits that limited the pause to one step are reset, the files stay.
 5. Five understanding questions with confidence, then mental effort. Answers are graded by running the trial's scripts
    on the code the agent wrote.
 

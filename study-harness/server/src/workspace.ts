@@ -34,6 +34,15 @@ export function commitWorkspace(dir: string, message: string, sandbox: SandboxOp
   execFileSync("git", ["-c", "core.hooksPath=/dev/null", "commit", "-q", "--allow-empty", "-m", message], opts);
 }
 
+export function headCommit(dir: string, sandbox: SandboxOptions): string {
+  return git(dir, sandbox, ["rev-parse", "HEAD"]).trim();
+}
+
+// Back to `commit` with the files kept (a mixed reset): everything since then shows as uncommitted again.
+export function resetWorkspace(dir: string, commit: string, sandbox: SandboxOptions) {
+  execFileSync("git", ["-c", "core.hooksPath=/dev/null", "reset", "-q", commit], { ...gitOpts(dir, sandbox), stdio: "ignore" });
+}
+
 // git gets none of the server's env (it holds the model key): the participant controls the repo's hooks and config
 const gitOpts = (dir: string, sandbox: SandboxOptions) => ({ cwd: dir, ...(sandbox.uid !== undefined ? { uid: sandbox.uid, gid: sandbox.gid ?? sandbox.uid } : {}), env: { PATH: process.env.PATH, HOME: dir } });
 

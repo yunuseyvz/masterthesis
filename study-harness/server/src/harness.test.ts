@@ -135,8 +135,9 @@ describe("study flow", () => {
       const until = t.regime === "BATCH" ? 4 : pause;
       expectAt(until); // the agent stopped at the checkpoint (BATCH: the end)
       // Earlier steps are committed: the open changes are exactly the step under review (BATCH: the whole feature).
-      const open = execFileSync("git", ["status", "--porcelain", "-uall"], { cwd: trialDir, encoding: "utf8" }).split("\n").filter(Boolean).map((l) => l.slice(3)).sort();
-      expect(open).toEqual(r.diff(t.variant, t.regime === "BATCH" ? 1 : pause, until).map((d) => d.path).sort());
+      const open = () => execFileSync("git", ["status", "--porcelain", "-uall"], { cwd: trialDir, encoding: "utf8" }).split("\n").filter(Boolean).map((l) => l.slice(3)).sort();
+      const changedFiles = (from: number, to: number) => r.diff(t.variant, from, to).map((d) => d.path).sort();
+      expect(open()).toEqual(changedFiles(t.regime === "BATCH" ? 1 : pause, until));
       view = await post("/_study/action", { type: "stage1", decision: "accept" });
       expect(view.phase).toBe("stage2");
       expect(view.probe.options).toHaveLength(4);
@@ -144,6 +145,7 @@ describe("study flow", () => {
       expect(view.phase).toBe("reviewing");
       expect(view.finished).toBe(true);
       expectAt(4); // feature complete
+      expect(open()).toEqual(changedFiles(1, 4)); // the final look shows the whole feature, in every regime
       expect((await app.inject({ method: "POST", url: "/_study/action", payload: UNDERSTANDING })).statusCode).toBe(409); // not before "I've reviewed"
       view = await post("/_study/action", { type: "reviewed" });
       expect(view.phase).toBe("understanding");
@@ -188,6 +190,7 @@ describe("study flow", () => {
       const [from, to] = t.regime === "BATCH" ? [1, 4] : [t.pauseStep, t.pauseStep];
       const changed = ref(t.story).diff(t.variant, from, to).reduce((n, d) => n + changedLines(d.before, d.after).length, 0);
       expect(t.reviewedLines).toBe(changed);
+      expect(t.hunksFinal).toBe(ref(t.story).hunks(t.variant, 1, 4).length);
     }
     const batch = bundle.trials.filter((t: { regime: string }) => t.regime === "BATCH");
     const paused = bundle.trials.filter((t: { regime: string }) => t.regime !== "BATCH");

@@ -17,7 +17,7 @@ import type { Story } from "./trial.js";
 import { changedLines, overlaps, toRanges, type Region } from "./lines.js";
 import { runProbe } from "./runner.js";
 import type { SandboxOptions } from "./sandbox.js";
-import { commitWorkspace, createTrialWorkspace, readWorkspace, uncommitted } from "./workspace.js";
+import { commitWorkspace, createTrialWorkspace, headCommit, readWorkspace, resetWorkspace, uncommitted } from "./workspace.js";
 
 export interface StudyEvent {
   t: number;
@@ -111,6 +111,8 @@ export interface AgentDeps {
 interface CurrentTrial {
   sessionId: string;
   dir: string;
+  // the trial's first commit: the project before the feature
+  base: string;
   pauseStep: number;
   planMs: number;
   finished: boolean;
@@ -413,8 +415,7 @@ export class StudySession {
       return CONTINUE;
     }
     if (c.reviewed) {
-      // The fix after feedback is done: it is committed with the step, so the final look shows what comes after.
-      if (c.fixing) commitWorkspace(c.dir, this.story.def.steps[step - 1]!.summary, this.deps.sandbox);
+      // The fix after feedback is done.
       c.fixing = false;
       return CONTINUE;
     }
@@ -506,10 +507,15 @@ export class StudySession {
   private toReviewing() {
     const c = this.current!;
     c.finished = true;
+    // The final look shows the whole feature in every regime: the commits that scoped the pause go, the files stay.
+    try {
+      resetWorkspace(c.dir, c.base, this.deps.sandbox);
+    } catch (err) {
+      this.log("final_reset_failed", { trial: this.trial.position, message: String(err) });
+    }
     this.phase = "reviewing";
     this.shownAt = this.now();
     this.log("final_review_shown", { trial: this.trial.position });
-    // The changes view now shows what is not committed yet: everything for BATCH, the steps after the pause otherwise.
     this.openWindow("final", true);
   }
 
@@ -525,7 +531,7 @@ export class StudySession {
     const t = this.allTrials[idx]!;
     const story = this.loadStory(t.story);
     const dir = createTrialWorkspace(this.deps.workRoot, `${String(t.position).padStart(2, "0")}-${t.story}`, story.files(), this.deps.sandbox);
-    const c: CurrentTrial = { sessionId: "", dir, pauseStep: story.pauseStep(t.regime, t.pauseDraw), planMs: 0, finished: false };
+    const c: CurrentTrial = { sessionId: "", dir, base: headCommit(dir, this.deps.sandbox), pauseStep: story.pauseStep(t.regime, t.pauseDraw), planMs: 0, finished: false };
     const mainThread = threadKey({ messages: [{ role: "user", content: story.brief }], tools: [{}] }, dir);
     this.deps.endpoint.load({ workspaceDir: dir, mainThread, drehbuch: story.drehbuch(t.variant), publicPlan: story.publicPlan, leaks: story.def.planLeaks, steps: story.def.steps.map((s) => s.summary), trial: t.position });
     this.deps.checkpoints.setHandler((step) => this.checkpoint(c, step));
@@ -734,11 +740,7 @@ export class StudySession {
           this.shownAt = this.now();
           this.log("feedback_shown", { trial: this.trial.position });
         } else {
-          if (!c.finished) {
-            // The reviewed step is committed, so the final look shows what the agent does after the checkpoint.
-            commitWorkspace(c.dir, story.def.steps[c.pauseStep - 1]!.summary, this.deps.sandbox);
-            await this.resume(RESUME);
-          }
+          if (!c.finished) await this.resume(RESUME);
           await this.complete(c);
           await this.key();
           this.toReviewing();
