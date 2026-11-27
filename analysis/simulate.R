@@ -35,8 +35,9 @@ csv_columns <- c(
   "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1", "stage2ProbeLatencyMs",
   "terminalCommandsProbe", "probeAnswer", "probeCorrect", "finalReviewMs", "changesViewMsFinal", "hunksFinal",
   "hunksViewedFinal", "flawRegionMsFinal", "flawRegionSeenFinal", "unfocusedMsFinal", "idleMsFinal",
-  "featureComplete", "pauseMissed", "understandingScore", "paas", "pauseTiming", "pauseHelped", "pauseDisrupted",
-  as.vector(t(outer(1:n_items, c("answer", "correct", "confidence", "role", "step", "milestone", "ms", "changes"),
+  "featureComplete", "pauseMissed", "flawAtDecision", "flawAtEnd", "openCaseAsScripted", "pauseStepForced",
+  "understandingScore", "paas", "pauseTiming", "pauseHelped", "pauseDisrupted",
+  as.vector(t(outer(1:n_items, c("answer", "correct", "confidence", "role", "step", "milestone", "ms", "changes", "gradeable", "adapted"),
                     function(k, c) paste0("u", k, "_", c))))
 )
 
@@ -70,9 +71,17 @@ simulate_trials <- function(design, truth = truth_default) {
     conf <- 70 + 8 * correct + 4 * reviewed + truth$confidence_pause * paused + conf_p[d$participant_id] + rnorm(n, 0, 10)
     out[[paste0("u", k, "_correct")]] <- correct
     out[[paste0("u", k, "_confidence")]] <- confidence_levels[findInterval(conf, level_edges) + 1]
+    out[[paste0("u", k, "_gradeable")]] <- TRUE
+    out[[paste0("u", k, "_adapted")]] <- FALSE
   }
   out$featureComplete <- TRUE
   out$pauseMissed <- FALSE
+  # The flaw as played: as the variant says, wherever its step was written by the decision.
+  written <- d$regime == "BATCH" | d$flawStep <= d$pauseStep
+  out$flawAtDecision <- ifelse(written, ifelse(d$variant == "Flawed", "present", "absent"), "unwritten")
+  out$flawAtEnd <- ifelse(d$variant == "Flawed", "present", "absent")
+  out$openCaseAsScripted <- TRUE
+  out$pauseStepForced <- FALSE
   out$understandingScore <- rowSums(out[paste0("u", 1:n_items, "_correct")])
 
   flawed <- d$variant == "Flawed"

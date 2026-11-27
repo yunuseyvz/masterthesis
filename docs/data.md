@@ -32,6 +32,12 @@ missing (`null` in the bundle, an empty cell in `trials.csv`), not wrong.
   expansions, clicks.
 - **Agent and server:** every model call, checkpoint, hidden reminder, opencode event and blocked API request.
 - **Measurement windows:** `stage1` (scored review), `probe` (behaviour question), `final` (finished feature).
+- **The trial as played:** whether the code had the flaw at the first decision (`flawAtDecision`: present, absent,
+  unwritten when its step came after the pause, unknown) and in the graded code (`flawAtEnd`), from the flaw step's
+  behaviour question and the flaw item; in a Correct trial "present" means the model made the wrong decision on its
+  own. Whether the open case came out as the outline settles it (`openCaseAsScripted`), and whether a step under review
+  was accepted after failing its check twice (`pauseStepForced`). Per item: whether its script printed an answer
+  (`uK_gradeable`) and whether that answer was none of the options and replaced a wrong one (`uK_adapted`).
 
 "On screen" is not "read": the code-on-screen measures are an upper bound on attention.
 

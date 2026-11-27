@@ -4,6 +4,7 @@ import {
   SessionBundle,
   UiEvent,
   type Decision,
+  type FlawState,
   type SessionPlan,
   type TrialPlan,
   type TrialResult,
@@ -93,6 +94,12 @@ export function adaptOptions(options: readonly string[], answers: readonly numbe
 
 const gradeable = (outcome: string | null | undefined): outcome is string => typeof outcome === "string" && !outcome.startsWith("?");
 
+// What an outcome says about the flaw: the answer Flawed code gives, the one Correct code gives, or neither.
+function flawState(answers: { Correct: string; Flawed: string }, outcome: string | null | undefined): FlawState {
+  if (!gradeable(outcome)) return "unknown";
+  return outcome === answers.Flawed ? "present" : outcome === answers.Correct ? "absent" : "unknown";
+}
+
 const RESUME = "The user has reviewed this step. Continue with the next step.";
 const RESUME_REJECTED = "The user has rejected this step. Ask them in one short sentence what they want changed, then end your turn and wait for their answer.";
 const GO_ON = "The feature is not finished yet. Do not ask anything: continue with the remaining steps as planned, then end your turn as usual.";
@@ -123,8 +130,14 @@ interface CurrentTrial {
   reviewedLines?: number;
   understandingKey?: (string | null)[];
   understandingOptions?: string[][];
+  // what the finished code makes of the flaw and the open case (see key)
+  flawAtEnd?: FlawState | null;
+  openCaseAsScripted?: boolean | null;
   probeOutcome?: string | null;
   probeOptions?: string[];
+  flawAtDecision?: FlawState | null;
+  // steps accepted after failing their check (STEP_CHECK_TRIES)
+  forced?: Set<number>;
   // a later checkpoint call for the step is then the agent's fix after feedback
   reviewed?: boolean;
   fixing?: boolean;
@@ -444,6 +457,7 @@ export class StudySession {
     this.log("live_step_check", { trial: this.trial.position, step, attempt: fails + 1, passed, accepted, missing, early, runs });
     if (passed || accepted) {
       c.lastStep = now;
+      if (accepted) (c.forced ??= new Set()).add(step);
       return null;
     }
     c.stepFails.set(step, fails + 1);
@@ -501,7 +515,15 @@ export class StudySession {
     const items = this.story.def.understanding.items;
     c.understandingKey = items.map((_, k) => key[k] ?? null);
     c.understandingOptions = items.map((it, k) => adaptOptions(it.options, [it.correct.Correct, it.correct.Flawed], c.understandingKey![k]!));
-    this.log("live_key", { trial: this.trial.position, understanding: c.understandingKey, options: c.understandingOptions });
+    const answer = (role: string, v: "Correct" | "Flawed") => {
+      const it = items.find((x) => x.role === role)!;
+      return it.options[it.correct[v]]!;
+    };
+    const keyOf = (role: string) => c.understandingKey![items.findIndex((x) => x.role === role)];
+    c.flawAtEnd = this.story.flawStep === null ? null : flawState({ Correct: answer("flaw", "Correct"), Flawed: answer("flaw", "Flawed") }, keyOf("flaw"));
+    const open = keyOf("open-case");
+    c.openCaseAsScripted = gradeable(open) ? open === answer("open-case", "Correct") : null;
+    this.log("live_key", { trial: this.trial.position, understanding: c.understandingKey, options: c.understandingOptions, flawAtEnd: c.flawAtEnd, openCaseAsScripted: c.openCaseAsScripted });
   }
 
   private toReviewing() {
@@ -668,9 +690,20 @@ export class StudySession {
         // The behaviour question is about the code under review as it is now; its options must contain what this
         // code does, so the outcome is computed before the question is shown.
         const probe = this.probe;
-        c.probeOutcome = await runProbe(readWorkspace(c.dir, this.deps.sandbox), this.story.probeScript(probe), undefined, this.deps.sandbox);
+        const story = this.story;
+        // Whether the code under review has the flaw, by the flaw step's question (the same one when it is this
+        // review's). Its step exists unless it comes after the pause.
+        const flawProbe = story.flawStep === null ? null : story.def.probes[story.flawStep - 1]!;
+        const flawWritten = story.flawStep !== null && (c.finished || story.flawStep <= c.pauseStep);
+        const files = readWorkspace(c.dir, this.deps.sandbox);
+        const [outcome, flawOutcome] = await Promise.all([
+          runProbe(files, story.probeScript(probe), undefined, this.deps.sandbox),
+          flawProbe && flawWritten && flawProbe !== probe ? runProbe(files, story.probeScript(flawProbe), undefined, this.deps.sandbox) : undefined,
+        ]);
+        c.probeOutcome = outcome;
+        c.flawAtDecision = flawProbe === null ? null : flawWritten ? flawState(flawProbe.expected, flawProbe === probe ? outcome : flawOutcome) : "unwritten";
         c.probeOptions = adaptOptions(probe.options, [probe.options.indexOf(probe.expected.Correct), probe.options.indexOf(probe.expected.Flawed)], c.probeOutcome);
-        this.log("live_probe", { trial: this.trial.position, outcome: c.probeOutcome, options: c.probeOptions });
+        this.log("live_probe", { trial: this.trial.position, outcome: c.probeOutcome, options: c.probeOptions, flawAtDecision: c.flawAtDecision });
         this.openWindow("probe", false); // the behaviour question: running the code to check is expected here
         this.phase = "stage2";
         this.shownAt = this.now();
@@ -728,6 +761,7 @@ export class StudySession {
           stage2ProbeLatencyMs: latency,
           probeAnswer: canonical,
           probeCorrect,
+          flawAtDecision: c.flawAtDecision ?? null,
         };
         this.log("stage2_submit", { ...this.pending, probeExecuted: executed, displayedAnswer: action.probeAnswer });
         if (finalDecision === "reject") {
@@ -776,10 +810,18 @@ export class StudySession {
         // (null; see live_key).
         const options = this.current!.understandingOptions!;
         const corrects = canonical.map((c, k) => (gradeable(key![k]) ? options[k]![c] === key![k] : null));
+        const items = this.story.def.understanding.items;
+        const c = this.current!;
         const result: TrialResult = {
-          ...(this.pending as Omit<TrialResult, "featureComplete" | "understandingRoles" | "understandingSteps" | "understandingAnswers" | "understandingCorrects" | "understandingConfidences" | "understandingScore" | "paas" | "pauseTiming" | "pauseHelped" | "pauseDisrupted" | "understandingItemMs" | "understandingAnswerChanges">),
-          featureComplete: this.current!.complete !== false,
-          pauseMissed: this.current!.pauseMissed === true,
+          ...(this.pending as Omit<TrialResult, "featureComplete" | "flawAtEnd" | "openCaseAsScripted" | "pauseStepForced" | "understandingRoles" | "understandingSteps" | "understandingAnswers" | "understandingCorrects" | "understandingConfidences" | "understandingGradeable" | "understandingAdapted" | "understandingScore" | "paas" | "pauseTiming" | "pauseHelped" | "pauseDisrupted" | "understandingItemMs" | "understandingAnswerChanges">),
+          featureComplete: c.complete !== false,
+          pauseMissed: c.pauseMissed === true,
+          flawAtEnd: c.flawAtEnd ?? null,
+          openCaseAsScripted: c.openCaseAsScripted ?? null,
+          // BATCH reviews all steps at once, a pause the one it follows.
+          pauseStepForced: [...(c.forced ?? [])].some((n) => this.trial.regime === "BATCH" || n === c.pauseStep),
+          understandingGradeable: items.map((_, k) => gradeable(key![k])),
+          understandingAdapted: items.map((it, k) => options[k]!.some((o, i) => o !== it.options[i])),
           understandingRoles: this.story.def.understanding.items.map((it) => it.role),
           understandingSteps: this.story.def.understanding.items.map((it) => it.step),
           understandingAnswers: canonical,

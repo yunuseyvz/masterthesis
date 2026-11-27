@@ -191,6 +191,14 @@ describe("study flow", () => {
       const changed = ref(t.story).diff(t.variant, from, to).reduce((n, d) => n + changedLines(d.before, d.after).length, 0);
       expect(t.reviewedLines).toBe(changed);
       expect(t.hunksFinal).toBe(ref(t.story).hunks(t.variant, 1, 4).length);
+      // The flaw and the open case as played: the fake agent writes the reference of the trial's variant.
+      const written = t.regime === "BATCH" || t.flawStep <= t.pauseStep;
+      expect(t.flawAtDecision).toBe(written ? (t.variant === "Flawed" ? "present" : "absent") : "unwritten");
+      expect(t.flawAtEnd).toBe(t.variant === "Flawed" ? "present" : "absent");
+      expect(t.openCaseAsScripted).toBe(true);
+      expect(t.pauseStepForced).toBe(false);
+      expect(t.understandingGradeable).toEqual([true, true, true, true, true]);
+      expect(t.understandingAdapted).toEqual([false, false, false, false, false]);
     }
     const batch = bundle.trials.filter((t: { regime: string }) => t.regime === "BATCH");
     const paused = bundle.trials.filter((t: { regime: string }) => t.regime !== "BATCH");
@@ -199,7 +207,8 @@ describe("study flow", () => {
     expect(csv).toHaveLength(7);
     expect(csv[0]).toContain("understandingScore");
     expect(csv[0]).toContain("reviewedLines");
-    expect(csv[0]).toContain("u1_answer,u1_correct,u1_confidence,u1_role,u1_step,u1_milestone,u1_ms,u1_changes,u2_answer");
+    expect(csv[0]).toContain("u1_answer,u1_correct,u1_confidence,u1_role,u1_step,u1_milestone,u1_ms,u1_changes,u1_gradeable,u1_adapted,u2_answer");
+    expect(csv[0]).toContain("pauseMissed,flawAtDecision,flawAtEnd,openCaseAsScripted,pauseStepForced");
     expect(bundle.trials[0].understandingAnswers).toHaveLength(5);
     // Each trial asks one milestone item, about its milestone step, and one about what builds on it.
     for (const t of bundle.trials) {
@@ -679,9 +688,10 @@ describe("an answer the script cannot grade", () => {
     await s.act({ type: "reviewed" });
     await s.act(UNDERSTANDING);
     const key = (s.events.find((e) => e.type === "live_key")!.data as { understanding: (string | null)[] }).understanding;
-    const end = s.events.find((e) => e.type === "trial_end")!.data as { understandingCorrects: (boolean | null)[]; understandingScore: number };
+    const end = s.events.find((e) => e.type === "trial_end")!.data as { understandingCorrects: (boolean | null)[]; understandingGradeable: boolean[]; understandingScore: number };
     expect(key[4]).toMatch(/^\?/);
     expect(end.understandingCorrects[4]).toBeNull();
+    expect(end.understandingGradeable).toEqual([true, true, true, true, false]);
     expect(end.understandingCorrects.slice(0, 4).every((c) => typeof c === "boolean")).toBe(true);
     expect(end.understandingScore).toBe(end.understandingCorrects.filter((c) => c === true).length);
   });

@@ -23,6 +23,10 @@ export type Decision = z.infer<typeof Decision>;
 export const CONFIDENCE_LEVELS: readonly number[] = [25, 40, 55, 70, 85, 100];
 export const Confidence = z.number().int().refine((n) => CONFIDENCE_LEVELS.includes(n), "a level of the confidence scale");
 
+// Whether code has the flaw, by the flaw step's behaviour question (Correct and Flawed answer it differently).
+export const FlawState = z.enum(["present", "absent", "unwritten", "unknown"]);
+export type FlawState = z.infer<typeof FlawState>;
+
 export const Style = z.enum(["END", "PAUSE"]);
 export type Style = z.infer<typeof Style>;
 
@@ -91,12 +95,25 @@ export const TrialResult = z.object({
   // False: the understanding items asked about an unfinished feature, so the trial is excluded.
   featureComplete: z.boolean(),
   pauseMissed: z.boolean(),
+  // The flaw as played. At the first decision, in the code under review: "unwritten" when its step comes after the
+  // pause; "present" in a Correct trial means the model made the wrong decision on its own. null: no flaw step.
+  flawAtDecision: FlawState.nullable(),
+  // In the graded code, from the flaw item's answer: a fix after a rejection may have removed it.
+  flawAtEnd: FlawState.nullable(),
+  // The open case came out as the outline settles it; null when its item cannot be graded.
+  openCaseAsScripted: z.boolean().nullable(),
+  // A step under review was accepted after failing its check twice (the paused step; BATCH: any of steps 1-3).
+  pauseStepForced: z.boolean(),
   understandingRoles: z.array(ItemRole).length(UNDERSTANDING_ITEMS),
   understandingSteps: z.array(z.number().int().min(1).max(4)).length(UNDERSTANDING_ITEMS),
   understandingAnswers: z.array(z.number().int().min(0).max(3)).length(UNDERSTANDING_ITEMS),
   // null as for probeCorrect, on the finished code
   understandingCorrects: z.array(z.boolean().nullable()).length(UNDERSTANDING_ITEMS),
   understandingConfidences: z.array(Confidence).length(UNDERSTANDING_ITEMS),
+  // the item's script printed an answer on the finished code
+  understandingGradeable: z.array(z.boolean()).length(UNDERSTANDING_ITEMS),
+  // the code's outcome was none of the options, so it replaced a wrong one
+  understandingAdapted: z.array(z.boolean()).length(UNDERSTANDING_ITEMS),
   understandingScore: z.number().int().min(0).max(UNDERSTANDING_ITEMS),
   finalReviewMs: z.number().nonnegative(),
   changesViewMsFinal: z.number().nonnegative(),

@@ -20,15 +20,16 @@ const CSV_COLUMNS: (keyof TrialResult)[] = [
   "flawRegionMsStage1", "flawRegionSeenStage1", "unfocusedMsStage1", "idleMsStage1", "chatScrollBacksStage1", "toolExpandsStage1",
   "stage2ProbeLatencyMs", "terminalCommandsProbe", "probeAnswer", "probeCorrect", "finalReviewMs", "changesViewMsFinal",
   "hunksFinal", "hunksViewedFinal", "flawRegionMsFinal", "flawRegionSeenFinal", "unfocusedMsFinal", "idleMsFinal",
-  "featureComplete", "pauseMissed", "understandingScore", "paas", "pauseTiming", "pauseHelped", "pauseDisrupted",
+  "featureComplete", "pauseMissed", "flawAtDecision", "flawAtEnd", "openCaseAsScripted", "pauseStepForced", "understandingScore", "paas", "pauseTiming", "pauseHelped", "pauseDisrupted",
 ];
 
 const ITEM_COLUMNS = (n: number) =>
-  Array.from({ length: n }, (_, k) => ["answer", "correct", "confidence", "role", "step", "milestone", "ms", "changes"].map((c) => `u${k + 1}_${c}`)).flat();
+  Array.from({ length: n }, (_, k) => ["answer", "correct", "confidence", "role", "step", "milestone", "ms", "changes", "gradeable", "adapted"].map((c) => `u${k + 1}_${c}`)).flat();
 const itemValues = (t: TrialResult) =>
   t.understandingAnswers.flatMap((a, k) => [
     a, t.understandingCorrects[k], t.understandingConfidences[k], t.understandingRoles[k], t.understandingSteps[k],
     MILESTONE_ROLES.includes(t.understandingRoles[k]!), t.understandingItemMs[k], t.understandingAnswerChanges[k],
+    t.understandingGradeable[k], t.understandingAdapted[k],
   ]);
 
 export function writeBundle(exportDir: string, bundle: SessionBundle) {
