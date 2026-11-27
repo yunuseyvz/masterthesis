@@ -7,7 +7,7 @@ import { parseArgs } from "node:util";
 import { generateSessionPlan } from "@beacon/shared";
 import { OpencodeHost } from "./agent.js";
 import { CheckpointServer } from "./checkpoint.js";
-import { makeEventSink, writeBundle } from "./export.js";
+import { makeCodeArchive, makeEventSink, writeBundle } from "./export.js";
 import { LiveEndpoint } from "./live.js";
 import { StudySession, type StudyEvent } from "./machine.js";
 import { makeStoryLoader } from "./trial.js";
@@ -60,7 +60,8 @@ const sessionLog = (e: StudyEvent) => {
     console.log(`${new Date().toISOString().slice(11, 19)} ${e.type} ${JSON.stringify(e.data).slice(0, 220)}`);
   }
 };
-const study = new StudySession(plan, loadStory, { agent, endpoint, checkpoints, workRoot: path.join(out, "work"), sandbox: {} }, sessionLog);
+const archive = makeCodeArchive(exportDir, plan.participantId, plan.studySeed);
+const study = new StudySession(plan, loadStory, { agent, endpoint, checkpoints, workRoot: path.join(out, "work"), sandbox: {}, archive }, sessionLog);
 session = study;
 
 async function phase(name: string, timeoutMs = 15 * 60_000) {

@@ -8,6 +8,7 @@ Each session writes to `exports/`:
 |---|---|
 | `<id>_<seed>.events.jsonl` | Every event as `{t, type, data}`, written as it happens |
 | `<id>_<seed>.recording.jsonl` | Screen recording (rrweb), every 5 s; off with `--no-recording` |
+| `<id>_<seed>.code.jsonl` | The code as played, one line per trial as it ends (`TrialCode` in `machine.ts`): the files that changed at each passed step check, at the first decision and at grading, each since the snapshot before; about 100 KB per session |
 | `<id>_<seed>.json` | At Finish: session plan, trial results, surveys, full event log |
 | `trials.csv` | At Finish: one row per measured trial, appended across sessions |
 

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { MILESTONE_ROLES, UNDERSTANDING_ITEMS, type SessionBundle, type TrialResult } from "@beacon/shared";
-import type { StudyEvent } from "./machine.js";
+import type { StudyEvent, TrialCode } from "./machine.js";
 
 // fsync per event, so a crash loses at most the one in flight
 export function makeEventSink(exportDir: string, participantId: string, studySeed: string) {
@@ -10,6 +10,18 @@ export function makeEventSink(exportDir: string, participantId: string, studySee
   return (e: StudyEvent) => {
     fs.writeSync(fd, JSON.stringify(e) + "\n");
     fs.fsyncSync(fd);
+  };
+}
+
+// One line per trial as it ends. Not .json: scripts count the session bundles as *.json.
+export function makeCodeArchive(exportDir: string, participantId: string, studySeed: string) {
+  const file = path.join(exportDir, `${participantId}_${studySeed}.code.jsonl`);
+  return (trial: TrialCode) => {
+    fs.mkdirSync(exportDir, { recursive: true });
+    const fd = fs.openSync(file, "a");
+    fs.writeSync(fd, JSON.stringify(trial) + "\n");
+    fs.fsyncSync(fd);
+    fs.closeSync(fd);
   };
 }
 

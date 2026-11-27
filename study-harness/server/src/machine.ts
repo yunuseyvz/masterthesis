@@ -5,9 +5,11 @@ import {
   UiEvent,
   type Decision,
   type FlawState,
+  type Regime,
   type SessionPlan,
   type TrialPlan,
   type TrialResult,
+  type Variant,
   type ViewState,
 } from "@beacon/shared";
 import type { AgentHost } from "./agent.js";
@@ -107,12 +109,24 @@ const GO_ON_TO_PAUSE = "You stopped before the feature is finished. Do not ask a
 const GO_ON_TRIES = 2;
 const REJECT_MESSAGE = "I'm rejecting this.";
 
+// The code as played, written when a trial ends.
+export interface TrialCode {
+  position: number;
+  story: string;
+  regime: Regime;
+  variant: Variant;
+  // At each passed step check (step1-3), the first decision and grading, in order. Each holds the files that changed
+  // since the one before (the first: since the base project); null: deleted.
+  snapshots: { at: string; t: number; files: Record<string, string | null> }[];
+}
+
 export interface AgentDeps {
   agent: AgentHost;
   workRoot: string;
   sandbox: SandboxOptions;
   endpoint: Pick<LiveEndpoint, "load" | "endPlanning">;
   checkpoints: Pick<CheckpointServer, "setHandler">;
+  archive?: (trial: TrialCode) => void;
 }
 
 interface CurrentTrial {
@@ -138,6 +152,8 @@ interface CurrentTrial {
   flawAtDecision?: FlawState | null;
   // steps accepted after failing their check (STEP_CHECK_TRIES)
   forced?: Set<number>;
+  snapshots?: TrialCode["snapshots"];
+  snapshotOf?: Map<string, string>;
   // a later checkpoint call for the step is then the agent's fix after feedback
   reviewed?: boolean;
   fixing?: boolean;
@@ -458,6 +474,7 @@ export class StudySession {
     if (passed || accepted) {
       c.lastStep = now;
       if (accepted) (c.forced ??= new Set()).add(step);
+      this.snapshot(c, `step${step}`, now);
       return null;
     }
     c.stepFails.set(step, fails + 1);
@@ -467,6 +484,16 @@ export class StudySession {
       ...(runs || missing.length > 0 ? [] : ["the step's code does not run yet"]),
     ];
     return `Step ${step} check failed: ${problems.join("; ")}. Complete step ${step} as planned, then call review_checkpoint for step ${step} again.`;
+  }
+
+  // For the code archive: what changed since the last snapshot (the first: since the base project).
+  private snapshot(c: CurrentTrial, at: string, files: Map<string, string>) {
+    const before = c.snapshotOf ?? this.story.files();
+    const changed: Record<string, string | null> = {};
+    for (const [f, content] of files) if (before.get(f) !== content) changed[f] = content;
+    for (const f of before.keys()) if (!files.has(f)) changed[f] = null;
+    (c.snapshots ??= []).push({ at, t: this.now(), files: changed });
+    c.snapshotOf = files;
   }
 
   // agent stopped before the scored checkpoint: nudge it (hidden) with GO_ON_TO_PAUSE up to GO_ON_TRIES times, else pauseMissed
@@ -507,7 +534,9 @@ export class StudySession {
   private async key() {
     const c = this.current!;
     // Some items run the agent's own tests (twice), hence the longer limit.
-    const raw = await runProbe(readWorkspace(c.dir, this.deps.sandbox), this.story.understandingScript(), 60_000, this.deps.sandbox);
+    const files = readWorkspace(c.dir, this.deps.sandbox);
+    this.snapshot(c, "graded", files);
+    const raw = await runProbe(files, this.story.understandingScript(), 60_000, this.deps.sandbox);
     let key: (string | null)[] = [];
     try {
       key = raw === null ? [] : (JSON.parse(raw) as (string | null)[]);
@@ -696,6 +725,7 @@ export class StudySession {
         const flawProbe = story.flawStep === null ? null : story.def.probes[story.flawStep - 1]!;
         const flawWritten = story.flawStep !== null && (c.finished || story.flawStep <= c.pauseStep);
         const files = readWorkspace(c.dir, this.deps.sandbox);
+        this.snapshot(c, "decision", files);
         const [outcome, flawOutcome] = await Promise.all([
           runProbe(files, story.probeScript(probe), undefined, this.deps.sandbox),
           flawProbe && flawWritten && flawProbe !== probe ? runProbe(files, story.probeScript(flawProbe), undefined, this.deps.sandbox) : undefined,
@@ -838,6 +868,7 @@ export class StudySession {
         if (this.trialIdx === 0) this.practiceResult = result;
         else this.results.push(result);
         this.log("trial_end", { practice: this.trialIdx === 0, ...result });
+        this.deps.archive?.({ position: this.trial.position, story: this.trial.story, regime: this.trial.regime, variant: this.trial.variant, snapshots: c.snapshots ?? [] });
         this.trialIdx++;
         if (this.trialIdx >= this.allTrials.length) {
           this.current = null;

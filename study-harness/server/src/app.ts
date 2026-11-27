@@ -12,7 +12,7 @@ import { CheckpointServer } from "./checkpoint.js";
 import { LiveEndpoint } from "./live.js";
 import { referenceSteps } from "./reference.js";
 import { makeStoryLoader } from "./trial.js";
-import { makeEventSink, writeBundle } from "./export.js";
+import { makeCodeArchive, makeEventSink, writeBundle } from "./export.js";
 import { ConflictError, StudySession, type AgentDeps, type SessionLimits, type WatchOutcome } from "./machine.js";
 import { assertProbeRuns, assertUnreadable, killUserProcesses, type SandboxOptions } from "./sandbox.js";
 
@@ -121,7 +121,8 @@ export async function buildApp(cfg: ServerConfig) {
     plan = generateSessionPlan({ participantId, studySeed, group, round });
     if (cfg.tryTrial) plan.practice = { ...plan.practice, ...cfg.tryTrial, story: cfg.tryTrial.story as typeof plan.practice.story };
     const sink = makeEventSink(cfg.exportDir, participantId, studySeed);
-    session = new StudySession(plan, loadStory, { agent, ...deps, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox }, sink, Date.now, cfg.showCondition ?? false, cfg.limits);
+    const archive = makeCodeArchive(cfg.exportDir, participantId, studySeed);
+    session = new StudySession(plan, loadStory, { agent, ...deps, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox, archive }, sink, Date.now, cfg.showCondition ?? false, cfg.limits);
     recordingFile = path.join(cfg.exportDir, `${participantId}_${studySeed}.recording.jsonl`);
     return plan;
   };

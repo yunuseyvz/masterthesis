@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { generateSessionPlan, type SessionPlan } from "@beacon/shared";
 import { buildApp } from "./app.js";
 import { FakeAgentHost } from "./agent.js";
-import { StudySession } from "./machine.js";
+import { StudySession, type TrialCode } from "./machine.js";
 import { loadReference, referenceSteps } from "./reference.js";
 import { projectDir, trialsDir } from "./test-paths.js";
 import { changedLines } from "./lines.js";
@@ -221,6 +221,20 @@ describe("study flow", () => {
     expect(bundle.events.filter((e: { type: string }) => e.type === "live_key")).toHaveLength(7);
     const jsonl = fs.readFileSync(path.join(cfg.exportDir, "PT_42.events.jsonl"), "utf8").trim().split("\n");
     expect(jsonl.length).toBe(bundle.events.length);
+    // The code as played, per trial: applying its snapshots in order to the base project gives the graded code.
+    const code = fs.readFileSync(path.join(cfg.exportDir, "PT_42.code.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l) as TrialCode);
+    expect(code.map((c) => c.position)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    for (const c of code) {
+      const t = c.position === 0 ? flowPlan.practice : flowPlan.trials[c.position - 1]!;
+      expect([c.story, c.regime, c.variant]).toEqual([t.story, t.regime, t.variant]);
+      const files = new Map(load(t.story).files());
+      for (const s of c.snapshots) for (const [f, content] of Object.entries(s.files)) content === null ? files.delete(f) : files.set(f, content);
+      const expected = ref(t.story).workspaceAt(t.variant, 4);
+      for (const d of ref(t.story).diff(t.variant, 1, 4)) expect(files.get(d.path), d.path).toBe(expected.get(d.path));
+      expect(c.snapshots.map((s) => s.at)).toEqual(expect.arrayContaining(["step1", "step2", "step3", "decision"]));
+      expect(c.snapshots.at(-1)!.at).toBe("graded");
+    }
+    expect(fs.readdirSync(cfg.exportDir).filter((f) => f.endsWith(".json"))).toEqual(["PT_42.json"]); // run-session.sh counts these
     await app.close();
   }, 120_000); // every trial runs its questions' scripts on the code
 
