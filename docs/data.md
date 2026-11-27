@@ -78,5 +78,5 @@ above. The optional comment is free text and may contain personal data.
 ## Open
 
 The page recording, the key presses and the command log are the most sensitive data. Anonymised data are kept and may
-be published (for example on OSF); when the pseudonymous raw data are deleted, and with them the chance to withdraw,
-is still to be set and named in the consent text.
+be published (for example on OSF); when the pseudonymous raw data are deleted is still to be set; the consent text names no
+date and no withdrawal after the session.
