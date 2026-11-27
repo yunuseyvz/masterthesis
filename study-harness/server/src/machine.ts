@@ -215,11 +215,20 @@ export class StudySession {
     // experimenter aid; off in real sessions
     private readonly showCondition = false,
     limits: Partial<SessionLimits> = {},
+    // version: the harness's git commit, for the data. ended: an earlier run of this participant got this far, so this
+    // one only shows that end (see earlierRun).
+    private readonly run: { version?: string; ended?: "finished" | "abandoned" } = {},
   ) {
     this.allTrials = [plan.practice, ...plan.trials];
     this.limits = { ...DEFAULT_LIMITS, ...limits };
     this.startedAt = this.lastInput = this.phaseSince = this.now();
-    this.log("session_start", { participantId: plan.participantId, studySeed: plan.studySeed, group: plan.group, plan });
+    const version = run.version ?? null;
+    if (run.ended) {
+      this._phase = run.ended;
+      this.log("session_refused", { participantId: plan.participantId, studySeed: plan.studySeed, version, earlier: run.ended });
+      return;
+    }
+    this.log("session_start", { participantId: plan.participantId, studySeed: plan.studySeed, group: plan.group, version, plan });
     this.shownAt = this.startedAt;
     this.log("presurvey_shown", {});
     // The practice's plan is prepared while the participant fills in the questionnaire and reads the introduction.
@@ -624,6 +633,7 @@ export class StudySession {
       practice: this.trialIdx === 0,
       sessions: this.sessionsSoFar(),
     };
+    if (this.run.ended) base.earlier = true;
     if (!this.current || ["intro", "presurvey", "ready", "postsurvey", "debrief", "finished", "abandoned"].includes(this.phase)) return base;
 
     const story = this.story;

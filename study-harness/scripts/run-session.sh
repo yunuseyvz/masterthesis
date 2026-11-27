@@ -93,7 +93,9 @@ mkdir -p "$EXPORTS" "$RUN"
 chmod 700 "$EXPORTS" "$RUN"
 rm -f "$RUN/app.sock"
 
-docker build -q -f "$ROOT/study-harness/Dockerfile" -t beacon-study-harness "$ROOT" >/dev/null
+# recorded with each session (session_start's version)
+COMMIT=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)$(git -C "$ROOT" diff --quiet HEAD 2>/dev/null || echo -dirty)
+docker build -q -f "$ROOT/study-harness/Dockerfile" --build-arg HARNESS_COMMIT="$COMMIT" -t beacon-study-harness "$ROOT" >/dev/null
 
 # The container has network access (the experimenter observes the session). The study page, which is opencode's
 # web app in study mode, is reached through the unix socket below; opencode itself is not published.

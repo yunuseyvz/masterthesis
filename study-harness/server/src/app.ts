@@ -12,7 +12,7 @@ import { CheckpointServer } from "./checkpoint.js";
 import { LiveEndpoint } from "./live.js";
 import { referenceSteps } from "./reference.js";
 import { makeStoryLoader } from "./trial.js";
-import { makeCodeArchive, makeEventSink, writeBundle } from "./export.js";
+import { earlierRun, makeCodeArchive, makeEventSink, writeBundle } from "./export.js";
 import { ConflictError, StudySession, type AgentDeps, type SessionLimits, type WatchOutcome } from "./machine.js";
 import { assertProbeRuns, assertUnreadable, killUserProcesses, type SandboxOptions } from "./sandbox.js";
 
@@ -36,6 +36,8 @@ export interface ServerConfig {
   basePath?: string;
   completionUrl?: string;
   tryTrial?: { story: string; regime: Regime; variant: Variant };
+  // the harness's git commit, recorded with each session
+  version?: string;
   sandbox: SandboxOptions;
   protectedPaths?: string[];
   workRoot: string;
@@ -120,9 +122,14 @@ export async function buildApp(cfg: ServerConfig) {
   const start = (participantId: string, studySeed: string, group?: number, round?: number) => {
     plan = generateSessionPlan({ participantId, studySeed, group, round });
     if (cfg.tryTrial) plan.practice = { ...plan.practice, ...cfg.tryTrial, story: cfg.tryTrial.story as typeof plan.practice.story };
+    // A run that got as far as a trial is not started again: the participant knows stories by then. One that did not
+    // (closed during the questionnaire) starts afresh.
+    const earlier = earlierRun(cfg.exportDir, participantId, studySeed);
+    const endedAs = earlier === "finished" ? "finished" : earlier === "started" ? "abandoned" : undefined;
     const sink = makeEventSink(cfg.exportDir, participantId, studySeed);
     const archive = makeCodeArchive(cfg.exportDir, participantId, studySeed);
-    session = new StudySession(plan, loadStory, { agent, ...deps, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox, archive }, sink, Date.now, cfg.showCondition ?? false, cfg.limits);
+    session = new StudySession(plan, loadStory, { agent, ...deps, workRoot: path.join(cfg.workRoot, participantId), sandbox: cfg.sandbox, archive }, sink, Date.now, cfg.showCondition ?? false, cfg.limits, { version: cfg.version, ended: endedAs });
+    if (earlier === "unstarted") session.log("session_restarted", { earlier });
     recordingFile = path.join(cfg.exportDir, `${participantId}_${studySeed}.recording.jsonl`);
     return plan;
   };

@@ -468,7 +468,15 @@ export function StudyPage() {
     <Switch>
       <Match when={done() || view()!.phase === "finished"}>
         <Card title="Thank you">
-          <Show when={view()!.demo} fallback={<p>You can close this window.</p>}>
+          <Show when={view()!.demo} fallback={
+            <Show when={view()!.earlier && view()!.completionUrl} fallback={<p>You can close this window.</p>}>
+              {/* Finished in an earlier run of the pod, but the platform never recorded it: hand out its link again. */}
+              <p>You finished this study earlier, and your answers are saved. Continue to record that you have finished.</p>
+              <div data-study-actions>
+                <Button variant="submit" size="large" onClick={() => location.assign(view()!.completionUrl!)}>Continue</Button>
+              </div>
+            </Show>
+          }>
             <p>This is a demo. A fresh session with a new participant ID is ready.</p>
             <div data-study-actions>
               <Button variant="submit" size="large" onClick={() => window.location.assign("/")}>Start again</Button>
@@ -478,10 +486,18 @@ export function StudyPage() {
       </Match>
       <Match when={view()!.phase === "abandoned"}>
         <Card title="This session has ended">
-          <p>
-            There was no activity for a long time, or the session reached its time limit, so it was closed. Thank you for
-            your time. If you would like to take part again or have questions, please contact the experimenter.
-          </p>
+          <Show when={view()!.earlier} fallback={
+            <p>
+              There was no activity for a long time, or the session reached its time limit, so it was closed. Thank you
+              for your time. If you would like to take part again or have questions, please contact the experimenter.
+            </p>
+          }>
+            {/* Ended in an earlier run of the pod: by then the participant knows some of the stories. */}
+            <p>
+              Your session ended earlier and cannot be continued, because you have already seen some of the tasks. Thank
+              you for your time. If you have questions, please contact the experimenter.
+            </p>
+          </Show>
         </Card>
       </Match>
       <Match when={view()!.phase === "intro"}><Intro /></Match>

@@ -67,6 +67,8 @@ const app = await buildApp({
   demo,
   showCondition: env.SHOW_CONDITION === "1",
   tryTrial,
+  // set when the image is built (Dockerfile, HARNESS_COMMIT)
+  version: env.HARNESS_COMMIT || undefined,
   recording: env.SESSION_RECORDING !== "0",
   // STUDY_CONSENT=external: Conditioner's entry page collected consent before the pod started.
   externalConsent: env.STUDY_CONSENT === "external",

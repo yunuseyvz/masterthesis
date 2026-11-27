@@ -54,4 +54,8 @@ RUN groupadd --gid 61234 sandbox \
 # The study page and opencode share one origin: the server hosts opencode's web app and forwards its API.
 ENV NODE_ENV=production SANDBOX_UID=61234 SANDBOX_GID=61234 PROBE_UID=61235 EXPORT_DIR=/exports LISTEN_SOCKET=/run/study/app.sock \
     OPENCODE_BIN=/usr/local/bin/opencode WORK_ROOT=/work AGENT_HOME=/agent-home
+# Recorded with each session, so the data say which version ran it:
+# --build-arg HARNESS_COMMIT=$(git rev-parse --short HEAD)$(git diff --quiet HEAD || echo -dirty)
+ARG HARNESS_COMMIT
+ENV HARNESS_COMMIT=$HARNESS_COMMIT
 CMD ["npx", "tsx", "study-harness/server/src/main.ts"]

@@ -134,5 +134,15 @@ Conditioner's dashboard (`POST 127.0.0.1:8180/monitor/report/backup`, or `.../co
 or update on the VM: copy the script to `~/bin/` and the two units to `~/.config/systemd/user/`, then
 `systemctl --user daemon-reload && systemctl --user enable --now study-backup.timer`.
 
-Still missing before participants: an allowlist for opencode's API, resume after a restart, and a load test with
-several sessions.
+**Restarts.** Conditioner starts a stopped pod again when its participant opens the link: after Finish, inactivity,
+the time limit, a crash or its own idle stop. The harness doesn't resume a session. A run that got as far as the first
+trial isn't played again, because by then the participant knows stories. The harness shows the end page instead
+(`session_refused` in the events), with the completion link again if a result exists (`earlierRun` in `export.ts`). A
+run that ended during the questionnaire starts afresh (`session_restarted`).
+
+**Version.** Build the image with `--build-arg HARNESS_COMMIT=$(git rev-parse --short HEAD)$(git diff --quiet HEAD ||
+echo -dirty)`, as `run-session.sh` does: `session_start` records it as `version`. Conditions name
+`localhost/beacon:latest`, and a pod keeps the image it was created with, so a rebuild reaches only participants who
+join afterwards.
+
+Still missing before participants: an allowlist for opencode's API and a load test with several sessions.

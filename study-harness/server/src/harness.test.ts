@@ -685,6 +685,56 @@ describe("step check at the checkpoint", () => {
   });
 });
 
+describe("a pod the platform starts again", () => {
+  const COMPLETE = "https://example.org/__complete/s/u?k=secret";
+  const events = (dir: string, file: string) => fs.readFileSync(path.join(dir, file), "utf8").trim().split("\n").map((l) => JSON.parse(l).type as string);
+  const line = (type: string) => JSON.stringify({ t: 1, type, data: {} }) + "\n";
+
+  it("shows the end of a finished run, with the completion link, instead of starting again", async () => {
+    const cfg = fakeConfig("RS1", "5", 0, { completionUrl: COMPLETE });
+    fs.writeFileSync(path.join(cfg.exportDir, "RS1_5.json"), "{}");
+    fs.writeFileSync(path.join(cfg.exportDir, "RS1_5.events.jsonl"), line("session_start") + line("trial_start") + line("finish"));
+    const app = await buildApp(cfg);
+    expect((await app.inject({ url: "/_study/state" })).json()).toMatchObject({ phase: "finished", earlier: true, completionUrl: COMPLETE });
+    expect((await app.inject({ method: "POST", url: "/_study/action", payload: PRESURVEY })).statusCode).toBe(409);
+    expect((await app.inject({ method: "POST", url: "/_study/finish" })).statusCode).toBe(409);
+    expect(fs.readFileSync(path.join(cfg.exportDir, "RS1_5.json"), "utf8")).toBe("{}"); // the result stays as it was
+    expect(events(cfg.exportDir, "RS1_5.events.jsonl").slice(3)).toEqual(["session_refused"]);
+    expect(fs.existsSync(path.join(cfg.workRoot, "RS1"))).toBe(false); // no agent work for a practice trial
+    await app.close();
+  });
+
+  it("does not start a run again that got as far as a trial", async () => {
+    const cfg = fakeConfig("RS2", "5", 0, { completionUrl: COMPLETE });
+    fs.writeFileSync(path.join(cfg.exportDir, "RS2_5.events.jsonl"), line("session_start") + line("trial_start") + line("session_abandoned"));
+    const app = await buildApp(cfg);
+    const view = (await app.inject({ url: "/_study/state" })).json();
+    expect(view).toMatchObject({ phase: "abandoned", earlier: true });
+    expect(view.completionUrl).toBeUndefined();
+    expect((await app.inject({ method: "POST", url: "/_study/presence", payload: { inputAgoMs: 0 } })).json()).toEqual({ prompt: false, ended: true });
+    expect(fs.existsSync(path.join(cfg.exportDir, "RS2_5.json"))).toBe(false);
+    await app.close();
+  });
+
+  it("records the harness's version", async () => {
+    const cfg = fakeConfig("RS4", "5", 0, { version: "abc1234" });
+    const app = await buildApp(cfg);
+    const start = fs.readFileSync(path.join(cfg.exportDir, "RS4_5.events.jsonl"), "utf8").split("\n").map((l) => (l ? JSON.parse(l) : null)).find((e) => e?.type === "session_start");
+    expect(start.data.version).toBe("abc1234");
+    await app.close();
+  });
+
+  it("starts afresh when the earlier run ended before the first trial", async () => {
+    const cfg = fakeConfig("RS3", "5", 0);
+    fs.writeFileSync(path.join(cfg.exportDir, "RS3_5.events.jsonl"), line("session_start") + line("presurvey_shown") + line("session_abandoned"));
+    const app = await buildApp(cfg);
+    expect((await app.inject({ url: "/_study/state" })).json().phase).toBe("presurvey");
+    // (the practice's plan is prepared in the background, so its events follow)
+    expect(events(cfg.exportDir, "RS3_5.events.jsonl").slice(3, 7)).toEqual(["session_start", "presurvey_shown", "trial_prepare", "session_restarted"]);
+    await app.close();
+  });
+});
+
 describe("an answer the script cannot grade", () => {
   it("is recorded as missing, not as wrong", async () => {
     const plan = generateSessionPlan({ participantId: "UG", studySeed: "2", group: 0 });

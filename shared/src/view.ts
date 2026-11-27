@@ -20,6 +20,8 @@ export interface ViewState {
   recording?: boolean;
   // consent was given on Conditioner's entry page, so the questionnaire does not ask again
   externalConsent?: boolean;
+  // the session ended in an earlier run of the pod; this one only shows that end
+  earlier?: boolean;
   debugTag?: string;
   sessions: { trial: number; title: string; project: string }[];
   story?: { title: string; brief: string; project: string };

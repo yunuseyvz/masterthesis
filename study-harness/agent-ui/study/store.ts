@@ -26,6 +26,8 @@ export interface StudyView {
   debugTag?: string
   recording?: boolean
   externalConsent?: boolean
+  // the session ended in an earlier run of the pod (restarted by the platform)
+  earlier?: boolean
   completionUrl?: string
   story?: { title: string; brief: string; project: string }
   agentSessionId?: string

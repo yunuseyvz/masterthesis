@@ -13,6 +13,15 @@ export function makeEventSink(exportDir: string, participantId: string, studySee
   };
 }
 
+// How far an earlier run of this participant got, from its files: a platform restarts a pod that has ended (Finish,
+// inactivity, the time limit, a crash), and the harness then starts again with the same ID and seed.
+export function earlierRun(exportDir: string, participantId: string, studySeed: string): "finished" | "started" | "unstarted" | null {
+  const base = path.join(exportDir, `${participantId}_${studySeed}`);
+  if (fs.existsSync(`${base}.json`)) return "finished";
+  if (!fs.existsSync(`${base}.events.jsonl`)) return null;
+  return fs.readFileSync(`${base}.events.jsonl`, "utf8").includes(`"type":"trial_start"`) ? "started" : "unstarted";
+}
+
 // One line per trial as it ends. Not .json: scripts count the session bundles as *.json.
 export function makeCodeArchive(exportDir: string, participantId: string, studySeed: string) {
   const file = path.join(exportDir, `${participantId}_${studySeed}.code.jsonl`);
