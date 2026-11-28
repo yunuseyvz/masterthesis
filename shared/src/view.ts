@@ -61,7 +61,12 @@ export const Action = z.discriminatedUnion("type", [
   z.object({ type: z.literal("stage1"), decision: z.enum(["accept", "reject"]) }),
   z.object({
     type: z.literal("postsurvey"),
+    // favourite first
     ranking: z.array(Style).length(2).refine((r) => new Set(r).size === 2, "each style once"),
+    // how strongly: 1 slightly, 2 clearly, 3 strongly
+    strength: z.number().int().min(1).max(3),
+    // the order the two were shown in, left first
+    shown: z.array(Style).length(2).optional(),
     comment: z.string().max(2000).optional(),
   }),
   z.object({

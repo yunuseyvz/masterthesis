@@ -203,7 +203,7 @@ Share of trials whose decision changed after the behaviour question, per regime 
 
 Time before the decision (`stage1DwellMs`) and for the final review (`finalReviewMs`, medians), mental effort (Paas
 1–9), the three statements about each feature's review (`pauseTiming`, `pauseHelped`, `pauseDisrupted`, 1–7; means
-per regime), share of correct final decisions, the preference ranking from the post-survey. No tests.
+per regime), share of correct final decisions, the preference from the post-survey (which of the two ways of working, and how strongly). No tests.
 
 ## 4. Covariates and robustness
 

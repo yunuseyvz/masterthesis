@@ -122,7 +122,7 @@ try {
   }
 
   await phase("postsurvey");
-  await act({ type: "postsurvey", ranking: ["PAUSE", "END"], comment: "mechanical run" });
+  await act({ type: "postsurvey", ranking: ["PAUSE", "END"], strength: 2, comment: "mechanical run" });
   await phase("debrief");
   const bundle = study.finish();
   writeBundle(exportDir, bundle);

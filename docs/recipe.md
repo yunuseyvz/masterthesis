@@ -101,14 +101,14 @@ Every use of an LLM is recorded under Provenance in [stimuli.md](stimuli.md).
 ## 6. Instruments and data
 
 Session flow: consent (Conditioner's entry page) → questionnaire → introduction → guided practice (US0) → summary page →
-six features → preference ranking → debrief.
+six features → preference (which way of working, how strongly) → debrief.
 
 | When | What |
 |---|---|
 | Before | Demographics and experience; Need for Cognition (6 items) with an attention check; trust in AI coding assistants (3 items, 1–7) |
 | Per feature, at the review | Accept or reject; behaviour question (may run the code, "I don't know" allowed); optional reversal; after a rejection one message to the agent |
 | Per feature, after it, code hidden | Five understanding items, each with confidence (25–100 %); mental effort (Paas, 1–9); three statements about the review (1–7) |
-| After | Preference ranking of the ways of working, free text; debrief |
+| After | Which way of working they preferred and how strongly, free text; debrief |
 | Throughout | Timings, interactions in the changes view, files, terminal, the agent session, a screen recording |
 
 Everything recorded is listed in [data.md](data.md); exports go to `exports/` (`trials.csv`, a bundle and events per

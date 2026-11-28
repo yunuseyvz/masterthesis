@@ -32,6 +32,7 @@ const PRESURVEY = {
 const POSTSURVEY = {
   type: "postsurvey",
   ranking: ["PAUSE", "END"],
+  strength: 2,
   comment: "fine",
 };
 

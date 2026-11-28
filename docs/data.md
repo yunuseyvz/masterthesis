@@ -26,7 +26,9 @@ missing (`null` in the bundle, an empty cell in `trials.csv`), not wrong.
   attention check, S-TIAS.
 - **Per story:** plan approval, accept/reject, behaviour question, reversal, answer to the agent after a rejection,
   five understanding questions with confidence, mental effort (Paas), three statements about the review.
-- **After:** preference ranking, optional comment.
+- **After:** which of the two ways of working (a pause partway, or a review at the end) the participant preferred
+  (`ranking`, favourite first) and how strongly (`strength`: 1 slightly, 2 clearly, 3 strongly), the order the two were
+  shown in (`shown`, swapped for half the participants), optional comment.
 
 ## Indirect
 

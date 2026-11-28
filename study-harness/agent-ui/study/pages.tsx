@@ -43,9 +43,23 @@ const FREQ: Opt[] = [
 ]
 const CONFIDENCE = [25, 40, 55, 70, 85, 100]
 const STYLES = [
-  { value: "END", label: "The agent works through everything and I review once, at the very end" },
-  { value: "PAUSE", label: "The agent pauses partway through and I review that part before it continues" },
+  { value: "END", title: "Review at the end", label: "The agent works through everything and I review once, at the very end." },
+  { value: "PAUSE", title: "Review partway", label: "The agent pauses partway through and I review that part before it continues." },
 ]
+const STRENGTHS = ["Slightly", "Clearly", "Strongly"]
+
+// The agent's steps as bars, the review as a ring: after the second step or after the last.
+function Timeline(props: { review: "PAUSE" | "END" }) {
+  const steps = props.review === "PAUSE" ? [0, 48, 144, 192] : [0, 48, 96, 144]
+  const ring = props.review === "PAUSE" ? 118 : 222
+  return (
+    <svg data-study-timeline viewBox="0 0 240 34" aria-hidden="true">
+      <For each={steps}>{(x) => <rect x={x} y="12" width="44" height="10" rx="3" />}</For>
+      <circle cx={ring} cy="17" r="9" fill="none" stroke-width="1.5" />
+      <circle cx={ring} cy="17" r="2.5" />
+    </svg>
+  )
+}
 
 function Card(props: { step?: string; title: string; children: any }) {
   return (
@@ -404,37 +418,56 @@ function Quiz() {
 }
 
 function PostSurvey() {
-  const [ranking, setRanking] = createSignal<string[]>([])
+  const [choice, setChoice] = createSignal<"END" | "PAUSE">()
+  const [strength, setStrength] = createSignal<number>()
   const [comment, setComment] = createSignal("")
-  const remaining = () => STYLES.filter((s) => !ranking().includes(s.value))
-  const label = (v: string) => STYLES.find((s) => s.value === v)!.label
+  // Half the participants see the two the other way round, fixed by their ID.
+  const flip = [...view()!.participantId].reduce((n, c) => n + c.charCodeAt(0), 0) % 2 === 1
+  const shown = flip ? [...STYLES].reverse() : STYLES
+  const submit = () => {
+    const first = choice()!
+    act({
+      type: "postsurvey",
+      ranking: [first, first === "END" ? "PAUSE" : "END"],
+      strength: strength()!,
+      shown: shown.map((s) => s.value),
+      comment: comment().trim() || undefined,
+    })
+  }
   return (
-    <Card step="Final questions" title="Your preferences">
+    <Card step="Final questions" title="Your preference">
       <div data-study-field>
-        <div data-study-label>You experienced two ways of working with the agent. Click them in order of your preference, favourite first.</div>
-        <div data-study-options>
-          <For each={remaining()}>
+        <div data-study-label>You worked with the agent in two ways. Which did you prefer?</div>
+        <div data-study-prefs>
+          <For each={shown}>
             {(s) => (
-              <button type="button" data-study-option onClick={() => setRanking([...ranking(), s.value])}>
-                <span data-study-rank>{ranking().length + 1}</span>
-                <span>{s.label}</span>
+              <button type="button" data-study-pref data-picked={choice() === s.value} onClick={() => setChoice(s.value as "END" | "PAUSE")}>
+                <span data-study-pref-title><span data-study-radio />{s.title}</span>
+                <Timeline review={s.value as "END" | "PAUSE"} />
+                <span data-study-pref-desc>{s.label}</span>
               </button>
             )}
           </For>
         </div>
-        <Show when={ranking().length > 0}>
-          <div data-study-ranking>
-            <For each={ranking()}>{(r, i) => <div><span data-study-rank>{i() + 1}</span>{label(r)}</div>}</For>
-            <Button variant="ghost" size="normal" onClick={() => setRanking([])}>Reset ranking</Button>
-          </div>
-        </Show>
+      </div>
+      <div data-study-field data-study-dim={choice() === undefined}>
+        <div data-study-label>How strongly do you prefer it?</div>
+        <div data-study-scale>
+          <For each={STRENGTHS}>
+            {(label, i) => (
+              <button type="button" disabled={choice() === undefined} data-picked={strength() === i() + 1} onClick={() => setStrength(i() + 1)}>
+                {label}
+              </button>
+            )}
+          </For>
+        </div>
       </div>
       <div data-study-field>
         <div data-study-label>Anything you'd like to add? (optional)</div>
         <textarea data-study-textarea rows={4} maxLength={2000} value={comment()} onInput={(e) => setComment(e.currentTarget.value)} />
       </div>
       <div data-study-actions>
-        <Button variant="submit" size="large" disabled={busy() || ranking().length !== 2} onClick={() => act({ type: "postsurvey", ranking: ranking(), comment: comment().trim() || undefined })}>
+        <Button variant="submit" size="large" disabled={busy() || choice() === undefined || strength() === undefined} onClick={submit}>
           Submit
         </Button>
       </div>
