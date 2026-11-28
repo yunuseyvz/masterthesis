@@ -33,8 +33,9 @@ COPY study-harness/project/package.json ./
 RUN npm install --no-audit --no-fund && chmod -R a+rX /opt/shopfront
 
 FROM node:24-slim
-# git: the trial projects are git repositories, so opencode shows the agent's work as changes.
-RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
+# git: the trial projects are git repositories, so opencode shows the agent's work as changes. ripgrep: the agent's
+# search tools use it, and opencode would otherwise download it, which the pod's network doesn't allow.
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates ripgrep && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app /app
 COPY --from=agent-ui /build/agent-ui/dist /app/study-harness/agent-ui/dist
